@@ -1,0 +1,9 @@
+{
+  "features": {
+    "dotnetSdkInstallationEnabled": "true"
+  },
+  "appHost": {
+    "path": "TechSpherex.CleanArchitecture.AppHost.csproj"
+  },
+  "aspireUseCliBundle": "true"
+}

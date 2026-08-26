@@ -32,7 +32,7 @@ public sealed partial class RuleEngine : IRuleEngine
             {
                 Name = ruleSetSection.Key,
                 Operator = Enum.TryParse<LogicOperator>(ruleSetSection["Operator"], true, out var op) ? op : LogicOperator.And,
-                Rules = []
+                Rules = new List<RuleConfig>()
             };
 
             var rulesSection = ruleSetSection.GetSection("Rules");
@@ -49,7 +49,7 @@ public sealed partial class RuleEngine : IRuleEngine
                 });
             }
 
-            ruleSet.Rules = [.. ruleSet.Rules.OrderBy(r => r.Priority)];
+            ruleSet.Rules = ruleSet.Rules.OrderBy(r => r.Priority).ToList();
             _ruleSets[ruleSet.Name] = ruleSet;
         }
 
@@ -115,25 +115,32 @@ public sealed partial class RuleEngine : IRuleEngine
         return EvaluateRule(rule, context);
     }
 
-    public IReadOnlyList<string> GetRuleSetNames() => [.. _ruleSets.Keys];
+    public IReadOnlyList<string> GetRuleSetNames() => _ruleSets.Keys.ToList().AsReadOnly();
 
     private static bool EvaluateRule(RuleConfig rule, IDictionary<string, object?> context)
     {
         context.TryGetValue(rule.Field, out var fieldValue);
 
+        // If rule.Value matches another field in context, use that field's value
+        object? comparisonValue = rule.Value;
+        if (rule.Value is not null && context.TryGetValue(rule.Value, out var contextVal))
+        {
+            comparisonValue = contextVal;
+        }
+
         return rule.ComparisonOperator.ToUpperInvariant() switch
         {
             "ISNULL" => fieldValue is null,
             "ISNOTNULL" => fieldValue is not null,
-            "==" or "EQ" => Equals(ConvertValue(fieldValue), ConvertValue(rule.Value)),
-            "!=" or "NEQ" => !Equals(ConvertValue(fieldValue), ConvertValue(rule.Value)),
-            ">" or "GT" => CompareNumeric(fieldValue, rule.Value) > 0,
-            "<" or "LT" => CompareNumeric(fieldValue, rule.Value) < 0,
-            ">=" or "GTE" => CompareNumeric(fieldValue, rule.Value) >= 0,
-            "<=" or "LTE" => CompareNumeric(fieldValue, rule.Value) <= 0,
-            "CONTAINS" => fieldValue?.ToString()?.Contains(rule.Value ?? "", StringComparison.OrdinalIgnoreCase) == true,
-            "STARTSWITH" => fieldValue?.ToString()?.StartsWith(rule.Value ?? "", StringComparison.OrdinalIgnoreCase) == true,
-            "ENDSWITH" => fieldValue?.ToString()?.EndsWith(rule.Value ?? "", StringComparison.OrdinalIgnoreCase) == true,
+            "==" or "EQ" => Equals(ConvertValue(fieldValue), ConvertValue(comparisonValue)),
+            "!=" or "NEQ" => !Equals(ConvertValue(fieldValue), ConvertValue(comparisonValue)),
+            ">" or "GT" => CompareNumeric(fieldValue, comparisonValue) > 0,
+            "<" or "LT" => CompareNumeric(fieldValue, comparisonValue) < 0,
+            ">=" or "GTE" => CompareNumeric(fieldValue, comparisonValue) >= 0,
+            "<=" or "LTE" => CompareNumeric(fieldValue, comparisonValue) <= 0,
+            "CONTAINS" => fieldValue?.ToString()?.Contains(comparisonValue?.ToString() ?? "", StringComparison.OrdinalIgnoreCase) == true,
+            "STARTSWITH" => fieldValue?.ToString()?.StartsWith(comparisonValue?.ToString() ?? "", StringComparison.OrdinalIgnoreCase) == true,
+            "ENDSWITH" => fieldValue?.ToString()?.EndsWith(comparisonValue?.ToString() ?? "", StringComparison.OrdinalIgnoreCase) == true,
             _ => false
         };
     }
@@ -141,12 +148,19 @@ public sealed partial class RuleEngine : IRuleEngine
     private static object? ConvertValue(object? value)
     {
         if (value is null) return null;
-        var str = value.ToString();
-        if (str is null) return null;
 
-        if (decimal.TryParse(str, CultureInfo.InvariantCulture, out var d)) return d;
-        if (bool.TryParse(str, out var b)) return b;
-        return str;
+        // Handle booleans first - important for correct comparison
+        if (value is bool boolVal) return boolVal;
+        if (value is string strVal)
+        {
+            if (bool.TryParse(strVal, out var b)) return b;
+            if (decimal.TryParse(strVal, CultureInfo.InvariantCulture, out var d)) return d;
+            return strVal;
+        }
+
+        // Handle other numeric types
+        if (decimal.TryParse(value.ToString(), CultureInfo.InvariantCulture, out var d2)) return d2;
+        return value.ToString();
     }
 
     private static int CompareNumeric(object? left, object? right)
@@ -176,7 +190,7 @@ internal sealed class RuleSetConfig
 {
     public string Name { get; set; } = default!;
     public LogicOperator Operator { get; set; } = LogicOperator.And;
-    public List<RuleConfig> Rules { get; set; } = [];
+    public List<RuleConfig> Rules { get; set; } = new List<RuleConfig>();
 }
 
 internal sealed class RuleConfig

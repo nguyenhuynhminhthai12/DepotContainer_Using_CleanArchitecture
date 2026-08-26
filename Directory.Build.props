@@ -4,5 +4,12 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UseSharedCompilation>false</UseSharedCompilation>
+    <NodeReuse>false</NodeReuse>
+    <BuildMaxParallelProjects>1</BuildMaxParallelProjects>
+  </PropertyGroup>
+  <PropertyGroup Label="TestSettings">
+    <ParallelizeTestRun>false</ParallelizeTestRun>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 </Project>

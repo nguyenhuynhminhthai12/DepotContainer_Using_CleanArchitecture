@@ -2,6 +2,7 @@
 using System.Reflection;
 using FluentAssertions;
 using NetArchTest.Rules;
+using TechSpherex.CleanArchitecture.Domain.Common;
 namespace TechSpherex.CleanArchitecture.Architecture.Tests;
 
 
@@ -121,5 +122,55 @@ public sealed class ArchitectureTests
             .GetResult();
 
         result.IsSuccessful.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// Enforces the multi-tenant constraint: every depot aggregate root must implement ITenantEntity
+    /// so the global query filter applies automatically.
+    /// </summary>
+    [Fact]
+    public void All_Depot_Entities_Should_Implement_ITenantEntity()
+    {
+        var tenantEntityNames = new[]
+        {
+            "Depot",
+            "Block",
+            "YardSlot",
+            "ContainerType",
+            "Container",
+            "LineOperator",
+            "ContainerMovement",
+            "Customer",
+            "DeliveryOrder"
+        };
+
+        foreach (var entityName in tenantEntityNames)
+        {
+            var matchingTypes = DomainAssembly.GetTypes()
+                .Where(t => t.IsClass && !t.IsAbstract && t.Name == entityName)
+                .ToList();
+
+            matchingTypes.Should().NotBeEmpty($"expected to find entity {entityName}");
+
+            matchingTypes.Should().AllSatisfy(type =>
+                typeof(ITenantEntity).IsAssignableFrom(type).Should().BeTrue(
+                    $"{type.FullName} must implement ITenantEntity for multi-tenancy."));
+        }
+    }
+
+    /// <summary>
+    /// All business rules must live under Domain.Common.Rules so the dependency rule stays clean.
+    /// </summary>
+    [Fact]
+    public void All_Business_Rules_Should_Implement_IBusinessRule()
+    {
+        var ruleTypes = DomainAssembly.GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract && t.Name.EndsWith("Rule"))
+            .ToList();
+
+        ruleTypes.Should().NotBeEmpty();
+        ruleTypes.Should().AllSatisfy(type =>
+            typeof(TechSpherex.CleanArchitecture.Domain.Common.Rules.IBusinessRule).IsAssignableFrom(type).Should().BeTrue(
+                $"{type.FullName} must implement IBusinessRule."));
     }
 }

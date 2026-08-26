@@ -67,3 +67,11 @@ TestResults/
 coverage/
 *.trx
 *.txt
+
+## Node & Angular
+node_modules/
+.angular/
+dist/
+.dotnet/
+*.bak
+*.aspire-bak

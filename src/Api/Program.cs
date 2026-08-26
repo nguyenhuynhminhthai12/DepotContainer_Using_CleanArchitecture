@@ -8,6 +8,7 @@ using TechSpherex.CleanArchitecture.Infrastructure;
 using TechSpherex.CleanArchitecture.Infrastructure.Persistence;
 using TechSpherex.CleanArchitecture.Infrastructure.Tenancy;
 using TechSpherex.CleanArchitecture.ServiceDefaults;
+using Microsoft.EntityFrameworkCore;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -24,11 +25,24 @@ try
     builder.Host.UseSerilog((context, loggerConfiguration) =>
         loggerConfiguration.ReadFrom.Configuration(context.Configuration));
 
-    // Aspire-managed PostgreSQL
-    builder.AddNpgsqlDbContext<AppDbContext>("TechSpherex-db");
+    // Local dev fallback: read connection strings from appsettings.Development.json when
+    // the Aspire service-discovery sidecars are not available. This lets us run API +
+    // dockerised Postgres + dockerised Redis directly (for Postman / curl smoke tests).
+    var dbConn = builder.Configuration.GetConnectionString("TechSpherex-db");
+    var cacheConn = builder.Configuration.GetConnectionString("TechSpherex-cache");
+    if (!string.IsNullOrWhiteSpace(dbConn) && !string.IsNullOrWhiteSpace(cacheConn))
+    {
+        builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(dbConn));
+        builder.Services.AddStackExchangeRedisCache(o => o.Configuration = cacheConn);
+    }
+    else
+    {
+        // Aspire-managed PostgreSQL
+        builder.AddNpgsqlDbContext<AppDbContext>("TechSpherex-db");
 
-    // Aspire-managed Redis (for HybridCache L2)
-    builder.AddRedisDistributedCache("TechSpherex-cache");
+        // Aspire-managed Redis (for HybridCache L2)
+        builder.AddRedisDistributedCache("TechSpherex-cache");
+    }
 
     // Application & Infrastructure (includes HybridCache, CORS, RuleEngine)
     builder.Services.AddApplication();
@@ -46,8 +60,8 @@ try
         options.AddDocumentTransformer((document, _, _) =>
         {
             var info = document.Info ?? new Microsoft.OpenApi.OpenApiInfo();
-            info.Title = "TechSpherex Clean Architecture API";
-            info.Description = "A production-ready Clean Architecture template for .NET 10 by TechSpherex";
+            info.Title = "Container Depot Management API";
+            info.Description = "A production-ready Clean Architecture system for managing container depots (Block / Bay / Row / Tier yard layout, Gate In/Out EIR, Delivery Orders, reports) — built on .NET 10 by TechSpherex.";
             info.Contact = new Microsoft.OpenApi.OpenApiContact
             {
                 Name = "TechSpherex",
@@ -94,7 +108,7 @@ try
         app.MapOpenApi();
         app.MapScalarApiReference(options =>
         {
-            options.WithTitle("TechSpherex Clean Architecture API");
+            options.WithTitle("Container Depot Management API");
             options.WithTheme(ScalarTheme.BluePlanet);
             options.WithDefaultHttpClient(ScalarTarget.Shell, ScalarClient.Curl);
         });
@@ -116,9 +130,18 @@ try
     app.MapIdentityEndpoints();
     app.MapTodoEndpoints();
     app.MapAgentEndpoints();
+    app.MapYardEndpoints();
+    app.MapContainerEndpoints();
+    app.MapGateEndpoints();
+    app.MapMovementEndpoints();
+    app.MapDeliveryOrderEndpoints();
+    app.MapReportEndpoints();
+    app.MapLookupEndpoints();
 
     // Map gRPC services
     app.MapGrpcService<TodoGrpcService>();
+    app.MapGrpcService<ContainerGrpcService>();
+    app.MapGrpcService<YardGrpcService>();
 
     // Aspire default endpoints (health, alive)
     app.MapDefaultEndpoints();

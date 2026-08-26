@@ -2,4 +2,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="TechSpherex.CleanArchitecture.Application.UnitTests" />
+    <InternalsVisibleTo Include="TechSpherex.CleanArchitecture.Infrastructure" />
+  </ItemGroup>
 </Project>

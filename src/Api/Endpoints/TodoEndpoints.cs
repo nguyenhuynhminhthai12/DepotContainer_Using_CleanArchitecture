@@ -72,7 +72,7 @@ public static class TodoEndpoints
     {
         var result = await handler.HandleAsync(command, cancellationToken);
         return result.IsSuccess
-            ? TypedResults.CreatedAtRoute(result.Value, "GetTodoById", new { id = result.Value!.Id })
+            ? TypedResults.Created($"/api/todos/{result.Value!.Id}", result.Value)
             : result.ToProblemDetails();
     }
 

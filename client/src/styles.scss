@@ -1,0 +1,70 @@
+/* Global styles for the Depot Management UI. Minimal — components own their layout. */
+:root {
+  --color-bg: #f5f6f8;
+  --color-surface: #ffffff;
+  --color-primary: #1a73e8;
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-danger: #dc2626;
+  --color-text: #1f2937;
+  --color-muted: #6b7280;
+  --color-border: #e5e7eb;
+  --radius: 6px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+a { color: var(--color-primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+button {
+  font: inherit;
+  cursor: pointer;
+  background: var(--color-primary);
+  color: #fff;
+  border: 0;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  transition: opacity 0.15s;
+}
+button:hover { opacity: 0.92; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+button.secondary { background: #fff; color: var(--color-text); border: 1px solid var(--color-border); }
+
+input, select, textarea {
+  font: inherit;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: #fff;
+}
+input:focus, select:focus { outline: 2px solid var(--color-primary); outline-offset: -1px; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface);
+}
+th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--color-border); }
+th { background: #fafafa; font-weight: 600; }
+tbody tr:hover { background: #f9fafb; }
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.muted { color: var(--color-muted); }
+.error { color: var(--color-danger); }
+.success { color: var(--color-success); }

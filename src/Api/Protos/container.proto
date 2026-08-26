@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+option csharp_namespace = "TechSpherex.CleanArchitecture.Api.GrpcServices";
+
+package container;
+
+// gRPC service for Container depot operations — high-performance binary protocol
+// for service-to-service communication (e.g. port Eport/TOPX integration).
+service ContainerService {
+  rpc GetContainer (GetContainerRequest) returns (ContainerResponse);
+  rpc GateIn (GateInRequest) returns (MovementResponse);
+  rpc GateOut (GateOutRequest) returns (MovementResponse);
+  rpc GetMovementHistory (GetMovementHistoryRequest) returns (MovementHistoryResponse);
+}
+
+message GetContainerRequest {
+  string container_number = 1;
+}
+
+message GateInRequest {
+  string container_number = 1;
+  string line_operator_id = 2;
+  string block_id = 3;
+  int32 bay = 4;
+  int32 row = 5;
+  int32 tier = 6;
+  string classification = 7;
+  string condition_at_gate_in = 8;
+  optional string vehicle_in_number = 9;
+  optional string driver_in_name = 10;
+}
+
+message GateOutRequest {
+  string container_number = 1;
+  string delivery_order_id = 2;
+  optional string vehicle_out_number = 3;
+  optional string driver_out_name = 4;
+  string condition_at_gate_out = 5;
+}
+
+message GetMovementHistoryRequest {
+  string container_number = 1;
+}
+
+message ContainerResponse {
+  string id = 1;
+  string container_number = 2;
+  string container_type_id = 3;
+  string iso_code = 4;
+  int32 size_feet = 5;
+  string manufacture_date = 6;
+  string owner = 7;
+  string condition = 8;
+}
+
+message MovementResponse {
+  string id = 1;
+  string container_id = 2;
+  string line_operator_id = 3;
+  string block_id = 4;
+  string classification = 5;
+  string condition_at_gate_in = 6;
+  string gate_in_at = 7;
+  string status = 8;
+  string gate_out_at = 9;
+}
+
+message MovementHistoryResponse {
+  repeated MovementResponse items = 1;
+}

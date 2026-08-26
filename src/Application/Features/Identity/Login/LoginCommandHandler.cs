@@ -14,11 +14,11 @@ public sealed class LoginCommandHandler(
     {
         var user = await userManager.FindByEmailAsync(command.Email);
         if (user is null)
-            return Result.Failure<TokenResponse>(Error.Validation("Auth.InvalidCredentials", "Invalid email or password."));
+            return Result.Failure<TokenResponse>(Error.Unauthorized("Auth.InvalidCredentials", "Invalid email or password."));
 
         var isValidPassword = await userManager.CheckPasswordAsync(user, command.Password);
         if (!isValidPassword)
-            return Result.Failure<TokenResponse>(Error.Validation("Auth.InvalidCredentials", "Invalid email or password."));
+            return Result.Failure<TokenResponse>(Error.Unauthorized("Auth.InvalidCredentials", "Invalid email or password."));
 
         var token = await tokenService.GenerateTokenAsync(user, cancellationToken);
         return Result.Success(token);

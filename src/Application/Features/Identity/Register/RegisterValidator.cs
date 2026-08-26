@@ -22,9 +22,5 @@ public sealed class RegisterValidator : AbstractValidator<RegisterCommand>
         RuleFor(x => x.Password)
             .NotEmpty()
             .MinimumLength(6);
-
-        RuleFor(x => x.ConfirmPassword)
-            .Equal(x => x.Password)
-            .WithMessage("Passwords do not match.");
     }
 }

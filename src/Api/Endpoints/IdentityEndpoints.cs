@@ -13,21 +13,24 @@ public static class IdentityEndpoints
 {
     public static void MapIdentityEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/identity")
-            .WithTags("Identity");
+        MapGroup(app.MapGroup("/api/identity"));
+        MapGroup(app.MapGroup("/api/auth"));
+    }
+
+    private static void MapGroup(RouteGroupBuilder group)
+    {
+        group.WithTags("Identity");
 
         group.MapPost("/register", Register)
             .AddEndpointFilter<ValidationFilter<RegisterCommand>>()
-            .WithName("Register")
             .WithSummary("Register a new user");
 
         group.MapPost("/login", Login)
             .AddEndpointFilter<ValidationFilter<LoginCommand>>()
-            .WithName("Login")
             .WithSummary("Login with email and password");
 
         group.MapPost("/refresh", Refresh)
-            .WithName("RefreshToken")
+            .AddEndpointFilter<ValidationFilter<RefreshTokenCommand>>()
             .WithSummary("Refresh an expired access token");
     }
 

@@ -1,5 +1,5 @@
-
 using FluentValidation;
+
 namespace TechSpherex.CleanArchitecture.Application.Features.Todos.Create;
 
 public sealed class CreateTodoValidator : AbstractValidator<CreateTodoCommand>

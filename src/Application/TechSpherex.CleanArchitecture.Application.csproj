@@ -7,4 +7,7 @@
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="TechSpherex.CleanArchitecture.Application.UnitTests" />
+  </ItemGroup>
 </Project>

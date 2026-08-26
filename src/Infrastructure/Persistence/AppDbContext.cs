@@ -1,18 +1,29 @@
-
-using TechSpherex.CleanArchitecture.Application.Abstractions.Data;
-using TechSpherex.CleanArchitecture.Application.Abstractions.Tenancy;
-using TechSpherex.CleanArchitecture.Domain.Common;
-using TechSpherex.CleanArchitecture.Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using TechSpherex.CleanArchitecture.Application.Abstractions.Data;
+using TechSpherex.CleanArchitecture.Application.Abstractions.Tenancy;
+using TechSpherex.CleanArchitecture.Domain.Common;
+using TechSpherex.CleanArchitecture.Domain.Entities;
+
 namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence;
 
 // Copyright (c) 2026 TechSpherex
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser>(options), IAppDbContext
 {
     public DbSet<TodoItem> Todos => Set<TodoItem>();
+
+    public DbSet<Depot> Depots => Set<Depot>();
+    public DbSet<Block> Blocks => Set<Block>();
+    public DbSet<YardSlot> YardSlots => Set<YardSlot>();
+    public DbSet<ContainerType> ContainerTypes => Set<ContainerType>();
+    public DbSet<Container> Containers => Set<Container>();
+    public DbSet<LineOperator> LineOperators => Set<LineOperator>();
+    public DbSet<ContainerMovement> ContainerMovements => Set<ContainerMovement>();
+    public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<DeliveryOrder> DeliveryOrders => Set<DeliveryOrder>();
+    public DbSet<DeliveryOrderLine> DeliveryOrderLines => Set<DeliveryOrderLine>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

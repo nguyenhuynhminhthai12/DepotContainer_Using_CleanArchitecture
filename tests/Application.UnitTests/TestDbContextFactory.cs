@@ -1,6 +1,5 @@
-
-using TechSpherex.CleanArchitecture.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using TechSpherex.CleanArchitecture.Infrastructure.Persistence;
 
 namespace TechSpherex.CleanArchitecture.Application.UnitTests;
 public static class TestDbContextFactory

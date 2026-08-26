@@ -1,5 +1,5 @@
-
 using FluentValidation;
+
 namespace TechSpherex.CleanArchitecture.Application.Features.Todos.Update;
 
 public sealed class UpdateTodoValidator : AbstractValidator<UpdateTodoCommand>

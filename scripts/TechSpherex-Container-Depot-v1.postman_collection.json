@@ -1,0 +1,1011 @@
+{
+	"info": {
+		"_postman_id": "techspherex-container-depot-v1",
+		"name": "TechSpherex Container Depot API",
+		"description": "Clean Architecture API for Container Depot Management System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://localhost:7200",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "depotId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "blockId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "customerId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "containerId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "deliveryOrderId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "00 - Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.accessToken) {",
+									"        pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+									"    }",
+									"    if (jsonData.refreshToken) {",
+									"        pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+									"    }",
+									"    if (jsonData.userId) {",
+									"        pm.collectionVariables.set('userId', jsonData.userId);",
+									"    }",
+									"    pm.test('Tokens saved to collection variables', function() {",
+									"        pm.expect(pm.collectionVariables.get('accessToken')).to.not.be.empty;",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Email\": \"admin@test.com\",\n    \"FirstName\": \"Admin\",\n    \"LastName\": \"User\",\n    \"Password\": \"Admin123!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/identity/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "identity", "register"]
+						},
+						"description": "Register a new user account"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.accessToken) {",
+									"        pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+									"        console.log('accessToken saved');",
+									"    }",
+									"    if (jsonData.refreshToken) {",
+									"        pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+									"        console.log('refreshToken saved');",
+									"    }",
+									"    if (jsonData.userId) {",
+									"        pm.collectionVariables.set('userId', jsonData.userId);",
+									"    }",
+									"    pm.test('Login successful - tokens saved', function() {",
+									"        pm.expect(pm.collectionVariables.get('accessToken')).to.not.be.empty;",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Email\": \"admin@test.com\",\n    \"Password\": \"Admin123!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/identity/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "identity", "login"]
+						},
+						"description": "Login with email and password to get access token"
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.accessToken) {",
+									"        pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+									"    }",
+									"    if (jsonData.refreshToken) {",
+									"        pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"AccessToken\": \"{{accessToken}}\",\n    \"RefreshToken\": \"{{refreshToken}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/identity/refresh",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "identity", "refresh"]
+						},
+						"description": "Refresh access token using refresh token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "01 - Lookups",
+			"item": [
+				{
+					"name": "Get Customers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/lookups/customers",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "lookups", "customers"]
+						},
+						"description": "List all customers"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Customer",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"TaxCode\": \"0123456789\",\n    \"Name\": \"Vietnam Shipping Co\",\n    \"Address\": \"123 Nguyen Hue, District 1, HCMC\",\n    \"Phone\": \"+84901234567\",\n    \"Email\": \"contact@vietnamshipping.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/lookups/customers",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "lookups", "customers"]
+						},
+						"description": "Create a new customer"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Line Operators",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/lookups/line-operators",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "lookups", "line-operators"]
+						},
+						"description": "List active line operators (shipping lines)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Container Types",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/lookups/container-types",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "lookups", "container-types"]
+						},
+						"description": "List active container types"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "02 - Yard Management",
+			"item": [
+				{
+					"name": "Get Depots",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (Array.isArray(jsonData) && jsonData.length > 0) {",
+									"        pm.collectionVariables.set('depotId', jsonData[0].id);",
+									"        console.log('depotId saved:', pm.collectionVariables.get('depotId'));",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/yard/depots",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "yard", "depots"]
+						},
+						"description": "List all depots (seeded: DEFAULT)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Yard Map",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/yard/depots/{{depotId}}/map",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "yard", "depots", "{{depotId}}", "map"]
+						},
+						"description": "Get the live yard map with Block, Bay, Row, Tier grid"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Block",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.id) {",
+									"        pm.collectionVariables.set('blockId', jsonData.id);",
+									"        console.log('blockId saved:', pm.collectionVariables.get('blockId'));",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"DepotId\": \"{{depotId}}\",\n    \"Code\": \"B\",\n    \"Name\": \"Block B\",\n    \"IsVirtual\": false,\n    \"MaxBay\": 8,\n    \"MaxRow\": 4,\n    \"MaxTier\": 3,\n    \"DisplayOrder\": 2\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/blocks",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "blocks"]
+						},
+						"description": "Create a Block with Bay/Row/Tier grid"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Virtual Block",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"DepotId\": \"{{depotId}}\",\n    \"Code\": \"VIRT\",\n    \"Name\": \"Virtual Block - Transit\",\n    \"DisplayOrder\": 3\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/blocks/virtual",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "blocks", "virtual"]
+						},
+						"description": "Create a virtual Block (no physical grid)"
+					},
+					"response": []
+				},
+				{
+					"name": "Resize Block",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"MaxBay\": 15,\n    \"MaxRow\": 8,\n    \"MaxTier\": 4\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/blocks/{{blockId}}/resize",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "blocks", "{{blockId}}", "resize"]
+						},
+						"description": "Resize a Block's MaxBay/MaxRow/MaxTier"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "03 - Containers",
+			"item": [
+				{
+					"name": "Get Containers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/containers?pageNumber=1&pageSize=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "containers"],
+							"query": [
+								{
+									"key": "pageNumber",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "20"
+								}
+							]
+						},
+						"description": "List containers with pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Container",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.containerId || jsonData.id) {",
+									"        pm.collectionVariables.set('containerId', jsonData.containerId || jsonData.id);",
+									"        console.log('containerId saved:', pm.collectionVariables.get('containerId'));",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ContainerNumber\": \"CSQU3054383\",\n    \"ContainerTypeId\": \"{{containerTypeId}}\",\n    \"IsoCode\": \"22G1\",\n    \"SizeFeet\": 20,\n    \"MaxWeightKg\": 30480,\n    \"TareWeightKg\": 2200,\n    \"ManufactureDate\": \"2024-01-15T00:00:00Z\",\n    \"Owner\": \"MSC\",\n    \"Condition\": \"Normal\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/containers",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "containers"]
+						},
+						"description": "Register a new container (validates ISO 6346 check digit)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Container by Number",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/containers/CSQU3054383",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "containers", "CSQU3054383"]
+						},
+						"description": "Get a container by its 11-character container number"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "04 - Delivery Orders",
+			"item": [
+				{
+					"name": "Get Active Delivery Orders",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-orders/active",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "delivery-orders", "active"]
+						},
+						"description": "List active (non-expired, non-closed) Delivery Orders"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Delivery Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.deliveryOrderId || jsonData.id) {",
+									"        pm.collectionVariables.set('deliveryOrderId', jsonData.deliveryOrderId || jsonData.id);",
+									"        console.log('deliveryOrderId saved:', pm.collectionVariables.get('deliveryOrderId'));",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"DoNumber\": \"DO20260001\",\n    \"CustomerId\": \"{{customerId}}\",\n    \"LineOperatorId\": \"{{lineOperatorId}}\",\n    \"DepotId\": \"{{depotId}}\",\n    \"Quantity\": 10,\n    \"ContainerTypeId\": \"{{containerTypeId}}\",\n    \"ValidFrom\": \"2026-08-01\",\n    \"ValidTo\": \"2026-08-31\",\n    \"Remarks\": \"Export containers - urgent\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "delivery-orders"]
+						},
+						"description": "Create a new Delivery/Release Order"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Delivery Order by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-orders/{{deliveryOrderId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "delivery-orders", "{{deliveryOrderId}}"]
+						},
+						"description": "Get a Delivery Order by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Close Delivery Order",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-orders/{{deliveryOrderId}}/close",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "delivery-orders", "{{deliveryOrderId}}", "close"]
+						},
+						"description": "Close a Delivery Order to prevent further Gate-Out"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "05 - Gate Operations",
+			"item": [
+				{
+					"name": "Gate In (Container Entry)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ContainerNumber\": \"CSQU3054383\",\n    \"GateInPhotoUrl\": \"https://storage.example.com/gate-in/CSQU3054383.jpg\",\n    \"SealNumber\": \"SEAL123456\",\n    \"ContainerCondition\": \"DR\",\n    \"Remarks\": \"Good condition\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/gate/in",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "gate", "in"]
+						},
+						"description": "Register a container entering the depot (start of EIR)"
+					},
+					"response": []
+				},
+				{
+					"name": "Gate Out (Container Exit)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ContainerNumber\": \"CSQU3054383\",\n    \"GateOutPhotoUrl\": \"https://storage.example.com/gate-out/CSQU3054383.jpg\",\n    \"SealNumber\": \"SEAL789012\",\n    \"DeliveryOrderId\": \"{{deliveryOrderId}}\",\n    \"Remarks\": \"Released to customer\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/gate/out",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "gate", "out"]
+						},
+						"description": "Register a container exiting the depot (requires valid DO)"
+					},
+					"response": []
+				},
+				{
+					"name": "Move Container in Yard",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ContainerNumber\": \"CSQU3054383\",\n    \"TargetBlockId\": \"{{blockId}}\",\n    \"TargetBay\": 2,\n    \"TargetRow\": 3,\n    \"TargetTier\": 1,\n    \"Remarks\": \"Relocation for better access\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/gate/move",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "gate", "move"]
+						},
+						"description": "Move a container from current slot to a new slot"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Container Movement History",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/gate/containers/CSQU3054383/movements",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "gate", "containers", "CSQU3054383", "movements"]
+						},
+						"description": "Get the EIR (movement history) of a container"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "06 - Reports",
+			"item": [
+				{
+					"name": "Get Yard Aging Report",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/yard-aging",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reports", "yard-aging"]
+						},
+						"description": "Containers in-yard by Line Operator (0-10 days vs >=10 days)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Daily Throughput Report",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/daily-throughput",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reports", "daily-throughput"]
+						},
+						"description": "Daily gate-in/gate-out throughput by Line Operator"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "07 - Agent (AI Skills)",
+			"item": [
+				{
+					"name": "List Skills",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/agent/skills",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "agent", "skills"]
+						},
+						"description": "List all available skill agents"
+					},
+					"response": []
+				},
+				{
+					"name": "Execute Agent (Natural Language)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Prompt\": \"List all containers currently in Block A that have been here for more than 7 days\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/agent/execute",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "agent", "execute"]
+						},
+						"description": "Execute a skill agent with natural language prompt"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

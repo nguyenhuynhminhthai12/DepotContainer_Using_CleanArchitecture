@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+option csharp_namespace = "TechSpherex.CleanArchitecture.Api.GrpcServices";
+
+package yard;
+
+service YardService {
+  rpc GetYardMap (GetYardMapRequest) returns (YardMapResponse);
+}
+
+message GetYardMapRequest {
+  string depot_id = 1;
+}
+
+message YardMapResponse {
+  string depot_id = 1;
+  string depot_name = 2;
+  repeated BlockMap blocks = 3;
+}
+
+message BlockMap {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  bool is_virtual = 4;
+  int32 max_bay = 5;
+  int32 max_row = 6;
+  int32 max_tier = 7;
+  repeated SlotMap slots = 8;
+}
+
+message SlotMap {
+  string id = 1;
+  int32 bay = 2;
+  int32 row = 3;
+  int32 tier = 4;
+  bool is_occupied = 5;
+  optional string current_container_id = 6;
+}

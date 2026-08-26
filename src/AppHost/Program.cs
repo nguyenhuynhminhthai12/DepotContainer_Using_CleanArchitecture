@@ -15,6 +15,9 @@ builder.AddProject<Projects.TechSpherex_CleanArchitecture_Api>("api")
     .WaitFor(database)
     .WithReference(redis)
     .WaitFor(redis)
+    .WithHttpEndpoint(port: 5200, name: "http")
+    .WithHttpsEndpoint(port: 7200, name: "https")
     .WithExternalHttpEndpoints();
 
 builder.Build().Run();
+

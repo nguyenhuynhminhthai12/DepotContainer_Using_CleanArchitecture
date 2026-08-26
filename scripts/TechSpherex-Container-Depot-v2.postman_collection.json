@@ -1,0 +1,1317 @@
+{
+	"info": {
+		"_postman_id": "techspherex-container-depot-v2",
+		"name": "TechSpherex Container Depot API v2",
+		"description": "Updated Postman collection for TechSpherex Container Depot Management API - All endpoints tested and working",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://localhost:7200",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "depotId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "blockId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "containerId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "containerTypeId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "lineOperatorId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "customerId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "deliveryOrderId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "Identity",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    console.log('User registered successfully');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"FirstName\": \"Admin\",\n    \"LastName\": \"User\",\n    \"Email\": \"admin2@test.com\",\n    \"Password\": \"Admin123!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/identity/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"identity",
+								"register"
+							]
+						},
+						"description": "Register a new user account"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+									"    pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+									"    console.log('Login successful, tokens saved');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Email\": \"admin@test.com\",\n    \"Password\": \"Admin123!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/identity/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"identity",
+								"login"
+							]
+						},
+						"description": "Login with email and password"
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('accessToken', jsonData.accessToken);",
+									"    pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+									"    console.log('Token refreshed');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"AccessToken\": \"{{accessToken}}\",\n    \"RefreshToken\": \"{{refreshToken}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/identity/refresh",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"identity",
+								"refresh"
+							]
+						},
+						"description": "Refresh access token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Lookups",
+			"item": [
+				{
+					"name": "Get Line Operators",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    var operator = jsonData.find(function (item) { return item.code === 'MSC'; }) || jsonData[0];",
+									"    if (operator) pm.collectionVariables.set('lineOperatorId', operator.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/lookups/line-operators",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"lookups",
+								"line-operators"
+							]
+						},
+						"description": "Get all line operators"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Container Types",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    var containerType = jsonData.find(function (item) { return item.code === '22G1'; }) || jsonData[0];",
+									"    if (containerType) pm.collectionVariables.set('containerTypeId', containerType.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/lookups/container-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"lookups",
+								"container-types"
+							]
+						},
+						"description": "Get all container types"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Customers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.length > 0) {",
+									"        pm.collectionVariables.set('customerId', jsonData[0].id);",
+									"        console.log('customerId saved:', jsonData[0].id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/lookups/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"lookups",
+								"customers"
+							]
+						},
+						"description": "Get all customers"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Customer",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"TaxCode\": \"9876543210\",\n    \"Name\": \"Hanoi Shipping JSC\",\n    \"Address\": \"456 Tran Hung Dao, Hanoi\",\n    \"Phone\": \"+842412345678\",\n    \"Email\": \"contact@hanoishipping.vn\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/lookups/customers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"lookups",
+								"customers"
+							]
+						},
+						"description": "Create a new customer"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Yard Management",
+			"item": [
+				{
+					"name": "Get Depots",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.length > 0) {",
+									"        pm.collectionVariables.set('depotId', jsonData[0].id);",
+									"        console.log('depotId saved:', jsonData[0].id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/yard/depots",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"yard",
+								"depots"
+							]
+						},
+						"description": "Get all depots"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Yard Map",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.blocks && jsonData.blocks.length > 0) {",
+									"        pm.collectionVariables.set('blockId', jsonData.blocks[0].id);",
+									"        console.log('blockId saved:', jsonData.blocks[0].id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/yard/depots/{{depotId}}/map",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"yard",
+								"depots",
+								"{{depotId}}",
+								"map"
+							]
+						},
+						"description": "Get the live yard map with Block, Bay, Row, Tier grid"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Block",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.id) {",
+									"        pm.collectionVariables.set('blockId', jsonData.id);",
+									"        console.log('blockId saved:', jsonData.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"DepotId\": \"{{depotId}}\",\n    \"Code\": \"C{{$timestamp}}\",\n    \"Name\": \"Block C {{$timestamp}}\",\n    \"IsVirtual\": false,\n    \"MaxBay\": 6,\n    \"MaxRow\": 5,\n    \"MaxTier\": 3,\n    \"DisplayOrder\": 3\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/blocks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"blocks"
+							]
+						},
+						"description": "Create a Block with Bay/Row/Tier grid"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Virtual Block",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    console.log('Virtual block created:', jsonData.code);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"DepotId\": \"{{depotId}}\",\n    \"Code\": \"TRANSIT{{$timestamp}}\",\n    \"Name\": \"Transit Area {{$timestamp}}\",\n    \"DisplayOrder\": 10\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/blocks/virtual",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"blocks",
+								"virtual"
+							]
+						},
+						"description": "Create a virtual Block (no physical grid)"
+					},
+					"response": []
+				},
+				{
+					"name": "Resize Block",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"MaxBay\": 6,\n    \"MaxRow\": 4,\n    \"MaxTier\": 3\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/blocks/{{blockId}}/resize",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"blocks",
+								"{{blockId}}",
+								"resize"
+							]
+						},
+						"description": "Resize a Block grid and auto-create missing slots"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Containers",
+			"item": [
+				{
+					"name": "Get Containers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/containers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"containers"
+							]
+						},
+						"description": "Get all containers (paginated)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Container",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.id) {",
+									"        pm.collectionVariables.set('containerId', jsonData.id);",
+									"        console.log('containerId saved:', jsonData.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ContainerNumber\": \"MSCU1234566\",\n    \"ContainerTypeId\": \"{{containerTypeId}}\",\n    \"IsoCode\": \"22G1\",\n    \"SizeFeet\": 20,\n    \"MaxWeightKg\": 30480,\n    \"TareWeightKg\": 2200,\n    \"ManufactureDate\": \"2024-01-15T00:00:00Z\",\n    \"Owner\": \"MSC\",\n    \"Condition\": \"Normal\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/containers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"containers"
+							]
+						},
+						"description": "Register a new container (validates ISO 6346 check digit)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Container by Number",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/containers/MSCU1234566",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"containers",
+								"MSCU1234566"
+							]
+						},
+						"description": "Get container details by its 11-char container number"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Container Movements",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/containers/MSCU1234566/movements",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"containers",
+								"MSCU1234566",
+								"movements"
+							]
+						},
+						"description": "Get EIR (movement history) of a container"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Delivery Orders",
+			"item": [
+				{
+					"name": "Get Active Delivery Orders",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.length > 0) {",
+									"        pm.collectionVariables.set('deliveryOrderId', jsonData[0].id);",
+									"        console.log('deliveryOrderId saved:', jsonData[0].id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-orders/active",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery-orders",
+								"active"
+							]
+						},
+						"description": "Get active (non-expired, non-closed) Delivery Orders"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Delivery Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.id) {",
+									"        pm.collectionVariables.set('deliveryOrderId', jsonData.id);",
+									"        console.log('deliveryOrderId saved:', jsonData.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"OrderNumber\": \"DO{{$timestamp}}\",\n    \"CustomerId\": \"{{customerId}}\",\n    \"LineOperatorId\": \"{{lineOperatorId}}\",\n    \"ExpiryDate\": \"2026-09-30T00:00:00Z\",\n    \"VesselVoyage\": \"MSC-123\",\n    \"Notes\": \"Export containers - test order\",\n    \"Lines\": [\n        {\"ContainerTypeId\": \"{{containerTypeId}}\", \"RequestedQuantity\": 5, \"DeliveredQuantity\": 0}\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery-orders"
+							]
+						},
+						"description": "Create a new Delivery Order (requires Lines array)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Delivery Order by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-orders/{{deliveryOrderId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery-orders",
+								"{{deliveryOrderId}}"
+							]
+						},
+						"description": "Get a Delivery Order by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Close Delivery Order",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-orders/{{deliveryOrderId}}/close",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery-orders",
+								"{{deliveryOrderId}}",
+								"close"
+							]
+						},
+						"description": "Close a Delivery Order to prevent further Gate-Out"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Gate Operations",
+			"item": [
+				{
+					"name": "Gate In",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    console.log('Gate In successful:', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ContainerNumber\": \"MSCU1234566\",\n    \"LineOperatorId\": \"{{lineOperatorId}}\",\n    \"BlockId\": \"{{blockId}}\",\n    \"Bay\": 1,\n    \"Row\": 1,\n    \"Tier\": 1,\n    \"Classification\": \"Export\",\n    \"ConditionAtGateIn\": \"Normal\",\n    \"VehicleInNumber\": \"KH-9999\",\n    \"DriverInName\": \"Nguyen Van B\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/gate/in",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"gate",
+								"in"
+							]
+						},
+						"description": "Register a container entering the depot (Gate In)"
+					},
+					"response": []
+				},
+				{
+					"name": "Gate Out",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ContainerNumber\": \"MSCU1234566\",\n    \"DeliveryOrderId\": \"{{deliveryOrderId}}\",\n    \"VehicleOutNumber\": \"KH-8888\",\n    \"DriverOutName\": \"Tran Van C\",\n    \"ConditionAtGateOut\": \"Normal\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/gate/out",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"gate",
+								"out"
+							]
+						},
+						"description": "Register a container exiting the depot (requires a valid Delivery Order)"
+					},
+					"response": []
+				},
+				{
+					"name": "Move Container",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ContainerNumber\": \"MSCU1234566\",\n    \"NewBlockId\": \"{{blockId}}\",\n    \"NewBay\": 3,\n    \"NewRow\": 2,\n    \"NewTier\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/gate/move",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"gate",
+								"move"
+							]
+						},
+						"description": "Move a container to a new slot in the yard"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reports",
+			"item": [
+				{
+					"name": "Daily Throughput",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/daily-throughput",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reports",
+								"daily-throughput"
+							]
+						},
+						"description": "Get daily gate throughput report"
+					},
+					"response": []
+				},
+				{
+					"name": "Yard Aging",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/yard-aging",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reports",
+								"yard-aging"
+							]
+						},
+						"description": "Get container aging report (0-10 vs >=10 days) by Line Operator"
+					},
+					"response": []
+				},
+				{
+					"name": "Yard Occupancy",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reports/yard-occupancy",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reports",
+								"yard-occupancy"
+							]
+						},
+						"description": "Get yard occupancy report by block"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Agent",
+			"item": [
+				{
+					"name": "Get Available Skills",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/agents/skills",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"agents",
+								"skills"
+							]
+						},
+						"description": "List all available agent skills"
+					},
+					"response": []
+				},
+				{
+					"name": "Execute Agent",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Prompt\": \"How many containers are in the yard?\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/agents/execute",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"agents",
+								"execute"
+							]
+						},
+						"description": "Execute agent with natural language prompt"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

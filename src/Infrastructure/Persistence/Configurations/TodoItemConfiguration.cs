@@ -1,7 +1,7 @@
-
 using TechSpherex.CleanArchitecture.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Configurations;
 
 // Copyright (c) 2026 TechSpherex
