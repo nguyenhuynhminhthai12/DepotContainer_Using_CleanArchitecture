@@ -1,6 +1,6 @@
-
-using TechSpherex.CleanArchitecture.Application.Features.Todos.Create;
 using FluentAssertions;
+using TechSpherex.CleanArchitecture.Application.Features.Todos.Create;
+
 namespace TechSpherex.CleanArchitecture.Application.UnitTests.Features.Todos;
 
 public sealed class CreateTodoCommandHandlerTests
@@ -19,7 +19,7 @@ public sealed class CreateTodoCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Title.Should().Be("Test Todo");
+        result.Value.Title.Should().Be("Test Todo");
         dbContext.Todos.Should().HaveCount(1);
     }
 

@@ -1,8 +1,8 @@
-
+using FluentAssertions;
 using TechSpherex.CleanArchitecture.Application.Features.Todos.Complete;
 using TechSpherex.CleanArchitecture.Domain.Common;
 using TechSpherex.CleanArchitecture.Domain.Entities;
-using FluentAssertions;
+
 namespace TechSpherex.CleanArchitecture.Application.UnitTests.Features.Todos;
 
 public sealed class CompleteTodoCommandHandlerTests
@@ -40,6 +40,6 @@ public sealed class CompleteTodoCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error!.Type.Should().Be(ErrorType.NotFound);
+        result.Error.Type.Should().Be(ErrorType.NotFound);
     }
 }

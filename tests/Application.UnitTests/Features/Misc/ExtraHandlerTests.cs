@@ -245,7 +245,7 @@ public sealed class ContainerMovementHistoryTests
         var handler = new GetContainerMovementHistoryQueryHandler(db);
         var result = await handler.HandleAsync(new GetContainerMovementHistoryQuery("CMAU1234564"), TestContext.Current.CancellationToken);
         result.IsSuccess.Should().BeTrue();
-        result.Value!.Count.Should().Be(1);
+        result.Value.Count.Should().Be(1);
     }
 }
 

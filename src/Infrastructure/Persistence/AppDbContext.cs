@@ -30,19 +30,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        // Multi-tenant global query filter
-        // Applies to all entities implementing ITenantEntity
-        foreach (var entityType in builder.Model.GetEntityTypes())
+        foreach (var entityType in builder.Model.GetEntityTypes().Where(e => typeof(ITenantEntity).IsAssignableFrom(e.ClrType)))
         {
-            if (typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType))
-            {
-                var method = typeof(AppDbContext)
-                    .GetMethod(nameof(ApplyTenantFilter),
-                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
-                    .MakeGenericMethod(entityType.ClrType);
+            var method = typeof(AppDbContext)
+                .GetMethod(nameof(ApplyTenantFilter),
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+                .MakeGenericMethod(entityType.ClrType);
 
-                method.Invoke(null, [builder]);
-            }
+            method.Invoke(null, [builder]);
         }
     }
 
@@ -60,11 +55,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
         return base.SaveChangesAsync(cancellationToken);
     }
 
-    // Copyright (c) 2026 TechSpherex
     private void UpdateAuditableEntities()
     {
-        var entries = ChangeTracker.Entries<AuditableEntity>();
-        foreach (var entry in entries)
+        foreach (var entry in ChangeTracker.Entries<AuditableEntity>())
         {
             switch (entry.State)
             {
@@ -80,17 +73,12 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
 
     private void SetTenantId()
     {
-        // Resolve ITenantProvider from the current scope via IServiceProvider
-        // This avoids constructor injection which is incompatible with DbContextPooling (Aspire)
         var serviceProvider = this.GetInfrastructure();
         var tenantProvider = serviceProvider.GetService<ITenantProvider>();
 
         if (tenantProvider?.TenantId is null) return;
 
-        var tenantEntries = ChangeTracker.Entries<ITenantEntity>()
-            .Where(e => e.State == EntityState.Added);
-
-        foreach (var entry in tenantEntries)
+        foreach (var entry in ChangeTracker.Entries<ITenantEntity>().Where(e => e.State == EntityState.Added))
         {
             entry.Entity.TenantId = tenantProvider.TenantId;
         }

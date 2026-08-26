@@ -1,8 +1,8 @@
-
 using System.Reflection;
 using FluentAssertions;
 using NetArchTest.Rules;
 using TechSpherex.CleanArchitecture.Domain.Common;
+
 namespace TechSpherex.CleanArchitecture.Architecture.Tests;
 
 
@@ -12,7 +12,6 @@ public sealed class ArchitectureTests
     private static readonly Assembly ApplicationAssembly = typeof(Application.DependencyInjection).Assembly;
     private static readonly Assembly InfrastructureAssembly = typeof(Infrastructure.DependencyInjection).Assembly;
 
-    private const string DomainNamespace = "TechSpherex.CleanArchitecture.Domain";
     private const string ApplicationNamespace = "TechSpherex.CleanArchitecture.Application";
     private const string InfrastructureNamespace = "TechSpherex.CleanArchitecture.Infrastructure";
     private const string ApiNamespace = "TechSpherex.CleanArchitecture.Api";

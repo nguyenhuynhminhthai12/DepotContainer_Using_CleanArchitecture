@@ -105,7 +105,7 @@ public sealed class DeliveryOrderHandlerTests
         var result = await handler.HandleAsync(new GetActiveDeliveryOrdersQuery(), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value!.Select(o => o.OrderNumber).Should().Contain("DO-ACTIVE")
+        result.Value.Select(o => o.OrderNumber).Should().Contain("DO-ACTIVE")
             .And.NotContain("DO-EXPIRED").And.NotContain("DO-CLOSED");
     }
 }

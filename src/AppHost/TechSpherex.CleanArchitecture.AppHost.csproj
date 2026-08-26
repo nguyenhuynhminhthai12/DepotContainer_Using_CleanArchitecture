@@ -5,6 +5,7 @@
     <IsAspireHost>true</IsAspireHost>
     <TargetFramework>net10.0</TargetFramework>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <AspireUseCliBundle>true</AspireUseCliBundle>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Api\TechSpherex.CleanArchitecture.Api.csproj" />

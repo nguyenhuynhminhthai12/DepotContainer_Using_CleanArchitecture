@@ -17,8 +17,8 @@ public sealed class CreateContainerCommandHandlerTests
 
         var handler = new CreateContainerCommandHandler(db);
         var cmd = new CreateContainerCommand(
-            "CMAU1234560", // wrong check digit
-            db.ContainerTypes.First().Id,
+            "CMAU1234560",
+            (await db.ContainerTypes.FirstAsync(TestContext.Current.CancellationToken)).Id,
             "22G1", 20, 30000m, 2200m, DateTimeOffset.UtcNow, "CMA", "Normal");
 
         var result = await handler.HandleAsync(cmd, TestContext.Current.CancellationToken);
@@ -65,7 +65,7 @@ public sealed class CreateContainerCommandHandlerTests
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value!.ContainerNumber.Should().Be("CMAU1234564");
+        result.Value.ContainerNumber.Should().Be("CMAU1234564");
         result.Value.SizeFeet.Should().Be(20);
     }
 }
@@ -82,8 +82,6 @@ public sealed class GetContainersQueryHandlerTests
 
         for (var i = 0; i < 5; i++)
         {
-            var number = $"CMAU12345{i:00}"; // build distinct numbers — only first valid, rest are placeholder valid
-            // We'll skip the strict digit check; we'll insert directly to focus on pagination.
             db.Containers.Add(new Container
             {
                 ContainerNumberRaw = $"CMAU1234{i:000}",
@@ -103,7 +101,7 @@ public sealed class GetContainersQueryHandlerTests
         var result = await handler.HandleAsync(new GetContainersQuery(1, 3), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value!.TotalCount.Should().Be(5);
+        result.Value.TotalCount.Should().Be(5);
         result.Value.Items.Should().HaveCount(3);
         result.Value.TotalPages.Should().Be(2);
     }
