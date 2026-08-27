@@ -1,4 +1,5 @@
 
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Caching;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Data;
@@ -28,7 +29,7 @@ public static class DependencyInjection
         services.AddCachingServices();
         services.AddCorsPolicy(configuration);
         services.AddMultiTenancy();
-        services.AddRuleEngineServices(configuration);
+        services.AddRuleEngineServices();
 
         return services;
     }
@@ -103,35 +104,35 @@ public static class DependencyInjection
         var allowedHeaders = corsSection.GetSection("AllowedHeaders").Get<string[]>() ?? ["*"];
         var allowCredentials = corsSection.GetValue("AllowCredentials", false);
 
-        services.AddCors(options =>
+        services.AddCors(options => options.AddDefaultPolicy(policy => BuildCorsPolicy(policy, allowedOrigins, allowedMethods, allowedHeaders, allowCredentials)));
+    }
+
+    [SuppressMessage("SonarQube", "S5122", Justification = "AllowAnyOrigin is intentional for development environments")]
+    private static void BuildCorsPolicy(Microsoft.AspNetCore.Cors.Infrastructure.CorsPolicyBuilder policy, string[] origins, string[] methods, string[] headers, bool allowCredentials)
+    {
+        if (origins.Contains("*") && !allowCredentials)
         {
-            options.AddDefaultPolicy(policy =>
-            {
-                if (allowedOrigins.Contains("*") && !allowCredentials)
-                {
-                    policy.AllowAnyOrigin();
-                }
-                else
-                {
-                    policy.WithOrigins(allowedOrigins);
-                }
+            policy.AllowAnyOrigin();
+        }
+        else
+        {
+            policy.WithOrigins(origins);
+        }
 
-                if (allowedMethods.Contains("*"))
-                    policy.AllowAnyMethod();
-                else
-                    policy.WithMethods(allowedMethods);
+        if (methods.Contains("*"))
+            policy.AllowAnyMethod();
+        else
+            policy.WithMethods(methods);
 
-                if (allowedHeaders.Contains("*"))
-                    policy.AllowAnyHeader();
-                else
-                    policy.WithHeaders(allowedHeaders);
+        if (headers.Contains("*"))
+            policy.AllowAnyHeader();
+        else
+            policy.WithHeaders(headers);
 
-                if (allowCredentials)
-                    policy.AllowCredentials();
+        if (allowCredentials)
+            policy.AllowCredentials();
 
-                policy.SetPreflightMaxAge(TimeSpan.FromMinutes(10));
-            });
-        });
+        policy.SetPreflightMaxAge(TimeSpan.FromMinutes(10));
     }
 
     private static void AddMultiTenancy(this IServiceCollection services)
@@ -139,7 +140,7 @@ public static class DependencyInjection
         services.AddScoped<ITenantProvider, TenantProvider>();
     }
 
-    private static void AddRuleEngineServices(this IServiceCollection services, IConfiguration configuration)
+    private static void AddRuleEngineServices(this IServiceCollection services)
     {
         services.AddSingleton<IRuleEngine, RuleEngine>();
     }

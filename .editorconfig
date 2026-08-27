@@ -25,6 +25,18 @@ csharp_using_directive_placement = outside_namespace:warning
 # Primary constructors
 csharp_style_prefer_primary_constructors = true:suggestion
 
+# SonarQube suppressions
+dotnet_diagnostic.S3427.severity = none
+
+# Roslynator suppressions
+dotnet_diagnostic.RCS1001.severity = none
+dotnet_diagnostic.RCS1037.severity = none
+dotnet_diagnostic.RCS1077.severity = suggestion
+
+# Code Analysis suppressions
+dotnet_diagnostic.CA1860.severity = suggestion
+dotnet_diagnostic.CA1873.severity = none
+
 # var preferences
 csharp_style_var_for_built_in_types = true:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion

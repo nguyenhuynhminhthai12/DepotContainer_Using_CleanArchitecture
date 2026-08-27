@@ -24,7 +24,7 @@ public sealed class ContainerGrpcService(
     {
         var result = await getHandler.HandleAsync(new GetContainerByNumberQuery(request.ContainerNumber), context.CancellationToken);
         if (result.IsFailure)
-            throw MapToRpcException(result.Error);
+            throw MapToRpcException(result.Error!);
 
         var c = result.Value!;
         return new ContainerResponse

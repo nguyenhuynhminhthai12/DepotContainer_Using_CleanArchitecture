@@ -54,6 +54,7 @@ try
     // Global exception handling
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
+    var apiConfig = builder.Configuration;
     // OpenAPI with JWT Bearer security scheme
     builder.Services.AddOpenApi(options =>
     {
@@ -62,10 +63,14 @@ try
             var info = document.Info ?? new Microsoft.OpenApi.OpenApiInfo();
             info.Title = "Container Depot Management API";
             info.Description = "A production-ready Clean Architecture system for managing container depots (Block / Bay / Row / Tier yard layout, Gate In/Out EIR, Delivery Orders, reports) — built on .NET 10 by TechSpherex.";
+
+            var openApiConfig = apiConfig.GetSection("OpenApi:Contact");
             info.Contact = new Microsoft.OpenApi.OpenApiContact
             {
-                Name = "TechSpherex",
-                Url = new Uri("https://TechSpherex.com")
+                Name = openApiConfig["Name"] ?? "TechSpherex",
+                Url = string.IsNullOrWhiteSpace(openApiConfig["Url"])
+                    ? null
+                    : new Uri(openApiConfig["Url"]!)
             };
             document.Info = info;
 
@@ -84,7 +89,7 @@ try
             var schemeReference = new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer");
             var securityRequirement = new Microsoft.OpenApi.OpenApiSecurityRequirement
             {
-                [schemeReference] = new List<string>()
+                [schemeReference] = []
             };
 
             document.Security ??= [];

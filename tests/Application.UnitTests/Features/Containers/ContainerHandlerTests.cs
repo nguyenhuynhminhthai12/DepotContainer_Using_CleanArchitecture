@@ -1,4 +1,6 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using TechSpherex.CleanArchitecture.Application.Features.Containers;
 using TechSpherex.CleanArchitecture.Domain.Common;
 using TechSpherex.CleanArchitecture.Domain.Common.Rules;
@@ -8,6 +10,8 @@ namespace TechSpherex.CleanArchitecture.Application.UnitTests.Features.Container
 
 public sealed class CreateContainerCommandHandlerTests
 {
+    private readonly ILogger<CreateContainerCommandHandler> _loggerMock = Substitute.For<ILogger<CreateContainerCommandHandler>>();
+
     [Fact]
     public async Task HandleAsync_Should_Reject_Invalid_CheckDigit()
     {
@@ -15,10 +19,10 @@ public sealed class CreateContainerCommandHandlerTests
         db.ContainerTypes.Add(new ContainerType { Code = "22G1", Name = "Dry 20'", Family = "Dry" });
         await db.SaveChangesAsync();
 
-        var handler = new CreateContainerCommandHandler(db);
+        var handler = new CreateContainerCommandHandler(db, _loggerMock);
         var cmd = new CreateContainerCommand(
             "CMAU1234560", // wrong check digit
-            db.ContainerTypes.First().Id,
+            (await db.ContainerTypes.FirstAsync(TestContext.Current.CancellationToken)).Id,
             "22G1", 20, 30000m, 2200m, DateTimeOffset.UtcNow, "CMA", "Normal");
 
         var result = await handler.HandleAsync(cmd, TestContext.Current.CancellationToken);
@@ -40,7 +44,7 @@ public sealed class CreateContainerCommandHandlerTests
             DateTimeOffset.UtcNow, "CMA"));
         await db.SaveChangesAsync();
 
-        var handler = new CreateContainerCommandHandler(db);
+        var handler = new CreateContainerCommandHandler(db, _loggerMock);
         var result = await handler.HandleAsync(
             new CreateContainerCommand("CMAU1234564", ct.Id, "22G1", 20, 30000m, 2200m,
                 DateTimeOffset.UtcNow, "CMA", "Normal"),
@@ -58,7 +62,7 @@ public sealed class CreateContainerCommandHandlerTests
         db.ContainerTypes.Add(ct);
         await db.SaveChangesAsync();
 
-        var handler = new CreateContainerCommandHandler(db);
+        var handler = new CreateContainerCommandHandler(db, _loggerMock);
         var result = await handler.HandleAsync(
             new CreateContainerCommand("CMAU1234564", ct.Id, "22G1", 20, 30000m, 2200m,
                 DateTimeOffset.UtcNow, "CMA", "Normal"),
@@ -82,8 +86,6 @@ public sealed class GetContainersQueryHandlerTests
 
         for (var i = 0; i < 5; i++)
         {
-            var number = $"CMAU12345{i:00}"; // build distinct numbers — only first valid, rest are placeholder valid
-            // We'll skip the strict digit check; we'll insert directly to focus on pagination.
             db.Containers.Add(new Container
             {
                 ContainerNumberRaw = $"CMAU1234{i:000}",

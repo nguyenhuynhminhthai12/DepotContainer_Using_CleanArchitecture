@@ -6,7 +6,8 @@ This template supports **shared-table multi-tenancy** — all tenants share the 
 
 ## Architecture
 
-```
+```text
+
 Request → TenantMiddleware → Resolve Tenant
                                   │
                     ┌─────────────┼─────────────┐
@@ -61,7 +62,7 @@ public sealed class Product : AuditableEntity, ITenantEntity
 }
 ```
 
-### Step 2: That's It!
+### Step 2: That Is It
 
 The global query filter and `SaveChangesAsync` override handle everything:
 
@@ -163,7 +164,7 @@ The `TenantMiddleware` automatically enriches Serilog log context with `TenantId
 
 This enables tenant-specific log filtering in Kibana or Grafana Loki:
 
-```
+```text
 # Kibana KQL
 Properties.TenantId: "acme-corp"
 

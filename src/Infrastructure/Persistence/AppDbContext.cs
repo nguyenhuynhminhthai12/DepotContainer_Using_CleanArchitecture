@@ -32,17 +32,17 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
 
         // Multi-tenant global query filter
         // Applies to all entities implementing ITenantEntity
-        foreach (var entityType in builder.Model.GetEntityTypes())
+        foreach (var entityType in builder.Model.GetEntityTypes()
+                     .Where(t => typeof(ITenantEntity).IsAssignableFrom(t.ClrType)))
         {
-            if (typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType))
-            {
-                var method = typeof(AppDbContext)
-                    .GetMethod(nameof(ApplyTenantFilter),
-                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
-                    .MakeGenericMethod(entityType.ClrType);
+#pragma warning disable S3011 // Reflection access is intentional here for generic tenant filter setup
+            var method = typeof(AppDbContext)
+                .GetMethod(nameof(ApplyTenantFilter),
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+                .MakeGenericMethod(entityType.ClrType);
+#pragma warning restore S3011
 
-                method.Invoke(null, [builder]);
-            }
+            method.Invoke(null, [builder]);
         }
     }
 

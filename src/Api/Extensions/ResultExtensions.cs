@@ -6,10 +6,10 @@ public static class ResultExtensions
 {
     public static IResult ToProblemDetails(this Result result)
     {
-        if (result.IsSuccess)
+        if (result.IsSuccess || result.Error is not { } error)
             throw new InvalidOperationException("Cannot convert a successful result to a problem.");
 
-        var (statusCode, title) = result.Error!.Type switch
+        var (statusCode, title) = error.Type switch
         {
             ErrorType.NotFound => (StatusCodes.Status404NotFound, "Not Found"),
             ErrorType.Validation => (StatusCodes.Status400BadRequest, "Validation Error"),
@@ -19,21 +19,21 @@ public static class ResultExtensions
         };
 
         return Results.Problem(
+            detail: error.Message,
             statusCode: statusCode,
             title: title,
-            detail: result.Error.Message,
             extensions: new Dictionary<string, object?>
             {
-                ["errorCode"] = result.Error.Code
+                ["errorCode"] = error.Code
             });
     }
 
     public static IResult ToProblemDetails<T>(this Result<T> result)
     {
-        if (result.IsSuccess)
+        if (result.IsSuccess || result.Error is not { } error)
             throw new InvalidOperationException("Cannot convert a successful result to a problem.");
 
-        var (statusCode, title) = result.Error!.Type switch
+        var (statusCode, title) = error.Type switch
         {
             ErrorType.NotFound => (StatusCodes.Status404NotFound, "Not Found"),
             ErrorType.Validation => (StatusCodes.Status400BadRequest, "Validation Error"),
@@ -43,12 +43,12 @@ public static class ResultExtensions
         };
 
         return Results.Problem(
+            detail: error.Message,
             statusCode: statusCode,
             title: title,
-            detail: result.Error.Message,
             extensions: new Dictionary<string, object?>
             {
-                ["errorCode"] = result.Error.Code
+                ["errorCode"] = error.Code
             });
     }
 }

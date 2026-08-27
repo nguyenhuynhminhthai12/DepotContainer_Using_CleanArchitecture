@@ -5,7 +5,7 @@
 **Native AOT (Ahead-of-Time)** compilation produces a self-contained native executable that doesn't require the .NET runtime. This results in:
 
 | Metric | JIT | Native AOT |
-|--------|-----|------------|
+| --- | --- | --- |
 | Startup time | ~500ms | ~50ms |
 | Memory usage | ~100 MB | ~30 MB |
 | Docker image | ~120 MB | ~35 MB |
@@ -15,12 +15,14 @@
 ## When to Use AOT
 
 ✅ **Use AOT when:**
+
 - Deploying to serverless (AWS Lambda, Azure Functions)
 - Running in resource-constrained environments
 - Startup time is critical (autoscaling, cold starts)
 - Building CLI tools or microservices
 
 ❌ **Avoid AOT when:**
+
 - Using heavy reflection (EF Core migrations at runtime)
 - Rapid development iteration
 - Using libraries without AOT support
@@ -45,6 +47,7 @@ docker build --build-arg PUBLISH_AOT=true -t techspherex-api:aot .
 ## AOT Compatibility
 
 ### ✅ Fully Compatible
+
 - Minimal APIs with TypedResults
 - JWT authentication
 - Health checks
@@ -52,10 +55,12 @@ docker build --build-arg PUBLISH_AOT=true -t techspherex-api:aot .
 - Manual CQRS handlers (no reflection at runtime)
 
 ### ⚠️ Requires Source Generators
+
 - JSON serialization → Use `JsonSerializerContext`
 - FluentValidation → Works but needs trimming configuration
 
 ### ❌ Not Compatible (Run Before AOT)
+
 - EF Core migrations → Run migrations separately
 - Identity seed data → Use migration scripts or init containers
 - Assembly scanning for handlers → Pre-register at build time

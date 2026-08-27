@@ -48,8 +48,8 @@ public sealed class DepotQueryAgentSkill(
 
             // Optional filter on line operator mentioned in prompt.
             var row = agingResult.Value!.Rows.FirstOrDefault(r =>
-                lower.Contains(r.LineOperatorCode.ToLowerInvariant())
-                || lower.Contains(r.LineOperatorName.ToLowerInvariant()));
+                lower.Contains(r.LineOperatorCode, StringComparison.OrdinalIgnoreCase)
+                || lower.Contains(r.LineOperatorName, StringComparison.OrdinalIgnoreCase));
             if (row is not null)
             {
                 return AgentResult.Success(
@@ -71,8 +71,8 @@ public sealed class DepotQueryAgentSkill(
                 return AgentResult.Failure(tp.Error!.Message);
 
             var filtered = tp.Value!.Rows
-                .Where(r => lower.Contains(r.LineOperatorCode.ToLowerInvariant())
-                            || lower.Contains(r.LineOperatorName.ToLowerInvariant()))
+                .Where(r => lower.Contains(r.LineOperatorCode, StringComparison.OrdinalIgnoreCase)
+                            || lower.Contains(r.LineOperatorName, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             var target = filtered.Count > 0 ? filtered : tp.Value.Rows;
@@ -108,11 +108,6 @@ public sealed class DepotQueryAgentSkill(
 
     private static bool ContainsAny(string text, params string[] tokens)
     {
-        foreach (var t in tokens)
-        {
-            if (text.Contains(t, StringComparison.OrdinalIgnoreCase))
-                return true;
-        }
-        return false;
+        return tokens.Any(t => text.Contains(t, StringComparison.OrdinalIgnoreCase));
     }
 }

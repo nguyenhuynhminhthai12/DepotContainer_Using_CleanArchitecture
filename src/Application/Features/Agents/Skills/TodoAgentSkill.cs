@@ -1,4 +1,3 @@
-
 using TechSpherex.CleanArchitecture.Application.Abstractions.Agents;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Data;
 using TechSpherex.CleanArchitecture.Domain.Entities;
@@ -9,15 +8,8 @@ namespace TechSpherex.CleanArchitecture.Application.Features.Agents.Skills;
 /// Sample skill agent that manages Todos through natural language commands.
 /// Demonstrates how to integrate skill agents with existing CQRS handlers.
 /// </summary>
-public sealed class TodoAgentSkill : ISkillAgent
+public sealed class TodoAgentSkill(IAppDbContext dbContext) : ISkillAgent
 {
-    private readonly IAppDbContext _dbContext;
-
-    public TodoAgentSkill(IAppDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public string SkillId => "todo-manager";
     public string Name => "Todo Manager";
     public string Description => "Manage todo items — create, list, complete, and delete todos using natural language.";
@@ -31,7 +23,7 @@ public sealed class TodoAgentSkill : ISkillAgent
         "How many todos do I have?"
     ];
 
-    public async Task<AgentResult> ExecuteAsync(AgentContext context, CancellationToken cancellationToken)
+    public async Task<AgentResult> ExecuteAsync(AgentContext context, CancellationToken cancellationToken = default)
     {
         var prompt = context.Prompt.ToLowerInvariant().Trim();
 
@@ -65,7 +57,7 @@ public sealed class TodoAgentSkill : ISkillAgent
 
     private async Task<AgentResult> ListTodosAsync(CancellationToken ct)
     {
-        var todos = await _dbContext.Todos.OrderByDescending(t => t.CreatedAt).Take(20).ToListAsync(ct);
+        var todos = await dbContext.Todos.OrderByDescending(t => t.CreatedAt).Take(20).ToListAsync(ct);
 
         if (todos.Count == 0)
             return AgentResult.Success("You have no todos. Use 'Create a todo: <title>' to add one.");
@@ -83,22 +75,27 @@ public sealed class TodoAgentSkill : ISkillAgent
         // Extract title after "create" or "add" keyword
         var prompt = context.Prompt;
         var colonIndex = prompt.IndexOf(':');
-        var title = colonIndex >= 0 
-            ? prompt[(colonIndex + 1)..].Trim()
-            : prompt.Split(' ').Length > 2
-                ? string.Join(' ', prompt.Split(' ').Skip(2))
-                : null;
+        string? title;
+        if (colonIndex >= 0)
+        {
+            title = prompt[(colonIndex + 1)..].Trim();
+        }
+        else
+        {
+            var parts = prompt.Split(' ');
+            title = parts.Length > 2 ? string.Join(' ', parts.Skip(2)) : null;
+        }
 
         if (string.IsNullOrWhiteSpace(title))
             return AgentResult.NeedsMoreInfo("Please provide a title. Example: 'Create a todo: Review PR #42'");
 
         var todo = new TodoItem { Title = title };
-        _dbContext.Todos.Add(todo);
-        await _dbContext.SaveChangesAsync(ct);
+        dbContext.Todos.Add(todo);
+        await dbContext.SaveChangesAsync(ct);
 
         return AgentResult.Success(
             $"Created todo: \"{title}\"",
-            new { Id = todo.Id, Title = title });
+            new { todo.Id, todo.Title });
     }
 
     private async Task<AgentResult> CompleteTodoAsync(AgentContext context, CancellationToken ct)
@@ -110,39 +107,39 @@ public sealed class TodoAgentSkill : ISkillAgent
         if (string.IsNullOrWhiteSpace(search))
             return AgentResult.NeedsMoreInfo("Please specify which todo to complete. Example: 'Complete todo: Review PR #42'");
 
-        var todo = await _dbContext.Todos
-            .FirstOrDefaultAsync(t => t.Title.ToLower().Contains(search.ToLower()) && !t.IsCompleted, ct);
+        var todo = await dbContext.Todos
+            .FirstOrDefaultAsync(t => t.Title.Contains(search, StringComparison.OrdinalIgnoreCase) && !t.IsCompleted, ct);
 
         if (todo is null)
             return AgentResult.Failure($"Could not find an incomplete todo matching: \"{search}\"");
 
         todo.MarkAsCompleted();
-        await _dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct);
 
         return AgentResult.Success($"Completed: \"{todo.Title}\" ✓");
     }
 
     private async Task<AgentResult> DeleteCompletedAsync(CancellationToken ct)
     {
-        var completed = await _dbContext.Todos.Where(t => t.IsCompleted).ToListAsync(ct);
+        var completed = await dbContext.Todos.Where(t => t.IsCompleted).ToListAsync(ct);
 
         if (completed.Count == 0)
             return AgentResult.Success("No completed todos to delete.");
 
-        _dbContext.Todos.RemoveRange(completed);
-        await _dbContext.SaveChangesAsync(ct);
+        dbContext.Todos.RemoveRange(completed);
+        await dbContext.SaveChangesAsync(ct);
 
         return AgentResult.Success($"Deleted {completed.Count} completed todo(s).");
     }
 
     private async Task<AgentResult> CountTodosAsync(CancellationToken ct)
     {
-        var total = await _dbContext.Todos.CountAsync(ct);
-        var completed = await _dbContext.Todos.CountAsync(t => t.IsCompleted, ct);
+        var total = await dbContext.Todos.CountAsync(ct);
+        var completed = await dbContext.Todos.CountAsync(t => t.IsCompleted, ct);
         var pending = total - completed;
 
         return AgentResult.Success(
             $"You have {total} todos: {pending} pending, {completed} completed.",
-            new { Total = total, Pending = pending, Completed = completed });
+            new { total, pending, completed });
     }
 }

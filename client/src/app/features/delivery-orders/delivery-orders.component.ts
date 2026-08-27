@@ -119,7 +119,7 @@ import { Customer, DeliveryOrder, LineOperator } from '../../core/models/api.mod
   `],
 })
 export class DeliveryOrdersComponent implements OnInit {
-  private svc = inject(DeliveryOrderService);
+  private readonly svc = inject(DeliveryOrderService);
   loading = signal(true);
   submitting = signal(false);
   showCreate = signal(false);
@@ -134,7 +134,11 @@ export class DeliveryOrdersComponent implements OnInit {
   requestedQty = 5;
 
   newOrder = {
-    orderNumber: `DO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+    orderNumber: `DO-${new Date().getFullYear()}-${(() => {
+      const arr = new Uint32Array(1);
+      crypto.getRandomValues(arr);
+      return 1000 + (arr[0] % 9000);
+    })()}`,
     customerId: '',
     lineOperatorId: '',
     expiryDate: '2026-12-31',
@@ -183,7 +187,9 @@ export class DeliveryOrdersComponent implements OnInit {
       next: (res) => {
         this.submitting.set(false);
         this.successMsg.set(`Delivery Order ${res.orderNumber} created successfully!`);
-        this.newOrder.orderNumber = `DO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+        const arr = new Uint32Array(1);
+        crypto.getRandomValues(arr);
+        this.newOrder.orderNumber = `DO-${new Date().getFullYear()}-${1000 + (arr[0] % 9000)}`;
         this.refresh();
       },
       error: (err) => {

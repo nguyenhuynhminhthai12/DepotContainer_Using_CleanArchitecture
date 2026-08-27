@@ -13,12 +13,12 @@ public sealed class TenantMiddleware(RequestDelegate next, ILogger<TenantMiddlew
     private readonly RequestDelegate _next = next;
     private readonly ILogger<TenantMiddleware> _logger = logger;
 
-    public async Task InvokeAsync(HttpContext context, ITenantProvider tenantProvider)
+    public async Task InvokeAsync(HttpContext context, ITenantProvider tenantProvider, CancellationToken ct = default)
     {
         var tenantId = tenantProvider.TenantId;
         var tenant = tenantProvider.CurrentTenant;
 
-        if (tenant is not null && !tenant.IsActive)
+        if (tenant?.IsActive is false)
         {
             _logger.LogWarning("Tenant {TenantId} is inactive. Rejecting request.", tenantId);
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
@@ -28,7 +28,7 @@ public sealed class TenantMiddleware(RequestDelegate next, ILogger<TenantMiddlew
                 title = "Forbidden",
                 status = 403,
                 detail = $"Tenant '{tenantId}' is not active."
-            });
+            }, ct);
             return;
         }
 

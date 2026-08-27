@@ -4,7 +4,10 @@
 
 This template implements **Clean Architecture** (a.k.a. Onion Architecture, Hexagonal Architecture) with four distinct layers:
 
+
 ```
+
+```text
 ┌──────────────────────────────────────────────────┐
 │                    Api Layer                      │
 │      Endpoints, Middleware, OpenAPI, Scalar       │
@@ -31,7 +34,9 @@ This template implements **Clean Architecture** (a.k.a. Onion Architecture, Hexa
 > **Each layer only depends on the layer below it. Never upward.**
 
 This is enforced by:
+
 1. **Project references** — each `.csproj` only references inner layers
+
 2. **Architecture tests** — automated tests verify no dependency violations at build time
 
 ### Domain Layer (`TechSpherex.CleanArchitecture.Domain`)
@@ -39,7 +44,9 @@ This is enforced by:
 **Dependencies**: None (zero NuGet packages, except Identity for `ApplicationUser`)
 
 **Contains**:
+
 - `Entities/` — Business entities (`TodoItem`, `ApplicationUser`)
+
 - `Common/` — Shared primitives:
   - `BaseEntity` — Base with `Guid Id`
   - `AuditableEntity` — Adds `CreatedAt`, `LastModifiedAt`, audit fields
@@ -53,6 +60,7 @@ This is enforced by:
 **Dependencies**: Domain only
 
 **Contains**:
+
 - `Abstractions/` — Interfaces (ports):
   - `Messaging/` — `ICommand`, `IQuery`, `ICommandHandler<T>`, `IQueryHandler<T>`
   - `Data/` — `IAppDbContext`
@@ -69,6 +77,7 @@ This is enforced by:
 **Dependencies**: Application
 
 **Contains**:
+
 - `Persistence/` — EF Core DbContext, Configurations, Migrations, Seeder
 - `Identity/` — JWT TokenService, CurrentUser
 - `Caching/` — HybridCache configuration
@@ -79,6 +88,7 @@ This is enforced by:
 **Dependencies**: Infrastructure, ServiceDefaults
 
 **Contains**:
+
 - `Endpoints/` — Minimal API endpoint groups
 - `Extensions/` — GlobalExceptionHandler, ResultExtensions, ValidationFilter
 - `Program.cs` — Application bootstrap
@@ -88,12 +98,14 @@ This is enforced by:
 We use **manual CQRS** — no MediatR, no licensing risk.
 
 ### Command Flow
-```
+
+```text
 Endpoint → ICommandHandler<TCommand, TResult> → DbContext → Database
 ```
 
 ### Query Flow
-```
+
+```text
 Endpoint → IQueryHandler<TQuery, TResult> → DbContext (no tracking) → Response
 ```
 
@@ -105,7 +117,7 @@ services.AddHandlersFromAssembly(assembly); // Scans for ICommandHandler<,> and 
 
 ## Multi-Tenancy Architecture
 
-```
+```text
 Request → TenantMiddleware → Resolve Tenant (Header/JWT/Default)
                                     ↓
                             Set TenantId in scope
@@ -118,7 +130,7 @@ See [Multi-Tenancy Guide](multi-tenancy.md) for details.
 
 ## Skill Agents Architecture
 
-```
+```text
 POST /api/agents/execute { prompt: "..." }
          ↓
     AgentOrchestrator → Select Skill (keyword/LLM)

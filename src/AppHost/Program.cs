@@ -19,5 +19,5 @@ builder.AddProject<Projects.TechSpherex_CleanArchitecture_Api>("api")
     .WithHttpsEndpoint(port: 7200, name: "https")
     .WithExternalHttpEndpoints();
 
-builder.Build().Run();
+await builder.Build().RunAsync();
 

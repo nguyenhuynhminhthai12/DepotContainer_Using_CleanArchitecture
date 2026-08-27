@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Routing;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Agents;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Identity;
@@ -80,7 +82,7 @@ public static class AgentEndpoints
             : TypedResults.Ok(new AgentExecuteResponse(result.Status.ToString(), result.Message, result.Data, result.Metadata));
     }
 
-    private static IResult ListSkills(IAgentOrchestrator orchestrator)
+    private static Ok<IReadOnlyList<SkillInfo>> ListSkills(IAgentOrchestrator orchestrator)
     {
         var skills = orchestrator.GetAvailableSkills();
         return TypedResults.Ok(skills);

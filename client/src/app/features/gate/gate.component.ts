@@ -25,7 +25,14 @@ import { DeliveryOrderService } from '../../core/services/delivery-order.service
         <h3>Gate In</h3>
         <form (ngSubmit)="gateIn()">
           <label>Container Number
-            <input [(ngModel)]="inForm.containerNumber" name="inNumber" placeholder="e.g. MSCU1234566" required />
+            <input
+              [(ngModel)]="inForm.containerNumber"
+              (ngModelChange)="validateInContainerNumber($event)"
+              name="inNumber"
+              placeholder="e.g. MSCU1234566"
+              [class.invalid]="inContainerNumberError()"
+              required />
+            <span class="field-hint" *ngIf="inContainerNumberError()">{{ inContainerNumberError() }}</span>
           </label>
           <label>Line Operator
             <select [(ngModel)]="inForm.lineOperatorId" name="inOp" required>
@@ -34,17 +41,24 @@ import { DeliveryOrderService } from '../../core/services/delivery-order.service
             </select>
           </label>
           <label>Block ID
-            <input [(ngModel)]="inForm.blockId" name="inBlock" placeholder="Target Block ID" required />
+            <input
+              [(ngModel)]="inForm.blockId"
+              (ngModelChange)="validateGuid(inForm.blockId, 'inBlock')"
+              name="inBlock"
+              placeholder="Target Block ID"
+              [class.invalid]="inBlockError()"
+              required />
+            <span class="field-hint error" *ngIf="inBlockError()">{{ inBlockError() }}</span>
           </label>
           <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
             <label>Bay
-              <input type="number" [(ngModel)]="inForm.bay" name="inBay" placeholder="1" />
+              <input type="number" [(ngModel)]="inForm.bay" name="inBay" placeholder="1" min="1" />
             </label>
             <label>Row
-              <input type="number" [(ngModel)]="inForm.row" name="inRow" placeholder="1" />
+              <input type="number" [(ngModel)]="inForm.row" name="inRow" placeholder="1" min="1" />
             </label>
             <label>Tier
-              <input type="number" [(ngModel)]="inForm.tier" name="inTier" placeholder="1" />
+              <input type="number" [(ngModel)]="inForm.tier" name="inTier" placeholder="1" min="1" />
             </label>
           </div>
           <label>Vehicle Plate
@@ -63,7 +77,10 @@ import { DeliveryOrderService } from '../../core/services/delivery-order.service
               <option value="C">C</option>
             </select>
           </label>
-          <button type="submit" [disabled]="busy()" style="margin-top: 8px; padding: 8px 16px; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+          <button
+            type="submit"
+            [disabled]="busy() || !isInFormValid()"
+            style="margin-top: 8px; padding: 8px 16px; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
             {{ busy() ? 'Submitting…' : 'Register Gate-In' }}
           </button>
           <p class="success" *ngIf="lastIn()">✓ EIR opened: {{ lastIn() }}</p>
@@ -76,24 +93,41 @@ import { DeliveryOrderService } from '../../core/services/delivery-order.service
         <h3>Move Container</h3>
         <form (ngSubmit)="moveContainer()">
           <label>Container Number
-            <input [(ngModel)]="moveForm.containerNumber" name="moveContainerNumber" placeholder="e.g. MSCU1234566" required />
+            <input
+              [(ngModel)]="moveForm.containerNumber"
+              (ngModelChange)="validateMoveContainerNumber($event)"
+              name="moveContainerNumber"
+              placeholder="e.g. MSCU1234566"
+              [class.invalid]="moveContainerNumberError()"
+              required />
+            <span class="field-hint error" *ngIf="moveContainerNumberError()">{{ moveContainerNumberError() }}</span>
           </label>
           <label>Target Block ID
-            <input [(ngModel)]="moveForm.newBlockId" name="moveBlockId" placeholder="New Block ID" required />
+            <input
+              [(ngModel)]="moveForm.newBlockId"
+              (ngModelChange)="validateGuid(moveForm.newBlockId, 'moveBlock')"
+              name="moveBlockId"
+              placeholder="New Block ID"
+              [class.invalid]="moveBlockError()"
+              required />
+            <span class="field-hint error" *ngIf="moveBlockError()">{{ moveBlockError() }}</span>
           </label>
           <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
             <label>New Bay
-              <input type="number" [(ngModel)]="moveForm.newBay" name="moveBay" placeholder="3" required />
+              <input type="number" [(ngModel)]="moveForm.newBay" name="moveBay" placeholder="3" min="1" required />
             </label>
             <label>New Row
-              <input type="number" [(ngModel)]="moveForm.newRow" name="moveRow" placeholder="1" required />
+              <input type="number" [(ngModel)]="moveForm.newRow" name="moveRow" placeholder="1" min="1" required />
             </label>
             <label>New Tier
-              <input type="number" [(ngModel)]="moveForm.newTier" name="moveTier" placeholder="1" required />
+              <input type="number" [(ngModel)]="moveForm.newTier" name="moveTier" placeholder="1" min="1" required />
             </label>
           </div>
           <p class="muted small" style="margin-top: 4px;">* 20ft requires Odd Bay; 40ft requires Even Bay.</p>
-          <button type="submit" [disabled]="busy()" style="margin-top: 8px; padding: 8px 16px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+          <button
+            type="submit"
+            [disabled]="busy() || !isMoveFormValid()"
+            style="margin-top: 8px; padding: 8px 16px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
             {{ busy() ? 'Moving…' : 'Move Container' }}
           </button>
           <p class="success" *ngIf="moveSuccess()">✓ {{ moveSuccess() }}</p>
@@ -106,10 +140,24 @@ import { DeliveryOrderService } from '../../core/services/delivery-order.service
         <h3>Gate Out</h3>
         <form (ngSubmit)="gateOut()">
           <label>Container Number
-            <input [(ngModel)]="outForm.containerNumber" name="outContainerNumber" placeholder="e.g. MSCU1234566" required />
+            <input
+              [(ngModel)]="outForm.containerNumber"
+              (ngModelChange)="validateOutContainerNumber($event)"
+              name="outContainerNumber"
+              placeholder="e.g. MSCU1234566"
+              [class.invalid]="outContainerNumberError()"
+              required />
+            <span class="field-hint error" *ngIf="outContainerNumberError()">{{ outContainerNumberError() }}</span>
           </label>
           <label>Delivery Order ID
-            <input [(ngModel)]="outForm.deliveryOrderId" name="outOrder" placeholder="Active DO Guid" required />
+            <input
+              [(ngModel)]="outForm.deliveryOrderId"
+              (ngModelChange)="validateGuid(outForm.deliveryOrderId, 'outOrder')"
+              name="outOrder"
+              placeholder="Active DO Guid"
+              [class.invalid]="outOrderError()"
+              required />
+            <span class="field-hint error" *ngIf="outOrderError()">{{ outOrderError() }}</span>
           </label>
           <label>Vehicle Plate
             <input [(ngModel)]="outForm.vehicleOutNumber" name="outVehicle" placeholder="KH-8888" required />
@@ -128,7 +176,10 @@ import { DeliveryOrderService } from '../../core/services/delivery-order.service
               <option value="Other">Other</option>
             </select>
           </label>
-          <button type="submit" [disabled]="busy()" style="margin-top: 8px; padding: 8px 16px; background: #059669; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+          <button
+            type="submit"
+            [disabled]="busy() || !isOutFormValid()"
+            style="margin-top: 8px; padding: 8px 16px; background: #059669; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
             {{ busy() ? 'Submitting…' : 'Register Gate-Out' }}
           </button>
           <p class="success" *ngIf="lastOut()">✓ EIR closed: {{ lastOut() }}</p>
@@ -142,23 +193,35 @@ import { DeliveryOrderService } from '../../core/services/delivery-order.service
     form { display: flex; flex-direction: column; gap: 8px; }
     label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 500; }
     label input, label select { padding: 8px 10px; border-radius: 4px; border: 1px solid var(--color-border); font-size: 13px; }
+    label input.invalid { border-color: #dc2626; }
+    .field-hint { font-size: 11px; color: #6b7280; }
+    .field-hint.error { color: #dc2626; }
     .small { font-size: 11px; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
   `],
 })
 export class GateComponent {
-  private gate = inject(GateService);
-  private orderSvc = inject(DeliveryOrderService);
+  private readonly gate = inject(GateService);
+  private readonly orderSvc = inject(DeliveryOrderService);
 
-  busy = signal(false);
-  operators = signal<LineOperator[]>([]);
-  lastIn = signal<string | null>(null);
-  lastOut = signal<string | null>(null);
-  errorIn = signal<string | null>(null);
-  errorOut = signal<string | null>(null);
-  moveSuccess = signal<string | null>(null);
-  moveError = signal<string | null>(null);
+  readonly busy = signal(false);
+  readonly operators = signal<LineOperator[]>([]);
+  readonly lastIn = signal<string | null>(null);
+  readonly lastOut = signal<string | null>(null);
+  readonly errorIn = signal<string | null>(null);
+  readonly errorOut = signal<string | null>(null);
+  readonly moveSuccess = signal<string | null>(null);
+  readonly moveError = signal<string | null>(null);
 
-  inForm = {
+  // Validation signals
+  readonly inContainerNumberError = signal<string | null>(null);
+  readonly inBlockError = signal<string | null>(null);
+  readonly outContainerNumberError = signal<string | null>(null);
+  readonly outOrderError = signal<string | null>(null);
+  readonly moveContainerNumberError = signal<string | null>(null);
+  readonly moveBlockError = signal<string | null>(null);
+
+  readonly inForm = {
     containerNumber: '', lineOperatorId: '', blockId: '',
     bay: 1, row: 1, tier: 1,
     vehicleInNumber: '', driverInName: '',
@@ -166,7 +229,7 @@ export class GateComponent {
     conditionAtGateIn: 'Normal',
   };
 
-  moveForm = {
+  readonly moveForm = {
     containerNumber: '',
     newBlockId: '',
     newBay: 3,
@@ -174,7 +237,7 @@ export class GateComponent {
     newTier: 1,
   };
 
-  outForm = {
+  readonly outForm = {
     containerNumber: '', deliveryOrderId: '',
     vehicleOutNumber: '', driverOutName: '',
     conditionAtGateOut: 'Normal',
@@ -187,7 +250,93 @@ export class GateComponent {
     });
   }
 
+  // ISO 6346 Container Number Validation (client-side pre-check)
+  // Format: 4 letters (owner code) + 6 digits (serial) + 1 check digit = 11 chars
+  private validateContainerNumber(value: string): string | null {
+    const normalized = (value || '').trim().toUpperCase();
+
+    if (!normalized) return null;
+
+    if (normalized.length !== 11) {
+      return `Container number must be exactly 11 characters (current: ${normalized.length})`;
+    }
+
+    // First 4 characters must be letters (owner code + type code)
+    for (let i = 0; i < 4; i++) {
+      if (!/[A-Z]/.test(normalized[i])) {
+        return `Position ${i + 1} must be a letter (owner/type code)`;
+      }
+    }
+
+    // Last 7 characters must be digits (serial + check digit)
+    for (let i = 4; i < 11; i++) {
+      if (!/\d/.test(normalized[i])) {
+        return `Position ${i + 1} must be a digit (serial/check digit)`;
+      }
+    }
+
+    return null;
+  }
+
+  private validateGuid(value: string, field: string): void {
+    if (!value) return;
+    const isValid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+    if (!isValid) {
+      if (field === 'inBlock') this.inBlockError.set('Invalid GUID format');
+      else if (field === 'moveBlock') this.moveBlockError.set('Invalid GUID format');
+      else if (field === 'outOrder') this.outOrderError.set('Invalid GUID format');
+    } else {
+      const clearError = (f: string) => {
+        if (f === 'inBlock') this.inBlockError.set(null);
+        else if (f === 'moveBlock') this.moveBlockError.set(null);
+        else if (f === 'outOrder') this.outOrderError.set(null);
+      };
+      clearError(field);
+    }
+  }
+
+  validateInContainerNumber(value: string): void {
+    this.inContainerNumberError.set(this.validateContainerNumber(value));
+  }
+
+  validateOutContainerNumber(value: string): void {
+    this.outContainerNumberError.set(this.validateContainerNumber(value));
+  }
+
+  validateMoveContainerNumber(value: string): void {
+    this.moveContainerNumberError.set(this.validateContainerNumber(value));
+  }
+
+  isInFormValid(): boolean {
+    return !this.inContainerNumberError()
+      && !this.inBlockError()
+      && !!this.inForm.containerNumber
+      && !!this.inForm.lineOperatorId
+      && !!this.inForm.blockId
+      && !!this.inForm.vehicleInNumber;
+  }
+
+  isOutFormValid(): boolean {
+    return !this.outContainerNumberError()
+      && !this.outOrderError()
+      && !!this.outForm.containerNumber
+      && !!this.outForm.deliveryOrderId
+      && !!this.outForm.vehicleOutNumber;
+  }
+
+  isMoveFormValid(): boolean {
+    return !this.moveContainerNumberError()
+      && !this.moveBlockError()
+      && !!this.moveForm.containerNumber
+      && !!this.moveForm.newBlockId
+      && this.moveForm.newBay > 0
+      && this.moveForm.newRow > 0
+      && this.moveForm.newTier > 0;
+  }
+
   gateIn(): void {
+    if (!this.isInFormValid()) return;
+
     this.busy.set(true);
     this.errorIn.set(null);
     this.lastIn.set(null);
@@ -198,6 +347,8 @@ export class GateComponent {
   }
 
   moveContainer(): void {
+    if (!this.isMoveFormValid()) return;
+
     this.busy.set(true);
     this.moveError.set(null);
     this.moveSuccess.set(null);
@@ -220,6 +371,8 @@ export class GateComponent {
   }
 
   gateOut(): void {
+    if (!this.isOutFormValid()) return;
+
     this.busy.set(true);
     this.errorOut.set(null);
     this.lastOut.set(null);

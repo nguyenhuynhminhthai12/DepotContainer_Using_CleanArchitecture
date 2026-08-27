@@ -11,5 +11,6 @@
   <PropertyGroup Label="TestSettings">
     <ParallelizeTestRun>false</ParallelizeTestRun>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <NoWarn>$(NoWarn);xUnit1051;S3427;CA1860;CA1873;IDE0022</NoWarn>
   </PropertyGroup>
 </Project>

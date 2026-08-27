@@ -5,6 +5,7 @@
 The template provides **three levels** of observability:
 
 | Level | Tool | Use Case |
+
 |-------|------|----------|
 | **Development** | Aspire Dashboard | Quick local telemetry |
 | **ELK Stack** | Elasticsearch + Logstash + Kibana | Centralized log management |
@@ -20,6 +21,7 @@ dotnet run
 ```
 
 The Aspire Dashboard shows:
+
 - **Structured logs** with filtering
 - **Distributed traces** with request timeline
 - **Metrics** (request rate, latency, etc.)
@@ -37,8 +39,9 @@ docker compose --profile elk up -d
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
-| Kibana | http://localhost:5601 | None (dev mode) |
-| Elasticsearch | http://localhost:9200 | None (dev mode) |
+
+| Kibana | [http://localhost:5601](http://localhost:5601) | None (dev mode) |
+| Elasticsearch | [http://localhost:9200](http://localhost:9200) | None (dev mode) |
 
 ### Setup Kibana Index Pattern
 
@@ -49,7 +52,7 @@ docker compose --profile elk up -d
 
 ### Useful KQL Queries
 
-```
+```kql
 # All errors
 log_level: "Error" OR log_level: "Fatal"
 
@@ -96,20 +99,22 @@ The API ships logs to Elasticsearch via `Serilog.Sinks.Elasticsearch`:
 docker compose --profile grafana up -d
 ```
 
-### Access
+### Access Grafana Stack
 
 | Service | URL | Credentials |
+
 |---------|-----|-------------|
-| Grafana | http://localhost:3000 | admin / Admin@123 |
-| Prometheus | http://localhost:9090 | None |
-| Loki | http://localhost:3100 | None |
-| Tempo | http://localhost:3200 | None |
+| Grafana | [http://localhost:3000](http://localhost:3000) | admin / Admin@123 |
+| Prometheus | [http://localhost:9090](http://localhost:9090) | None |
+| Loki | [http://localhost:3100](http://localhost:3100) | None |
+| Tempo | [http://localhost:3200](http://localhost:3200) | None |
 
 ### Pre-Built Dashboard
 
 The template includes a **TechSpherex API Overview** dashboard with 12 panels:
 
 | Panel | Type | Data Source |
+
 |-------|------|-------------|
 | Request Rate (req/s) | Time Series | Prometheus |
 | P99 Latency | Time Series | Prometheus |
@@ -200,6 +205,7 @@ The OTLP exporter sends telemetry to the OpenTelemetry Collector when `OTEL_EXPO
 In Grafana, create alert rules for:
 
 | Alert | Condition | Severity |
+
 |-------|-----------|----------|
 | High Error Rate | 5xx rate > 5% for 5min | Critical |
 | High Latency | P99 > 2s for 5min | Warning |
@@ -213,6 +219,7 @@ For production, add Alertmanager to your Prometheus config for Slack/PagerDuty/e
 ## Choosing the Right Stack
 
 | Factor | ELK | Grafana |
+
 |--------|-----|---------|
 | **Primary focus** | Log search & analysis | Full observability (logs + metrics + traces) |
 | **Resource usage** | High (ES is memory-hungry) | Low (Loki is log-append only) |

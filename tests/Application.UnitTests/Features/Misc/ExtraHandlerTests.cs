@@ -1,11 +1,12 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Caching;
 using TechSpherex.CleanArchitecture.Application.Features.Lookups;
 using TechSpherex.CleanArchitecture.Application.Features.DeliveryOrders;
 using TechSpherex.CleanArchitecture.Application.Features.Gate;
 using TechSpherex.CleanArchitecture.Application.Features.Containers;
 using TechSpherex.CleanArchitecture.Domain.Entities;
-using NSubstitute;
 
 namespace TechSpherex.CleanArchitecture.Application.UnitTests.Features.Misc;
 
@@ -139,12 +140,14 @@ public sealed class DeliveryOrderExtraHandlerTests
 
 public sealed class MoveContainerInYardTests
 {
+    private readonly ILogger<MoveContainerInYardCommandHandler> _loggerMock = Substitute.For<ILogger<MoveContainerInYardCommandHandler>>();
+
     [Fact]
     public async Task Move_Should_Fail_When_Container_Not_Found()
     {
         await using var db = TestDbContextFactory.Create();
         var cache = new FakeCacheService();
-        var handler = new MoveContainerInYardCommandHandler(db, cache);
+        var handler = new MoveContainerInYardCommandHandler(db, cache, _loggerMock);
 
         var result = await handler.HandleAsync(
             new MoveContainerInYardCommand("CMAU1234564", Guid.NewGuid(), 1, 1, 1),
@@ -189,7 +192,7 @@ public sealed class MoveContainerInYardTests
         await db.SaveChangesAsync();
 
         var cache = new FakeCacheService();
-        var handler = new MoveContainerInYardCommandHandler(db, cache);
+        var handler = new MoveContainerInYardCommandHandler(db, cache, _loggerMock);
 
         var result = await handler.HandleAsync(
             new MoveContainerInYardCommand("CMAU1234564", vBlock.Id, 1, 1, 1),
@@ -283,27 +286,4 @@ public sealed class GetContainersByNumberTests
         result.IsSuccess.Should().BeTrue();
         result.Value!.ContainerNumber.Should().Be("CMAU1234564");
     }
-}
-
-/// <summary>
-/// A pass-through ICacheService that always calls the factory directly
-/// (no caching), suitable for unit tests where we don't want to mock the cache.
-/// </summary>
-internal sealed class FakeCacheService : TechSpherex.CleanArchitecture.Application.Abstractions.Caching.ICacheService
-{
-    public Task<T> GetOrCreateAsync<T>(string key, Func<CancellationToken, Task<T>> factory,
-        TimeSpan? expiration = null, TimeSpan? localExpiration = null,
-        IEnumerable<string>? tags = null, CancellationToken cancellationToken = default)
-        => factory(cancellationToken);
-
-    public Task SetAsync<T>(string key, T value, TimeSpan? expiration = null,
-        TimeSpan? localExpiration = null, IEnumerable<string>? tags = null,
-        CancellationToken cancellationToken = default)
-        => Task.CompletedTask;
-
-    public Task RemoveAsync(string key, CancellationToken cancellationToken = default)
-        => Task.CompletedTask;
-
-    public Task InvalidateByTagAsync(string tag, CancellationToken cancellationToken = default)
-        => Task.CompletedTask;
 }

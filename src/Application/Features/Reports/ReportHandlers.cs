@@ -34,23 +34,22 @@ public sealed class GetYardAgingReportQueryHandler(IAppDbContext dbContext) :
             .ToList();
 
         var lineOperators = await dbContext.LineOperators.AsNoTracking().ToListAsync(cancellationToken);
-        var lookup = lineOperators.ToDictionary(l => l.Id);
 
-        var rows = grouped
-            .Where(g => lookup.ContainsKey(g.LineOperatorId))
-            .Select(g =>
-            {
-                var op = lookup[g.LineOperatorId];
-                return new YardAgingRow(
-                    g.LineOperatorId,
-                    op.Code,
-                    op.Name,
-                    new YardAgingBucket(g.WithinTenDays, g.TenDaysOrMore, g.Total));
-            })
-            .OrderBy(r => r.LineOperatorCode)
-            .ToList();
-
-        return Result.Success(new YardAgingReport(now, rows));
+            var lookup = lineOperators.ToDictionary(l => l.Id);
+            var rows = grouped
+                .Where(g => lookup.ContainsKey(g.LineOperatorId))
+                .Select(g =>
+                {
+                    var op = lookup[g.LineOperatorId];
+                    return new YardAgingRow(
+                        g.LineOperatorId,
+                        op.Code,
+                        op.Name,
+                        new YardAgingBucket(g.WithinTenDays, g.TenDaysOrMore, g.Total));
+                })
+                .OrderBy(r => r.LineOperatorCode)
+                .ToList();
+            return Result.Success(new YardAgingReport(now, rows));
     }
 }
 
@@ -86,7 +85,7 @@ public sealed class GetDailyThroughputReportQueryHandler(IAppDbContext dbContext
                 g.Key.LineOperatorId,
                 g.Key.Day,
                 GateInCount = g.Count(),
-                GateOutCount = g.Count(m => m.GateOutAt.HasValue && m.GateOutAt.Value >= fromDateTime && m.GateOutAt.Value < toDateTime)
+                GateOutCount = g.Count(m => m.GateOutAt >= fromDateTime && m.GateOutAt < toDateTime)
             })
             .Where(r => opLookup.ContainsKey(r.LineOperatorId))
             .Select(r =>

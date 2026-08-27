@@ -1,0 +1,28 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Api/">
+    <Project Path="src/Api/TechSpherex.CleanArchitecture.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/AppHost/">
+    <Project Path="src/AppHost/TechSpherex.CleanArchitecture.AppHost.csproj" />
+  </Folder>
+  <Folder Name="/src/Application/">
+    <Project Path="src/Application/TechSpherex.CleanArchitecture.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Domain/">
+    <Project Path="src/Domain/TechSpherex.CleanArchitecture.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Infrastructure/">
+    <Project Path="src/Infrastructure/TechSpherex.CleanArchitecture.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/ServiceDefaults/">
+    <Project Path="src/ServiceDefaults/TechSpherex.CleanArchitecture.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Application.UnitTests/">
+    <Project Path="tests/Application.UnitTests/TechSpherex.CleanArchitecture.Application.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Architecture.Tests/">
+    <Project Path="tests/Architecture.Tests/TechSpherex.CleanArchitecture.Architecture.Tests.csproj" />
+  </Folder>
+</Solution>

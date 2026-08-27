@@ -129,7 +129,7 @@ import { Container, ContainerType } from '../../core/models/api.models';
   `],
 })
 export class ContainersComponent implements OnInit {
-  private svc = inject(ContainerService);
+  private readonly svc = inject(ContainerService);
   loading = signal(true);
   submitting = signal(false);
   showCreate = signal(false);

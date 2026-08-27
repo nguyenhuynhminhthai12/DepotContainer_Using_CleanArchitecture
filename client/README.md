@@ -5,7 +5,7 @@ Standalone Angular 19 client that talks to the .NET 10 Container Depot API.
 ## Features
 
 | Module | Purpose |
-|---|---|
+| --- | --- |---|
 | `core/services` | Typed wrappers around REST endpoints (`yard`, `containers`, `gate`, `delivery-orders`, `reports`) |
 | `core/interceptors/auth.interceptor.ts` | Attaches `Authorization: Bearer <jwt>` and `X-Tenant-Id` to every request |
 | `core/guards/auth.guard.ts` | Redirects unauthenticated users to `/login` |

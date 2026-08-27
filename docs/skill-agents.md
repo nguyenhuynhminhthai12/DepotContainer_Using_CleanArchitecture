@@ -6,7 +6,7 @@ The **Skill Agents** pattern provides a structured way to integrate AI capabilit
 
 ## Architecture
 
-```
+```text
                      POST /api/agents/execute
                             │
                             ▼
@@ -30,6 +30,7 @@ The **Skill Agents** pattern provides a structured way to integrate AI capabilit
 ## Key Components
 
 ### ISkillAgent
+
 ```csharp
 public interface ISkillAgent
 {
@@ -42,17 +43,21 @@ public interface ISkillAgent
 ```
 
 ### AgentContext
+
 Contains the prompt, parameters, user/tenant context, and conversation history.
 
 ### AgentResult
+
 Structured response with status (`Success`, `Failure`, `NeedsMoreInfo`, `PartialSuccess`), message, and data.
 
 ### IAgentOrchestrator
+
 Routes prompts to the appropriate skill agent. The default implementation uses keyword matching. **Replace with LLM-based routing in production.**
 
 ## API Endpoints
 
 | Endpoint | Method | Auth | Description |
+
 |----------|--------|------|-------------|
 | `/api/agents/execute` | POST | Yes | Execute with auto-routing |
 | `/api/agents/execute/{skillId}` | POST | Yes | Execute specific skill |
@@ -72,6 +77,7 @@ curl -X POST https://localhost:7200/api/agents/execute \
 ```
 
 **Response:**
+
 ```json
 {
   "status": "Success",
@@ -127,7 +133,7 @@ public sealed class ReportAgentSkill : ISkillAgent
 }
 ```
 
-### Step 2: That's It!
+### Step 2: That Is It
 
 The skill is **auto-discovered** via assembly scanning in `DependencyInjection.cs`. No manual registration needed.
 

@@ -5,6 +5,7 @@
 The template supports three Docker deployment modes:
 
 | Mode | Command | What's Included |
+
 |------|---------|-----------------|
 | **Core** | `docker compose up -d` | API + PostgreSQL + Redis |
 | **Core + ELK** | `docker compose --profile elk up -d` | + Elasticsearch + Logstash + Kibana |
@@ -28,6 +29,7 @@ docker build --build-arg PUBLISH_AOT=true -t techspherex-api:aot .
 ### Image Sizes
 
 | Build | Approximate Size |
+
 |-------|-----------------|
 | JIT (Alpine) | ~120 MB |
 | AOT (Alpine) | ~35 MB |
@@ -41,7 +43,8 @@ docker compose up -d
 ```
 
 Services:
-- `techspherex-api` → `http://localhost:8080`
+
+- `techspherex-api` → <http://localhost:8080>
 - `techspherex-postgres` → `localhost:5432`
 - `techspherex-redis` → `localhost:6379`
 
@@ -52,9 +55,10 @@ docker compose --profile elk up -d
 ```
 
 Additional services:
-- `techspherex-elasticsearch` → `http://localhost:9200`
+
+- `techspherex-elasticsearch` → <http://localhost:9200>
 - `techspherex-logstash` → `localhost:5044` (Beats), `localhost:31311` (TCP)
-- `techspherex-kibana` → `http://localhost:5601`
+- `techspherex-kibana` → <http://localhost:5601>
 - `techspherex-otel-collector` → `localhost:4320` (gRPC), `localhost:4321` (HTTP)
 
 ### Grafana Stack
@@ -64,10 +68,11 @@ docker compose --profile grafana up -d
 ```
 
 Additional services:
-- `techspherex-grafana` → `http://localhost:3000` (admin / Admin@123)
-- `techspherex-loki` → `http://localhost:3100`
-- `techspherex-tempo` → `http://localhost:3200`
-- `techspherex-prometheus` → `http://localhost:9090`
+
+- `techspherex-grafana` → <http://localhost:3000> (admin / Admin@123)
+- `techspherex-loki` → <http://localhost:3100>
+- `techspherex-tempo` → <http://localhost:3200>
+- `techspherex-prometheus` → <http://localhost:9090>
 - `techspherex-otel-collector` → `localhost:4320` (gRPC), `localhost:4321` (HTTP)
 
 ### Tools
@@ -77,19 +82,21 @@ docker compose --profile tools up -d
 ```
 
 Additional services:
-- `techspherex-pgadmin` → `http://localhost:5050` (admin@techspherex.dev / Admin@123)
-- `techspherex-redisinsight` → `http://localhost:5540`
+
+- `techspherex-pgadmin` → [http://localhost:5050](http://localhost:5050) (<admin@techspherex.dev> / Admin@123)
+- `techspherex-redisinsight` → [http://localhost:5540](http://localhost:5540)
 
 ## Environment Variables
 
 | Variable | Description | Default |
+
 |----------|-------------|---------|
 | `ASPNETCORE_ENVIRONMENT` | Runtime environment | `Production` |
 | `ConnectionStrings__DefaultConnection` | PostgreSQL connection | Docker internal |
 | `Jwt__Secret` | JWT signing key | ⚠️ Change this! |
 | `Jwt__Issuer` | JWT issuer | `TechSpherex.CleanArchitecture` |
 | `Jwt__Audience` | JWT audience | `TechSpherex.CleanArchitecture` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | OpenTelemetry collector | `http://otel-collector:4317` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | OpenTelemetry collector | <http://otel-collector:4317> |
 
 ## Kubernetes Deployment Hints
 

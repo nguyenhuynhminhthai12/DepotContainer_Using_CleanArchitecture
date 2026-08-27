@@ -71,6 +71,7 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 Create `src/Application/Features/Products/Create/`:
 
 **CreateProductCommand.cs**:
+
 ```csharp
 namespace TechSpherex.CleanArchitecture.Application.Features.Products.Create;
 
@@ -86,6 +87,7 @@ public sealed record CreateProductResponse(Guid Id, string Name, decimal Price);
 ```
 
 **CreateProductValidator.cs**:
+
 ```csharp
 namespace TechSpherex.CleanArchitecture.Application.Features.Products.Create;
 
@@ -106,6 +108,7 @@ public sealed class CreateProductValidator : AbstractValidator<CreateProductComm
 ```
 
 **CreateProductHandler.cs**:
+
 ```csharp
 namespace TechSpherex.CleanArchitecture.Application.Features.Products.Create;
 

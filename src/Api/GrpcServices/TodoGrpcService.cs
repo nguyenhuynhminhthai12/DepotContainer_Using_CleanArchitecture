@@ -24,10 +24,12 @@ public sealed class TodoGrpcService(
     ICommandHandler<DeleteTodoCommand, Result> deleteHandler)
     : TodoService.TodoServiceBase
 {
+    private const string InvalidIdFormatMessage = "Invalid ID format.";
+
     public override async Task<TodoResponse> GetTodo(GetTodoRequest request, ServerCallContext context)
     {
         if (!Guid.TryParse(request.Id, out var id))
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid ID format."));
+            throw new RpcException(new Status(StatusCode.InvalidArgument, InvalidIdFormatMessage));
 
         var result = await getHandler.HandleAsync(new GetTodoQuery(id), context.CancellationToken);
         if (result.IsFailure)
@@ -81,7 +83,7 @@ public sealed class TodoGrpcService(
     public override async Task<TodoResponse> UpdateTodo(UpdateTodoRequest request, ServerCallContext context)
     {
         if (!Guid.TryParse(request.Id, out var id))
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid ID format."));
+            throw new RpcException(new Status(StatusCode.InvalidArgument, InvalidIdFormatMessage));
 
         var command = new UpdateTodoCommand(id, request.Title, request.HasDescription ? request.Description : null);
         var result = await updateHandler.HandleAsync(command, context.CancellationToken);
@@ -96,7 +98,7 @@ public sealed class TodoGrpcService(
     public override async Task<TodoResponse> CompleteTodo(CompleteTodoRequest request, ServerCallContext context)
     {
         if (!Guid.TryParse(request.Id, out var id))
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid ID format."));
+            throw new RpcException(new Status(StatusCode.InvalidArgument, InvalidIdFormatMessage));
 
         var result = await completeHandler.HandleAsync(new CompleteTodoCommand(id), context.CancellationToken);
         if (result.IsFailure)
@@ -109,7 +111,7 @@ public sealed class TodoGrpcService(
     public override async Task<DeleteTodoResponse> DeleteTodo(DeleteTodoRequest request, ServerCallContext context)
     {
         if (!Guid.TryParse(request.Id, out var id))
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid ID format."));
+            throw new RpcException(new Status(StatusCode.InvalidArgument, InvalidIdFormatMessage));
 
         var result = await deleteHandler.HandleAsync(new DeleteTodoCommand(id), context.CancellationToken);
         if (result.IsFailure)

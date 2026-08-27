@@ -12,18 +12,33 @@ public sealed class CreateDeliveryOrderCommandHandler(IAppDbContext dbContext) :
     public async Task<Result<DeliveryOrderResponse>> HandleAsync(CreateDeliveryOrderCommand command, CancellationToken cancellationToken = default)
     {
         if (!await dbContext.Customers.AnyAsync(c => c.Id == command.CustomerId, cancellationToken))
+        {
             return Result.Failure<DeliveryOrderResponse>(Error.NotFound("Customer.NotFound",
                 $"Customer '{command.CustomerId}' was not found."));
+        }
 
         if (!await dbContext.LineOperators.AnyAsync(l => l.Id == command.LineOperatorId, cancellationToken))
+        {
             return Result.Failure<DeliveryOrderResponse>(Error.NotFound("LineOperator.NotFound",
                 $"Line Operator '{command.LineOperatorId}' was not found."));
+        }
+
+        var containerTypeIds = command.Lines.Select(l => l.ContainerTypeId).Distinct().ToList();
+        var existingTypeCount = await dbContext.ContainerTypes
+            .CountAsync(t => containerTypeIds.Contains(t.Id), cancellationToken);
+        if (existingTypeCount != containerTypeIds.Count)
+        {
+            return Result.Failure<DeliveryOrderResponse>(Error.NotFound("ContainerType.NotFound",
+                "One or more specified container types were not found."));
+        }
 
         var exists = await dbContext.DeliveryOrders
             .AnyAsync(d => d.OrderNumber == command.OrderNumber, cancellationToken);
         if (exists)
+        {
             return Result.Failure<DeliveryOrderResponse>(Error.Conflict("DeliveryOrder.Duplicate",
                 $"Delivery order '{command.OrderNumber}' already exists."));
+        }
 
         var order = new DeliveryOrder
         {
@@ -58,7 +73,7 @@ public sealed class CreateDeliveryOrderCommandHandler(IAppDbContext dbContext) :
         order.Id, order.OrderNumber, order.CustomerId, customerName,
         order.LineOperatorId, lineOperatorName,
         order.ExpiryDate, order.VesselVoyage, order.IsClosed,
-        order.Lines.Select(l => new DeliveryOrderLineDto(l.ContainerTypeId, l.RequestedQuantity, l.DeliveredQuantity)).ToList());
+        [.. order.Lines.Select(l => new DeliveryOrderLineDto(l.ContainerTypeId, l.RequestedQuantity, l.DeliveredQuantity))]);
 }
 
 public sealed class GetDeliveryOrderByIdQueryHandler(IAppDbContext dbContext) :
@@ -74,15 +89,17 @@ public sealed class GetDeliveryOrderByIdQueryHandler(IAppDbContext dbContext) :
             .FirstOrDefaultAsync(d => d.Id == query.Id, cancellationToken);
 
         if (order is null)
+        {
             return Result.Failure<DeliveryOrderResponse>(Error.NotFound("DeliveryOrder.NotFound",
                 $"Delivery order '{query.Id}' was not found."));
+        }
 
         return Result.Success(new DeliveryOrderResponse(
             order.Id, order.OrderNumber,
             order.CustomerId, order.Customer?.Name ?? string.Empty,
             order.LineOperatorId, order.LineOperator?.Name ?? string.Empty,
             order.ExpiryDate, order.VesselVoyage, order.IsClosed,
-            order.Lines.Select(l => new DeliveryOrderLineDto(l.ContainerTypeId, l.RequestedQuantity, l.DeliveredQuantity)).ToList()));
+            [.. order.Lines.Select(l => new DeliveryOrderLineDto(l.ContainerTypeId, l.RequestedQuantity, l.DeliveredQuantity))]));
     }
 }
 
@@ -100,12 +117,12 @@ public sealed class GetActiveDeliveryOrdersQueryHandler(IAppDbContext dbContext)
             .OrderBy(d => d.ExpiryDate)
             .ToListAsync(cancellationToken);
 
-        return Result.Success<IReadOnlyList<DeliveryOrderResponse>>(orders.Select(o => new DeliveryOrderResponse(
+        return Result.Success<IReadOnlyList<DeliveryOrderResponse>>(orders.ConvertAll(o => new DeliveryOrderResponse(
             o.Id, o.OrderNumber,
             o.CustomerId, o.Customer?.Name ?? string.Empty,
             o.LineOperatorId, o.LineOperator?.Name ?? string.Empty,
             o.ExpiryDate, o.VesselVoyage, o.IsClosed,
-            o.Lines.Select(l => new DeliveryOrderLineDto(l.ContainerTypeId, l.RequestedQuantity, l.DeliveredQuantity)).ToList())).ToList());
+            [.. o.Lines.Select(l => new DeliveryOrderLineDto(l.ContainerTypeId, l.RequestedQuantity, l.DeliveredQuantity))])));
     }
 }
 
@@ -117,8 +134,10 @@ public sealed class CloseDeliveryOrderCommandHandler(IAppDbContext dbContext) :
         var order = await dbContext.DeliveryOrders
             .FirstOrDefaultAsync(d => d.Id == command.Id, cancellationToken);
         if (order is null)
+        {
             return Result.Failure(Error.NotFound("DeliveryOrder.NotFound",
                 $"Delivery order '{command.Id}' was not found."));
+        }
 
         order.IsClosed = true;
         await dbContext.SaveChangesAsync(cancellationToken);

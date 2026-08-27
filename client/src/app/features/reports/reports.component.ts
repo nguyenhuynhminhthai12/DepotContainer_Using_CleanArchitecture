@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReportService } from '../../core/services/report.service';
 import { DailyThroughputReport, YardAgingReport } from '../../core/models/api.models';
@@ -62,7 +62,7 @@ import { DailyThroughputReport, YardAgingReport } from '../../core/models/api.mo
   `],
 })
 export class ReportsComponent implements OnInit {
-  private svc = inject(ReportService);
+  private readonly svc = inject(ReportService);
   yardAging = signal<YardAgingReport | null>(null);
   throughput = signal<DailyThroughputReport | null>(null);
 

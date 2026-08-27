@@ -39,20 +39,7 @@ public sealed class CreateBlockCommandHandler(IAppDbContext dbContext, ICacheSer
 
         if (!block.IsVirtual && block.MaxBay.HasValue && block.MaxRow.HasValue && block.MaxTier.HasValue)
         {
-            var slots = new List<YardSlot>();
-            for (var bay = 1; bay <= block.MaxBay.Value; bay++)
-            for (var row = 1; row <= block.MaxRow.Value; row++)
-            for (var tier = 1; tier <= block.MaxTier.Value; tier++)
-            {
-                slots.Add(new YardSlot
-                {
-                    BlockId = block.Id,
-                    Bay = bay,
-                    Row = row,
-                    Tier = tier,
-                    IsOccupied = false
-                });
-            }
+            var slots = GenerateYardSlots(block.Id, block.MaxBay.Value, block.MaxRow.Value, block.MaxTier.Value);
             dbContext.YardSlots.AddRange(slots);
             await dbContext.SaveChangesAsync(cancellationToken);
         }
@@ -62,6 +49,22 @@ public sealed class CreateBlockCommandHandler(IAppDbContext dbContext, ICacheSer
         var response = new CreateBlockResponse(block.Id, block.Code, block.Name, block.IsVirtual,
             block.MaxBay, block.MaxRow, block.MaxTier);
         return Result.Success(response);
+    }
+
+    private static List<YardSlot> GenerateYardSlots(Guid blockId, int maxBay, int maxRow, int maxTier)
+    {
+        var slots = new List<YardSlot>();
+        for (var bay = 1; bay <= maxBay; bay++)
+        {
+            for (var row = 1; row <= maxRow; row++)
+            {
+                for (var tier = 1; tier <= maxTier; tier++)
+                {
+                    slots.Add(new YardSlot { BlockId = blockId, Bay = bay, Row = row, Tier = tier, IsOccupied = false });
+                }
+            }
+        }
+        return slots;
     }
 }
 
@@ -106,6 +109,36 @@ public sealed class CreateVirtualBlockCommandHandler(IAppDbContext dbContext, IC
 public sealed class ResizeBlockCommandHandler(IAppDbContext dbContext, ICacheService cache) :
     ICommandHandler<ResizeBlockCommand, Result>
 {
+    private static bool CanResizeTo(ResizeBlockCommand command, List<YardSlot> occupied)
+    {
+        var occupiedBays = occupied.Max(s => s.Bay);
+        var occupiedRows = occupied.Max(s => s.Row);
+        var occupiedTiers = occupied.Max(s => s.Tier);
+        return command.MaxBay >= occupiedBays
+            && command.MaxRow >= occupiedRows
+            && command.MaxTier >= occupiedTiers;
+    }
+
+    private static List<YardSlot> GenerateMissingYardSlots(
+        Guid blockId, int maxBay, int maxRow, int maxTier, HashSet<(int Bay, int Row, int Tier)> existingKeys)
+    {
+        var newSlots = new List<YardSlot>();
+        for (var bay = 1; bay <= maxBay; bay++)
+        {
+            for (var row = 1; row <= maxRow; row++)
+            {
+                for (var tier = 1; tier <= maxTier; tier++)
+                {
+                    if (!existingKeys.Contains((bay, row, tier)))
+                    {
+                        newSlots.Add(new YardSlot { BlockId = blockId, Bay = bay, Row = row, Tier = tier, IsOccupied = false });
+                    }
+                }
+            }
+        }
+        return newSlots;
+    }
+
     public async Task<Result> HandleAsync(ResizeBlockCommand command, CancellationToken cancellationToken = default)
     {
         var block = await dbContext.Blocks
@@ -124,9 +157,7 @@ public sealed class ResizeBlockCommandHandler(IAppDbContext dbContext, ICacheSer
             .Where(s => s.BlockId == block.Id && s.IsOccupied)
             .ToListAsync(cancellationToken);
 
-        if (command.MaxBay < (occupied.Any() ? occupied.Max(s => s.Bay) : 0)
-            || command.MaxRow < (occupied.Any() ? occupied.Max(s => s.Row) : 0)
-            || command.MaxTier < (occupied.Any() ? occupied.Max(s => s.Tier) : 0))
+        if (occupied.Count > 0 && !CanResizeTo(command, occupied))
         {
             return Result.Failure(Error.Conflict("Block.ResizeShrinksOccupied",
                 "Cannot shrink the block: at least one occupied slot is outside the new dimensions."));
@@ -145,22 +176,8 @@ public sealed class ResizeBlockCommandHandler(IAppDbContext dbContext, ICacheSer
             .Select(s => (s.Bay, s.Row, s.Tier))
             .ToHashSet();
 
-        for (var bay = 1; bay <= command.MaxBay; bay++)
-        for (var row = 1; row <= command.MaxRow; row++)
-        for (var tier = 1; tier <= command.MaxTier; tier++)
-        {
-            if (!existingKeys.Contains((bay, row, tier)))
-            {
-                dbContext.YardSlots.Add(new YardSlot
-                {
-                    BlockId = block.Id,
-                    Bay = bay,
-                    Row = row,
-                    Tier = tier,
-                    IsOccupied = false
-                });
-            }
-        }
+        var newSlots = GenerateMissingYardSlots(block.Id, command.MaxBay, command.MaxRow, command.MaxTier, existingKeys);
+        dbContext.YardSlots.AddRange(newSlots);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         await cache.InvalidateByTagAsync("yard-map", cancellationToken);
@@ -227,7 +244,7 @@ public sealed class GetYardMapQueryHandler(IAppDbContext dbContext, ICacheServic
             .Where(s => blockIds.Contains(s.BlockId))
             .ToListAsync(ct);
 
-        var blockDtos = blocks.Select(b => new BlockMapDto(
+        var blockDtos = blocks.ConvertAll(b => new BlockMapDto(
             b.Id,
             b.Code,
             b.Name,
@@ -236,13 +253,12 @@ public sealed class GetYardMapQueryHandler(IAppDbContext dbContext, ICacheServic
             b.MaxRow,
             b.MaxTier,
             b.IsVirtual
-                ? Array.Empty<YardSlotDto>()
-                : slots
+                ? []
+                : [.. slots
                     .Where(s => s.BlockId == b.Id)
                     .OrderBy(s => s.Bay).ThenBy(s => s.Row).ThenBy(s => s.Tier)
-                    .Select(s => new YardSlotDto(s.Id, s.Bay, s.Row, s.Tier, s.IsOccupied, s.CurrentContainerId))
-                    .ToList()
-        )).ToList();
+                    .Select(s => new YardSlotDto(s.Id, s.Bay, s.Row, s.Tier, s.IsOccupied, s.CurrentContainerId))]
+        ));
 
         return new YardMapDto(depot.Id, depot.Name, blockDtos);
     }

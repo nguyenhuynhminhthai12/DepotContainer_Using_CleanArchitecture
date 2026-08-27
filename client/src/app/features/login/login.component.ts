@@ -42,9 +42,9 @@ import { AuthStore } from '../../core/services/auth.store';
   `],
 })
 export class LoginComponent {
-  private authSvc = inject(AuthService);
-  private authStore = inject(AuthStore);
-  private router = inject(Router);
+  private readonly authSvc = inject(AuthService);
+  private readonly authStore = inject(AuthStore);
+  private readonly router = inject(Router);
 
   email = 'admin@TechSpherex.dev';
   password = 'Admin@123';
