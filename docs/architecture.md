@@ -4,9 +4,6 @@
 
 This template implements **Clean Architecture** (a.k.a. Onion Architecture, Hexagonal Architecture) with four distinct layers:
 
-
-```
-
 ```text
 ┌──────────────────────────────────────────────────┐
 │                    Api Layer                      │
@@ -110,7 +107,9 @@ Endpoint → IQueryHandler<TQuery, TResult> → DbContext (no tracking) → Resp
 ```
 
 ### Registration
+
 Handlers are **auto-discovered** via assembly scanning in `DependencyInjection.cs`:
+
 ```csharp
 services.AddHandlersFromAssembly(assembly); // Scans for ICommandHandler<,> and IQueryHandler<,>
 ```
@@ -145,6 +144,7 @@ See [Skill Agents Guide](skill-agents.md) for details.
 ## Key Design Decisions
 
 | Decision | Why |
+
 |----------|-----|
 | **Manual CQRS** over MediatR | Zero licensing risk. MediatR is commercial since v13. |
 | **Scalar** over Swagger UI | Modern, faster, better UX. |

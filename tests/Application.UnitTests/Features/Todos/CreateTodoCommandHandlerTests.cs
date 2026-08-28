@@ -1,6 +1,7 @@
 
 using TechSpherex.CleanArchitecture.Application.Features.Todos.Create;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 namespace TechSpherex.CleanArchitecture.Application.UnitTests.Features.Todos;
 
 public sealed class CreateTodoCommandHandlerTests
@@ -19,7 +20,7 @@ public sealed class CreateTodoCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value!.Title.Should().Be("Test Todo");
+        result.Value.Title.Should().Be("Test Todo");
         dbContext.Todos.Should().HaveCount(1);
     }
 
@@ -36,7 +37,7 @@ public sealed class CreateTodoCommandHandlerTests
         await handler.HandleAsync(command, TestContext.Current.CancellationToken);
 
         // Assert
-        var todo = dbContext.Todos.Single();
+        var todo = await dbContext.Todos.SingleAsync();
         todo.Title.Should().Be("My Task");
         todo.Description.Should().Be("Some details");
     }

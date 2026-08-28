@@ -3,6 +3,7 @@
 ## Production Checklist
 
 ### Security
+
 - [ ] Change JWT secret to a strong, unique key (≥32 chars)
 - [ ] Set `ASPNETCORE_ENVIRONMENT=Production`
 - [ ] Use Docker secrets or Key Vault for sensitive config
@@ -13,23 +14,27 @@
 - [ ] Run containers as non-root user (already configured in Dockerfile)
 
 ### Database
+
 - [ ] Run EF Core migrations before deployment
 - [ ] Enable connection pooling (Npgsql has built-in)
 - [ ] Set up automated backups
 - [ ] Enable SSL for PostgreSQL connections
 
 ### Caching
+
 - [ ] Configure Redis persistence (AOF or RDB)
 - [ ] Set Redis maxmemory and eviction policy
 - [ ] Enable Redis password authentication
 
 ### Observability
+
 - [ ] Configure Serilog for production (disable Debug/Verbose)
 - [ ] Set up alerting in Grafana or equivalent
 - [ ] Configure log retention policies
 - [ ] Enable distributed tracing
 
 ### Performance
+
 - [ ] Enable response compression
 - [ ] Configure connection limits
 - [ ] Set up horizontal scaling (multiple API instances)
@@ -146,6 +151,7 @@ services:
 ```
 
 For Kubernetes:
+
 ```yaml
 spec:
   replicas: 3
@@ -175,6 +181,7 @@ services:
 ### Redis Clustering
 
 For high-availability Redis:
+
 ```yaml
 services:
   redis:
@@ -209,10 +216,12 @@ Built-in health endpoints:
 
 | Endpoint | Purpose |
 |----------|---------|
+
 | `/health` | Full health check (all dependencies) |
 | `/alive` | Liveness probe (app is running) |
 
 Use these for:
+
 - **Kubernetes**: `livenessProbe` + `readinessProbe`
 - **Load balancer**: Health check path
 - **Docker**: `HEALTHCHECK` instruction

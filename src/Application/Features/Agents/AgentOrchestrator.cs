@@ -59,7 +59,7 @@ public sealed class AgentOrchestrator(
 
     public IReadOnlyList<SkillInfo> GetAvailableSkills()
     {
-        return skills.Select(s => new SkillInfo(s.SkillId, s.Name, s.Description, s.ExamplePrompts)).ToList();
+        return [.. skills.Select(s => new SkillInfo(s.SkillId, s.Name, s.Description, s.ExamplePrompts))];
     }
 
     private ISkillAgent? SelectSkill(string prompt)

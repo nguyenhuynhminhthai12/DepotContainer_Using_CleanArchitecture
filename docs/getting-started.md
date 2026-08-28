@@ -3,6 +3,7 @@
 ## Prerequisites
 
 | Tool | Version | Required |
+
 |------|---------|----------|
 | [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) | 10.0+ | ✅ |
 | [Docker Desktop](https://www.docker.com/products/docker-desktop/) | 4.x+ | ✅ |
@@ -27,6 +28,7 @@ dotnet run
 ```
 
 This starts:
+
 - **PostgreSQL** database with pgAdmin
 - **Redis** cache with RedisInsight  
 - **API** with auto-migration and seed data
@@ -64,6 +66,7 @@ Open **Scalar API docs**: `https://localhost:7200/scalar/v1`
 
 | User | Email | Password |
 |------|-------|----------|
+
 | Admin | `admin@TechSpherex.dev` | `Admin@123` |
 
 ### Get a JWT Token
@@ -91,6 +94,7 @@ dotnet test TechSpherex.CleanArchitecture.slnx
 ### Test Coverage
 
 | Test Suite | Count | Description |
+
 |-----------|-------|-------------|
 | Architecture Tests | 9 | Dependency rule enforcement |
 | Application Unit Tests | 8 | Handler logic validation |
@@ -106,6 +110,7 @@ dotnet test TechSpherex.CleanArchitecture.slnx
 ### Change the JWT Secret
 
 In `appsettings.json`:
+
 ```json
 {
   "Jwt": {

@@ -84,6 +84,7 @@ public partial class AppJsonContext : JsonSerializerContext;
 ```
 
 Then register in `Program.cs`:
+
 ```csharp
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -96,6 +97,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 Since EF Core migrations can't run in AOT mode, use this approach:
 
 ### Option 1: Init Container (Kubernetes)
+
 ```yaml
 initContainers:
   - name: migration
@@ -104,6 +106,7 @@ initContainers:
 ```
 
 ### Option 2: Migration Script
+
 ```bash
 # Generate SQL script
 dotnet ef migrations script --idempotent -o migration.sql
@@ -113,7 +116,9 @@ psql -h $DB_HOST -U $DB_USER -d $DB_NAME -f migration.sql
 ```
 
 ### Option 3: Startup Migration (JIT only)
+
 The default template already does this in `Program.cs`:
+
 ```csharp
 if (app.Environment.IsDevelopment())
 {
