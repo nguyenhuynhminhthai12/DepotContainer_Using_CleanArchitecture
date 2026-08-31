@@ -16,7 +16,7 @@ public sealed class DeliveryOrderHandlerTests
         db.LineOperators.Add(lineOp);
         db.Customers.Add(customer);
         db.ContainerTypes.Add(ct);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new CreateDeliveryOrderCommandHandler(db);
         var result = await handler.HandleAsync(
@@ -32,8 +32,8 @@ public sealed class DeliveryOrderHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.OrderNumber.Should().Be("DO-001");
-        result.Value.Lines.Should().HaveCount(1);
-        result.Value.Lines[0].RequestedQuantity.Should().Be(3);
+        result.Value!.Lines.Should().HaveCount(1);
+        result.Value!.Lines[0].RequestedQuantity.Should().Be(3);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public sealed class DeliveryOrderHandlerTests
         db.LineOperators.Add(lineOp);
         db.Customers.Add(customer);
         db.ContainerTypes.Add(ct);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         db.DeliveryOrders.Add(new DeliveryOrder
         {
             OrderNumber = "DO-DUP",
@@ -54,7 +54,7 @@ public sealed class DeliveryOrderHandlerTests
             LineOperatorId = lineOp.Id,
             ExpiryDate = DateTimeOffset.UtcNow.AddDays(7)
         });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new CreateDeliveryOrderCommandHandler(db);
         var result = await handler.HandleAsync(
@@ -75,7 +75,7 @@ public sealed class DeliveryOrderHandlerTests
         var customer = new Customer { TaxCode = "123", Name = "ACME" };
         db.LineOperators.Add(lineOp);
         db.Customers.Add(customer);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         db.DeliveryOrders.Add(new DeliveryOrder
         {
@@ -99,13 +99,13 @@ public sealed class DeliveryOrderHandlerTests
             ExpiryDate = DateTimeOffset.UtcNow.AddDays(7),
             IsClosed = true
         });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetActiveDeliveryOrdersQueryHandler(db);
         var result = await handler.HandleAsync(new GetActiveDeliveryOrdersQuery(), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Select(o => o.OrderNumber).Should().Contain("DO-ACTIVE")
+        result.Value!.Select(o => o.OrderNumber).Should().Contain("DO-ACTIVE")
             .And.NotContain("DO-EXPIRED").And.NotContain("DO-CLOSED");
     }
 }

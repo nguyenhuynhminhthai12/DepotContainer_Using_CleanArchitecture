@@ -18,8 +18,8 @@ public sealed class CreateTodoCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value.Title.Should().Be("Test Todo");
+        result.Value!.Should().NotBeNull();
+        result.Value!.Title.Should().Be("Test Todo");
         dbContext.Todos.Should().HaveCount(1);
     }
 

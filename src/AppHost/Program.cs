@@ -1,14 +1,17 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 var postgres = builder.AddPostgres("postgres")
+    .WithImageTag("17.6")
     .WithPgAdmin()
-    .WithLifetime(ContainerLifetime.Persistent);
+    .WithLifetime(ContainerLifetime.Persistent)
+    .WithDataVolume("techspherex-postgres-data");
 
 var database = postgres.AddDatabase("TechSpherex-db");
 
 var redis = builder.AddRedis("TechSpherex-cache")
     .WithRedisInsight()
-    .WithLifetime(ContainerLifetime.Persistent);
+    .WithLifetime(ContainerLifetime.Persistent)
+    .WithDataVolume("techspherex-redis-data");
 
 builder.AddProject<Projects.TechSpherex_CleanArchitecture_Api>("api")
     .WithReference(database)
@@ -19,5 +22,6 @@ builder.AddProject<Projects.TechSpherex_CleanArchitecture_Api>("api")
     .WithHttpsEndpoint(port: 7200, name: "https")
     .WithExternalHttpEndpoints();
 
-builder.Build().Run();
+var app = builder.Build();
+await app.RunAsync();
 

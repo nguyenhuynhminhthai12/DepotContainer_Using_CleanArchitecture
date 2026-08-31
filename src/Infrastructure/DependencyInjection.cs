@@ -12,6 +12,7 @@ using TechSpherex.CleanArchitecture.Infrastructure.Persistence;
 using TechSpherex.CleanArchitecture.Infrastructure.Rules;
 using TechSpherex.CleanArchitecture.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +29,7 @@ public static class DependencyInjection
         services.AddCachingServices();
         services.AddCorsPolicy(configuration);
         services.AddMultiTenancy();
-        services.AddRuleEngineServices(configuration);
+        services.AddRuleEngineServices();
 
         return services;
     }
@@ -107,31 +108,49 @@ public static class DependencyInjection
         {
             options.AddDefaultPolicy(policy =>
             {
-                if (allowedOrigins.Contains("*") && !allowCredentials)
-                {
-                    policy.AllowAnyOrigin();
-                }
-                else
-                {
-                    policy.WithOrigins(allowedOrigins);
-                }
-
-                if (allowedMethods.Contains("*"))
-                    policy.AllowAnyMethod();
-                else
-                    policy.WithMethods(allowedMethods);
-
-                if (allowedHeaders.Contains("*"))
-                    policy.AllowAnyHeader();
-                else
-                    policy.WithHeaders(allowedHeaders);
-
-                if (allowCredentials)
-                    policy.AllowCredentials();
-
+                ConfigureCorsOrigins(policy, allowedOrigins, allowCredentials);
+                ConfigureCorsMethods(policy, allowedMethods);
+                ConfigureCorsHeaders(policy, allowedHeaders);
+                ConfigureCorsCredentials(policy, allowCredentials);
                 policy.SetPreflightMaxAge(TimeSpan.FromMinutes(10));
             });
         });
+    }
+
+    private static void ConfigureCorsOrigins(CorsPolicyBuilder policy, string[] allowedOrigins, bool allowCredentials)
+    {
+        if (allowedOrigins.Contains("*") && !allowCredentials)
+        {
+#pragma warning disable S5122 // Safe CORS: AllowAnyOrigin only when AllowCredentials is false
+            policy.AllowAnyOrigin();
+#pragma warning restore S5122 // Safe CORS: AllowAnyOrigin only when AllowCredentials is false
+        }
+        else
+        {
+            policy.WithOrigins(allowedOrigins);
+        }
+    }
+
+    private static void ConfigureCorsMethods(CorsPolicyBuilder policy, string[] allowedMethods)
+    {
+        if (allowedMethods.Contains("*"))
+            policy.AllowAnyMethod();
+        else
+            policy.WithMethods(allowedMethods);
+    }
+
+    private static void ConfigureCorsHeaders(CorsPolicyBuilder policy, string[] allowedHeaders)
+    {
+        if (allowedHeaders.Contains("*"))
+            policy.AllowAnyHeader();
+        else
+            policy.WithHeaders(allowedHeaders);
+    }
+
+    private static void ConfigureCorsCredentials(CorsPolicyBuilder policy, bool allowCredentials)
+    {
+        if (allowCredentials)
+            policy.AllowCredentials();
     }
 
     private static void AddMultiTenancy(this IServiceCollection services)
@@ -139,7 +158,7 @@ public static class DependencyInjection
         services.AddScoped<ITenantProvider, TenantProvider>();
     }
 
-    private static void AddRuleEngineServices(this IServiceCollection services, IConfiguration configuration)
+    private static void AddRuleEngineServices(this IServiceCollection services)
     {
         services.AddSingleton<IRuleEngine, RuleEngine>();
     }

@@ -1,6 +1,8 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
+#pragma warning disable S1192 // Auto-generated migration file
+
 #nullable disable
 
 namespace TechSpherex.CleanArchitecture.Infrastructure.Migrations
@@ -542,3 +544,5 @@ namespace TechSpherex.CleanArchitecture.Infrastructure.Migrations
         }
     }
 }
+
+#pragma warning restore S1192 // Auto-generated migration file

@@ -10,6 +10,7 @@
 //   - MSBuild Plugin (if running .NET Framework targets — not needed for .NET 10)
 //   - xUnit Plugin (publishes TRX reports)
 //   - Cobertura Plugin (publishes coverage report)
+//   - SonarQube Scanner for Jenkins (optional — for quality gate analysis)
 //   - Slack Notification (optional — uncomment stage to enable)
 // ===========================================================================
 
@@ -41,6 +42,10 @@ pipeline {
         DOCKERHUB_CREDS    = 'dockerhub-techspherex'   // Jenkins credentials ID
         IMAGE_TAG          = "${env.BUILD_NUMBER}-${env.GIT_COMMIT?.take(7)}"
 
+        // SonarQube
+        SONAR_CREDS        = 'sonarqube-token'          // Jenkins secret text credential ID
+        SONAR_HOST_URL     = 'http://localhost:9000'    // SonarQube server URL
+
         // .NET publish outputs (used by Dockerfile)
         PUBLISH_DIR        = 'src/Api/bin/Release/net10.0/publish'
     }
@@ -48,23 +53,38 @@ pipeline {
     stages {
 
         // ---------------------------------------------------------------
-        // 1. Restore NuGet packages
+        // 1. Restore NuGet packages + install SonarScanner
         // ---------------------------------------------------------------
         stage('Restore') {
             steps {
                 echo "==> Restoring ${SOLUTION}"
                 sh '''
                     dotnet restore ${SOLUTION}
+                    dotnet tool install --global dotnet-sonarscanner || true
                 '''
             }
         }
 
         // ---------------------------------------------------------------
-        // 2. Build (Release)
+        // 2. Build (Release) + SonarQube prepare
         // ---------------------------------------------------------------
         stage('Build') {
             steps {
                 echo "==> Building ${SOLUTION}"
+                withCredentials([string(credentialsId: "${SONAR_CREDS}", variable: 'SONAR_TOKEN')]) {
+                    sh '''
+                        export PATH="$PATH:$HOME/.dotnet/tools"
+                        dotnet sonarscanner begin \
+                            /k:"TechSpherex" \
+                            /d:sonar.projectName="TechSpherex Clean Architecture" \
+                            /d:sonar.host.url="${SONAR_HOST_URL}" \
+                            /d:sonar.login="${SONAR_TOKEN}" \
+                            /d:sonar.sources="src" \
+                            /d:sonar.tests="tests" \
+                            /d:sonar.cs.opencover.reportsPaths="TestResults/coverage/coverage.opencover.xml" \
+                            /d:sonar.coverage.exclusions="src/**/bin/**,src/**/obj/**"
+                    '''
+                }
                 sh '''
                     dotnet build ${SOLUTION} \
                         --configuration Release \
@@ -99,6 +119,12 @@ pipeline {
             }
             post {
                 always {
+                    withCredentials([string(credentialsId: "${SONAR_CREDS}", variable: 'SONAR_TOKEN')]) {
+                        sh '''
+                            export PATH="$PATH:$HOME/.dotnet/tools"
+                            dotnet sonarscanner end /d:sonar.login="${SONAR_TOKEN}"
+                        '''
+                    }
                     xunit(
                         testResultsPattern: 'TestResults/**/*.trx',
                         thresholdMode: 1,

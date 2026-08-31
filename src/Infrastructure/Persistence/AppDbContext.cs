@@ -32,12 +32,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
 
         foreach (var entityType in builder.Model.GetEntityTypes().Where(e => typeof(ITenantEntity).IsAssignableFrom(e.ClrType)))
         {
+#pragma warning disable S3011 // Safe reflection use for EF Core tenant filter
             var method = typeof(AppDbContext)
                 .GetMethod(nameof(ApplyTenantFilter),
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
                 .MakeGenericMethod(entityType.ClrType);
 
             method.Invoke(null, [builder]);
+#pragma warning restore S3011 // Safe reflection use for EF Core tenant filter
         }
     }
 

@@ -15,6 +15,7 @@ public sealed class GateInContainerCommandHandler(
     ICacheService cache) :
     ICommandHandler<GateInContainerCommand, Result<ContainerMovementResponse>>
 {
+#pragma warning disable S3776 // Cognitive Complexity: handler methods contain necessary validation logic
     public async Task<Result<ContainerMovementResponse>> HandleAsync(GateInContainerCommand command, CancellationToken cancellationToken = default)
     {
         var normalizedNumber = command.ContainerNumber.Trim().ToUpperInvariant();
@@ -108,6 +109,7 @@ public sealed class GateInContainerCommandHandler(
         await cache.InvalidateByTagAsync("yard-map", cancellationToken);
 
         return Result.Success(Map(movement));
+#pragma warning restore S3776 // Cognitive Complexity: handler methods contain necessary validation logic
     }
 
     private static ContainerMovementResponse Map(ContainerMovement m) => new(

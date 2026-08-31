@@ -17,7 +17,7 @@ public sealed class LookupHandlerTests
         await using var db = TestDbContextFactory.Create();
         db.LineOperators.Add(new LineOperator { Code = "CMA", Name = "CMA CGM" });
         db.LineOperators.Add(new LineOperator { Code = "MSK", Name = "Maersk" });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Use a no-op cache so the real DB query runs.
         var passThroughCache = new FakeCacheService();
@@ -35,7 +35,7 @@ public sealed class LookupHandlerTests
         await using var db = TestDbContextFactory.Create();
         db.ContainerTypes.Add(new ContainerType { Code = "42G1", Name = "Dry 40'", Family = "Dry" });
         db.ContainerTypes.Add(new ContainerType { Code = "22G1", Name = "Dry 20'", Family = "Dry" });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var passThroughCache = new FakeCacheService();
         var handler = new GetContainerTypesQueryHandler(db, passThroughCache);
@@ -52,7 +52,7 @@ public sealed class LookupHandlerTests
         await using var db = TestDbContextFactory.Create();
         db.Customers.Add(new Customer { TaxCode = "1", Name = "ACME" });
         db.Customers.Add(new Customer { TaxCode = "2", Name = "ZZ", IsActive = false });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetCustomersQueryHandler(db);
         var result = await handler.HandleAsync(new GetCustomersQuery(), TestContext.Current.CancellationToken);
@@ -65,7 +65,7 @@ public sealed class LookupHandlerTests
     {
         await using var db = TestDbContextFactory.Create();
         db.Customers.Add(new Customer { TaxCode = "123", Name = "Existing" });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new CreateCustomerCommandHandler(db);
         var result = await handler.HandleAsync(
@@ -118,7 +118,7 @@ public sealed class DeliveryOrderExtraHandlerTests
         var customer = new Customer { TaxCode = "1", Name = "ACME" };
         db.LineOperators.Add(lineOp);
         db.Customers.Add(customer);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var order = new DeliveryOrder
         {
             OrderNumber = "DO-CLOSE",
@@ -127,7 +127,7 @@ public sealed class DeliveryOrderExtraHandlerTests
             ExpiryDate = DateTimeOffset.UtcNow.AddDays(7)
         };
         db.DeliveryOrders.Add(order);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new CloseDeliveryOrderCommandHandler(db);
         var result = await handler.HandleAsync(new CloseDeliveryOrderCommand(order.Id), TestContext.Current.CancellationToken);
@@ -139,6 +139,8 @@ public sealed class DeliveryOrderExtraHandlerTests
 
 public sealed class MoveContainerInYardTests
 {
+    private const string TestContainerNumber = "CMAU1234564";
+
     [Fact]
     public async Task Move_Should_Fail_When_Container_Not_Found()
     {
@@ -147,7 +149,7 @@ public sealed class MoveContainerInYardTests
         var handler = new MoveContainerInYardCommandHandler(db, cache);
 
         var result = await handler.HandleAsync(
-            new MoveContainerInYardCommand("CMAU1234564", Guid.NewGuid(), 1, 1, 1),
+            new MoveContainerInYardCommand(TestContainerNumber, Guid.NewGuid(), 1, 1, 1),
             TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
@@ -163,10 +165,10 @@ public sealed class MoveContainerInYardTests
         db.ContainerTypes.Add(ct);
         db.LineOperators.Add(lineOp);
         db.Depots.Add(depot);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var c = new Container
         {
-            ContainerNumberRaw = "CMAU1234564",
+            ContainerNumberRaw = TestContainerNumber,
             ContainerTypeId = ct.Id, IsoCode = "22G1", SizeFeet = 20,
             MaxWeightKg = 30000m, TareWeightKg = 2200m,
             ManufactureDate = DateTimeOffset.UtcNow, Owner = "CMA",
@@ -175,7 +177,7 @@ public sealed class MoveContainerInYardTests
         db.Containers.Add(c);
         var vBlock = new Block { DepotId = depot.Id, Code = "V", Name = "V", IsVirtual = true };
         db.Blocks.Add(vBlock);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         // Put the container in the yard first (InYard movement)
         db.ContainerMovements.Add(new ContainerMovement
         {
@@ -186,13 +188,13 @@ public sealed class MoveContainerInYardTests
             GateInAt = DateTimeOffset.UtcNow,
             Status = MovementStatus.InYard
         });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var cache = new FakeCacheService();
         var handler = new MoveContainerInYardCommandHandler(db, cache);
 
         var result = await handler.HandleAsync(
-            new MoveContainerInYardCommand("CMAU1234564", vBlock.Id, 1, 1, 1),
+            new MoveContainerInYardCommand(TestContainerNumber, vBlock.Id, 1, 1, 1),
             TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
@@ -202,12 +204,14 @@ public sealed class MoveContainerInYardTests
 
 public sealed class ContainerMovementHistoryTests
 {
+    private const string TestContainerNumber = "CMAU1234564";
+
     [Fact]
     public async Task GetHistory_Should_Return_NotFound_For_Missing_Container()
     {
         await using var db = TestDbContextFactory.Create();
         var handler = new GetContainerMovementHistoryQueryHandler(db);
-        var result = await handler.HandleAsync(new GetContainerMovementHistoryQuery("CMAU1234564"), TestContext.Current.CancellationToken);
+        var result = await handler.HandleAsync(new GetContainerMovementHistoryQuery(TestContainerNumber), TestContext.Current.CancellationToken);
         result.IsFailure.Should().BeTrue();
         result.Error!.Code.Should().Be("Container.NotFound");
     }
@@ -220,17 +224,17 @@ public sealed class ContainerMovementHistoryTests
         var lineOp = new LineOperator { Code = "CMA", Name = "CMA" };
         db.ContainerTypes.Add(ct);
         db.LineOperators.Add(lineOp);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var c = new Container
         {
-            ContainerNumberRaw = "CMAU1234564",
+            ContainerNumberRaw = TestContainerNumber,
             ContainerTypeId = ct.Id, IsoCode = "22G1", SizeFeet = 20,
             MaxWeightKg = 30000m, TareWeightKg = 2200m,
             ManufactureDate = DateTimeOffset.UtcNow, Owner = "CMA",
             Condition = ContainerCondition.Normal
         };
         db.Containers.Add(c);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         db.ContainerMovements.Add(new ContainerMovement
         {
             ContainerId = c.Id,
@@ -240,23 +244,25 @@ public sealed class ContainerMovementHistoryTests
             GateInAt = DateTimeOffset.UtcNow.AddDays(-2),
             Status = MovementStatus.InYard
         });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetContainerMovementHistoryQueryHandler(db);
-        var result = await handler.HandleAsync(new GetContainerMovementHistoryQuery("CMAU1234564"), TestContext.Current.CancellationToken);
+        var result = await handler.HandleAsync(new GetContainerMovementHistoryQuery(TestContainerNumber), TestContext.Current.CancellationToken);
         result.IsSuccess.Should().BeTrue();
-        result.Value.Count.Should().Be(1);
+        result.Value!.Count.Should().Be(1);
     }
 }
 
 public sealed class GetContainersByNumberTests
 {
+    private const string TestContainerNumber = "CMAU1234564";
+
     [Fact]
     public async Task Should_Return_NotFound_When_Missing()
     {
         await using var db = TestDbContextFactory.Create();
         var handler = new GetContainerByNumberQueryHandler(db);
-        var result = await handler.HandleAsync(new GetContainerByNumberQuery("CMAU1234564"), TestContext.Current.CancellationToken);
+        var result = await handler.HandleAsync(new GetContainerByNumberQuery(TestContainerNumber), TestContext.Current.CancellationToken);
         result.IsFailure.Should().BeTrue();
         result.Error!.Code.Should().Be("Container.NotFound");
     }
@@ -267,21 +273,21 @@ public sealed class GetContainersByNumberTests
         await using var db = TestDbContextFactory.Create();
         var ct = new ContainerType { Code = "22G1", Name = "Dry 20'", Family = "Dry" };
         db.ContainerTypes.Add(ct);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         db.Containers.Add(new Container
         {
-            ContainerNumberRaw = "CMAU1234564",
+            ContainerNumberRaw = TestContainerNumber,
             ContainerTypeId = ct.Id, IsoCode = "22G1", SizeFeet = 20,
             MaxWeightKg = 30000m, TareWeightKg = 2200m,
             ManufactureDate = DateTimeOffset.UtcNow, Owner = "CMA",
             Condition = ContainerCondition.Normal
         });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetContainerByNumberQueryHandler(db);
-        var result = await handler.HandleAsync(new GetContainerByNumberQuery("CMAU1234564"), TestContext.Current.CancellationToken);
+        var result = await handler.HandleAsync(new GetContainerByNumberQuery(TestContainerNumber), TestContext.Current.CancellationToken);
         result.IsSuccess.Should().BeTrue();
-        result.Value!.ContainerNumber.Should().Be("CMAU1234564");
+        result.Value!.ContainerNumber.Should().Be(TestContainerNumber);
     }
 }
 

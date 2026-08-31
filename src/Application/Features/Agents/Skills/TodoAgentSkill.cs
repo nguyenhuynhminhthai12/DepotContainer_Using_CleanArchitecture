@@ -31,7 +31,7 @@ public sealed class TodoAgentSkill : ISkillAgent
         "How many todos do I have?"
     ];
 
-    public async Task<AgentResult> ExecuteAsync(AgentContext context, CancellationToken cancellationToken)
+    public async Task<AgentResult> ExecuteAsync(AgentContext context, CancellationToken cancellationToken = default)
     {
         var prompt = context.Prompt.ToLowerInvariant().Trim();
 
@@ -63,6 +63,15 @@ public sealed class TodoAgentSkill : ISkillAgent
         };
     }
 
+    private static string? ExtractTitle(string prompt, int colonIndex)
+    {
+        if (colonIndex >= 0)
+            return prompt[(colonIndex + 1)..].Trim();
+
+        var parts = prompt.Split(' ');
+        return parts.Length > 2 ? string.Join(' ', parts.Skip(2)) : null;
+    }
+
     private async Task<AgentResult> ListTodosAsync(CancellationToken ct)
     {
         var todos = await _dbContext.Todos.OrderByDescending(t => t.CreatedAt).Take(20).ToListAsync(ct);
@@ -83,11 +92,7 @@ public sealed class TodoAgentSkill : ISkillAgent
         // Extract title after "create" or "add" keyword
         var prompt = context.Prompt;
         var colonIndex = prompt.IndexOf(':');
-        var title = colonIndex >= 0 
-            ? prompt[(colonIndex + 1)..].Trim()
-            : prompt.Split(' ').Length > 2
-                ? string.Join(' ', prompt.Split(' ').Skip(2))
-                : null;
+        var title = ExtractTitle(prompt, colonIndex);
 
         if (string.IsNullOrWhiteSpace(title))
             return AgentResult.NeedsMoreInfo("Please provide a title. Example: 'Create a todo: Review PR #42'");

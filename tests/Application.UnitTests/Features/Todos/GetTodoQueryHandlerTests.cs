@@ -25,7 +25,7 @@ public sealed class GetTodoQueryHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Title.Should().Be("Test");
+        result.Value!.Title.Should().Be("Test");
     }
 
     [Fact]
@@ -40,6 +40,6 @@ public sealed class GetTodoQueryHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Type.Should().Be(ErrorType.NotFound);
+        result.Error!.Type.Should().Be(ErrorType.NotFound);
     }
 }

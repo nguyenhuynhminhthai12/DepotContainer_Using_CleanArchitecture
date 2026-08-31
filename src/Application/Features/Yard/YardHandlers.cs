@@ -10,6 +10,7 @@ namespace TechSpherex.CleanArchitecture.Application.Features.Yard;
 public sealed class CreateBlockCommandHandler(IAppDbContext dbContext, ICacheService cache) :
     ICommandHandler<CreateBlockCommand, Result<CreateBlockResponse>>
 {
+#pragma warning disable S3776 // Cognitive Complexity: handler methods contain necessary validation logic
     public async Task<Result<CreateBlockResponse>> HandleAsync(CreateBlockCommand command, CancellationToken cancellationToken = default)
     {
         var depotExists = await dbContext.Depots.AnyAsync(d => d.Id == command.DepotId, cancellationToken);
@@ -41,17 +42,21 @@ public sealed class CreateBlockCommandHandler(IAppDbContext dbContext, ICacheSer
         {
             var slots = new List<YardSlot>();
             for (var bay = 1; bay <= block.MaxBay.Value; bay++)
-            for (var row = 1; row <= block.MaxRow.Value; row++)
-            for (var tier = 1; tier <= block.MaxTier.Value; tier++)
             {
-                slots.Add(new YardSlot
+                for (var row = 1; row <= block.MaxRow.Value; row++)
                 {
-                    BlockId = block.Id,
-                    Bay = bay,
-                    Row = row,
-                    Tier = tier,
-                    IsOccupied = false
-                });
+                    for (var tier = 1; tier <= block.MaxTier.Value; tier++)
+                    {
+                        slots.Add(new YardSlot
+                        {
+                            BlockId = block.Id,
+                            Bay = bay,
+                            Row = row,
+                            Tier = tier,
+                            IsOccupied = false
+                        });
+                    }
+                }
             }
             dbContext.YardSlots.AddRange(slots);
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -62,6 +67,7 @@ public sealed class CreateBlockCommandHandler(IAppDbContext dbContext, ICacheSer
         var response = new CreateBlockResponse(block.Id, block.Code, block.Name, block.IsVirtual,
             block.MaxBay, block.MaxRow, block.MaxTier);
         return Result.Success(response);
+#pragma warning restore S3776 // Cognitive Complexity: handler methods contain necessary validation logic
     }
 }
 
@@ -106,6 +112,7 @@ public sealed class CreateVirtualBlockCommandHandler(IAppDbContext dbContext, IC
 public sealed class ResizeBlockCommandHandler(IAppDbContext dbContext, ICacheService cache) :
     ICommandHandler<ResizeBlockCommand, Result>
 {
+#pragma warning disable S3776 // Cognitive Complexity: handler methods contain necessary validation logic
     public async Task<Result> HandleAsync(ResizeBlockCommand command, CancellationToken cancellationToken = default)
     {
         var block = await dbContext.Blocks
@@ -146,19 +153,23 @@ public sealed class ResizeBlockCommandHandler(IAppDbContext dbContext, ICacheSer
             .ToHashSet();
 
         for (var bay = 1; bay <= command.MaxBay; bay++)
-        for (var row = 1; row <= command.MaxRow; row++)
-        for (var tier = 1; tier <= command.MaxTier; tier++)
         {
-            if (!existingKeys.Contains((bay, row, tier)))
+            for (var row = 1; row <= command.MaxRow; row++)
             {
-                dbContext.YardSlots.Add(new YardSlot
+                for (var tier = 1; tier <= command.MaxTier; tier++)
                 {
-                    BlockId = block.Id,
-                    Bay = bay,
-                    Row = row,
-                    Tier = tier,
-                    IsOccupied = false
-                });
+                    if (!existingKeys.Contains((bay, row, tier)))
+                    {
+                        dbContext.YardSlots.Add(new YardSlot
+                        {
+                            BlockId = block.Id,
+                            Bay = bay,
+                            Row = row,
+                            Tier = tier,
+                            IsOccupied = false
+                        });
+                    }
+                }
             }
         }
 
@@ -166,6 +177,7 @@ public sealed class ResizeBlockCommandHandler(IAppDbContext dbContext, ICacheSer
         await cache.InvalidateByTagAsync("yard-map", cancellationToken);
 
         return Result.Success();
+#pragma warning restore S3776 // Cognitive Complexity: handler methods contain necessary validation logic
     }
 }
 

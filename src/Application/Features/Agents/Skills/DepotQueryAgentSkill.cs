@@ -5,6 +5,7 @@ using TechSpherex.CleanArchitecture.Application.Features.Reports;
 using TechSpherex.CleanArchitecture.Domain.Common;
 using TechSpherex.CleanArchitecture.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace TechSpherex.CleanArchitecture.Application.Features.Agents.Skills;
 
@@ -108,11 +109,6 @@ public sealed class DepotQueryAgentSkill(
 
     private static bool ContainsAny(string text, params string[] tokens)
     {
-        foreach (var t in tokens)
-        {
-            if (text.Contains(t, StringComparison.OrdinalIgnoreCase))
-                return true;
-        }
-        return false;
+        return tokens.Any(t => text.Contains(t, StringComparison.OrdinalIgnoreCase));
     }
 }

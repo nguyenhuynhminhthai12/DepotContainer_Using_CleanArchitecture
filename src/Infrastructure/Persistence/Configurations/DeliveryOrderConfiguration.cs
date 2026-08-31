@@ -6,6 +6,7 @@ namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Configuration
 
 public sealed class DeliveryOrderConfiguration : IEntityTypeConfiguration<DeliveryOrder>
 {
+#pragma warning disable S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<DeliveryOrder> builder)
     {
         builder.HasKey(d => d.Id);
@@ -38,6 +39,7 @@ public sealed class DeliveryOrderConfiguration : IEntityTypeConfiguration<Delive
 
 public sealed class DeliveryOrderLineConfiguration : IEntityTypeConfiguration<DeliveryOrderLine>
 {
+#pragma warning disable S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<DeliveryOrderLine> builder)
     {
         builder.HasKey(l => l.Id);

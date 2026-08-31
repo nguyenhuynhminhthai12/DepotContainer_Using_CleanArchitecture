@@ -16,6 +16,9 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
+#pragma warning disable S1075 // OpenAPI contact URL
+    const string techSpherexContactUrl = "https://TechSpherex.com";
+#pragma warning restore S1075 // OpenAPI contact URL
     var builder = WebApplication.CreateBuilder(args);
 
     // Aspire service defaults (OpenTelemetry, health checks, service discovery)
@@ -65,7 +68,9 @@ try
             info.Contact = new Microsoft.OpenApi.OpenApiContact
             {
                 Name = "TechSpherex",
-                Url = new Uri("https://TechSpherex.com")
+#pragma warning disable S1075 // OpenAPI contact URL
+                Url = new Uri(techSpherexContactUrl)
+#pragma warning restore S1075 // OpenAPI contact URL
             };
             document.Info = info;
 

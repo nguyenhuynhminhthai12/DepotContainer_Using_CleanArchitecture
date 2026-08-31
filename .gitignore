@@ -74,4 +74,4 @@ node_modules/
 dist/
 .dotnet/
 *.bak
-*.aspire-bak
+*.aspire-baksrc/.sonarqube/

@@ -190,6 +190,9 @@ docker compose --profile grafana up -d --build
 # + Dev Tools (pgAdmin, RedisInsight)
 docker compose --profile tools up -d
 
+# + SonarQube (code quality analysis)
+docker compose --profile sonar up -d
+
 # Combine multiple profiles
 docker compose --profile elk --profile tools up -d --build
 ```
@@ -454,6 +457,43 @@ docker compose --profile grafana up -d --build
 
 ---
 
+## 🔍 SonarQube (Code Quality)
+
+Run SonarQube locally for static analysis, code smells, bugs, and security hotspots:
+
+```bash
+docker compose --profile sonar up -d
+```
+
+| Setting | Value |
+|:--------|:------|
+| **URL** | `http://localhost:9000` |
+| **Default login** | `admin` / `admin` |
+| **Project key** | `TechSpherex` |
+
+### Run analysis locally
+
+```bash
+# 1. Install scanner (once)
+dotnet tool install --global dotnet-sonarscanner
+
+# 2. Start SonarQube
+docker compose --profile sonar up -d
+
+# 3. Run analysis from project root
+cd src
+dotnet sonarscanner begin /k:"TechSpherex" /d:sonar.host.url="http://localhost:9000" /d:sonar.login="YOUR_GENERATED_TOKEN"
+dotnet build TechSpherex.CleanArchitecture.slnx
+dotnet test TechSpherex.CleanArchitecture.slnx --no-build
+dotnet sonarscanner end /d:sonar.login="YOUR_GENERATED_TOKEN"
+```
+
+> Generate a token at **http://localhost:9000/account/security** (My Account → Security → Generate Tokens).
+
+📖 [SonarQube Docs](https://docs.sonarqube.org/latest/)
+
+---
+
 ## 🗂️ Service Ports Reference
 
 | Service | Port | Profile |
@@ -471,6 +511,7 @@ docker compose --profile grafana up -d --build
 | OTel Collector (gRPC / HTTP) | `4320` / `4321` | elk / grafana |
 | pgAdmin | `5050` | tools |
 | RedisInsight | `5540` | tools |
+| SonarQube | `9000` | sonar |
 
 ---
 

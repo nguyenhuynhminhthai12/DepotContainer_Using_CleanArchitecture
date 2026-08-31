@@ -2,6 +2,8 @@ using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
+#pragma warning disable S1192 // Auto-generated migration file
+
 #nullable disable
 
 namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Migrations;
@@ -251,3 +253,5 @@ public partial class InitialCreate : Migration
             name: "AspNetUsers");
     }
 }
+
+#pragma warning restore S1192 // Auto-generated migration file

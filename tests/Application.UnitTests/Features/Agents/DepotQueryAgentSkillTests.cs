@@ -34,7 +34,7 @@ public sealed class DepotQueryAgentSkillTests
         var ct = new ContainerType { Code = "22G1", Name = "Dry 20'", Family = "Dry" };
         db.LineOperators.Add(lineOp);
         db.ContainerTypes.Add(ct);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var c = new Container
         {
@@ -45,7 +45,7 @@ public sealed class DepotQueryAgentSkillTests
             Condition = ContainerCondition.Normal
         };
         db.Containers.Add(c);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         db.ContainerMovements.Add(new ContainerMovement
         {
             ContainerId = c.Id,
@@ -55,7 +55,7 @@ public sealed class DepotQueryAgentSkillTests
             GateInAt = DateTimeOffset.UtcNow.AddDays(-3),
             Status = MovementStatus.InYard
         });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var skill = new DepotQueryAgentSkill(
             db,
@@ -78,7 +78,7 @@ public sealed class DepotQueryAgentSkillTests
         var ct = new ContainerType { Code = "22G1", Name = "Dry 20'", Family = "Dry" };
         db.LineOperators.Add(lineOp);
         db.ContainerTypes.Add(ct);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var c = new Container
         {
@@ -89,7 +89,7 @@ public sealed class DepotQueryAgentSkillTests
             Condition = ContainerCondition.Normal
         };
         db.Containers.Add(c);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         db.ContainerMovements.Add(new ContainerMovement
         {
             ContainerId = c.Id,
@@ -99,7 +99,7 @@ public sealed class DepotQueryAgentSkillTests
             GateInAt = DateTimeOffset.UtcNow,
             Status = MovementStatus.InYard
         });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var skill = new DepotQueryAgentSkill(
             db,

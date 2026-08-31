@@ -85,7 +85,14 @@ public static class AppDbSeeder
 
     private static async Task SeedDepotDomainAsync(AppDbContext context, ILogger logger)
     {
-        // Container types — ISO 6346 families (Phụ lục II).
+        await SeedContainerTypesAsync(context, logger);
+        await SeedLineOperatorsAsync(context, logger);
+        await SeedSampleCustomerAsync(context, logger);
+        await SeedDefaultDepotAsync(context, logger);
+    }
+
+    private static async Task SeedContainerTypesAsync(AppDbContext context, ILogger logger)
+    {
         if (!await context.ContainerTypes.AnyAsync())
         {
             context.ContainerTypes.AddRange(
@@ -104,8 +111,10 @@ public static class AppDbSeeder
             await context.SaveChangesAsync();
             logger.LogInformation("Seeded container types");
         }
+    }
 
-        // Line operators.
+    private static async Task SeedLineOperatorsAsync(AppDbContext context, ILogger logger)
+    {
         if (!await context.LineOperators.AnyAsync())
         {
             context.LineOperators.AddRange(
@@ -121,8 +130,10 @@ public static class AppDbSeeder
             await context.SaveChangesAsync();
             logger.LogInformation("Seeded line operators");
         }
+    }
 
-        // One sample customer for the delivery-order workflow.
+    private static async Task SeedSampleCustomerAsync(AppDbContext context, ILogger logger)
+    {
         if (!await context.Customers.AnyAsync())
         {
             context.Customers.Add(new Customer
@@ -137,65 +148,84 @@ public static class AppDbSeeder
             await context.SaveChangesAsync();
             logger.LogInformation("Seeded sample customer");
         }
+    }
 
-        // One default depot (multi-tenant mode still works — seed a single tenant).
-        Depot depot;
+    private static async Task SeedDefaultDepotAsync(AppDbContext context, ILogger logger)
+    {
         if (!await context.Depots.AnyAsync())
         {
-            depot = new Depot
-            {
-                Code = "DEFAULT",
-                Name = "Default Depot",
-                Address = "Cat Lai, Thu Duc, Ho Chi Minh City",
-                TimeZone = "Asia/Ho_Chi_Minh",
-                IsActive = true
-            };
-            context.Depots.Add(depot);
-            await context.SaveChangesAsync();
-
-            // Seed 2 sample Blocks: A (real, 5 bays x 4 rows x 3 tiers) and B-VIRTUAL.
-            var blockA = new Block
-            {
-                DepotId = depot.Id,
-                Code = "A",
-                Name = "Block A",
-                IsVirtual = false,
-                MaxBay = 5,
-                MaxRow = 4,
-                MaxTier = 3,
-                DisplayOrder = 1
-            };
-            var blockVirtual = new Block
-            {
-                DepotId = depot.Id,
-                Code = "V",
-                Name = "Block V (Virtual)",
-                IsVirtual = true,
-                DisplayOrder = 2
-            };
-            context.Blocks.AddRange(blockA, blockVirtual);
-            await context.SaveChangesAsync();
-
-            // Pre-populate the slot grid for Block A.
-            for (var bay = 1; bay <= 5; bay++)
-            for (var row = 1; row <= 4; row++)
-            for (var tier = 1; tier <= 3; tier++)
-            {
-                context.YardSlots.Add(new YardSlot
-                {
-                    BlockId = blockA.Id,
-                    Bay = bay,
-                    Row = row,
-                    Tier = tier,
-                    IsOccupied = false
-                });
-            }
-            await context.SaveChangesAsync();
-
+            var depot = await CreateDefaultDepotAsync(context);
+            await SeedBlockASlotsAsync(context, depot);
             logger.LogInformation("Seeded default depot + 2 blocks");
         }
 
-        // Backfill slots for any existing non-virtual blocks that lack slots
+        await BackfillMissingSlotsAsync(context, logger);
+    }
+
+    private static async Task<Depot> CreateDefaultDepotAsync(AppDbContext context)
+    {
+        var depot = new Depot
+        {
+            Code = "DEFAULT",
+            Name = "Default Depot",
+            Address = "Cat Lai, Thu Duc, Ho Chi Minh City",
+            TimeZone = "Asia/Ho_Chi_Minh",
+            IsActive = true
+        };
+        context.Depots.Add(depot);
+        await context.SaveChangesAsync();
+
+        var blockA = new Block
+        {
+            DepotId = depot.Id,
+            Code = "A",
+            Name = "Block A",
+            IsVirtual = false,
+            MaxBay = 5,
+            MaxRow = 4,
+            MaxTier = 3,
+            DisplayOrder = 1
+        };
+        var blockVirtual = new Block
+        {
+            DepotId = depot.Id,
+            Code = "V",
+            Name = "Block V (Virtual)",
+            IsVirtual = true,
+            DisplayOrder = 2
+        };
+        context.Blocks.AddRange(blockA, blockVirtual);
+        await context.SaveChangesAsync();
+
+        return depot;
+    }
+
+    private static async Task SeedBlockASlotsAsync(AppDbContext context, Depot depot)
+    {
+        var blockA = await context.Blocks.FirstAsync(b => b.Code == "A" && b.DepotId == depot.Id);
+
+        for (var bay = 1; bay <= 5; bay++)
+        {
+            for (var row = 1; row <= 4; row++)
+            {
+                for (var tier = 1; tier <= 3; tier++)
+                {
+                    context.YardSlots.Add(new YardSlot
+                    {
+                        BlockId = blockA.Id,
+                        Bay = bay,
+                        Row = row,
+                        Tier = tier,
+                        IsOccupied = false
+                    });
+                }
+            }
+        }
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task BackfillMissingSlotsAsync(AppDbContext context, ILogger logger)
+    {
         var nonVirtualBlocks = await context.Blocks
             .Where(b => !b.IsVirtual && b.MaxBay != null && b.MaxRow != null && b.MaxTier != null)
             .ToListAsync();
@@ -205,24 +235,34 @@ public static class AppDbSeeder
             var hasSlots = await context.YardSlots.AnyAsync(s => s.BlockId == blk.Id);
             if (!hasSlots)
             {
-                var newSlots = new List<YardSlot>();
-                for (var bay = 1; bay <= blk.MaxBay!.Value; bay++)
-                for (var row = 1; row <= blk.MaxRow!.Value; row++)
-                for (var tier = 1; tier <= blk.MaxTier!.Value; tier++)
+                var newSlots = CreateBlockSlots(blk);
+                context.YardSlots.AddRange(newSlots);
+                await context.SaveChangesAsync();
+                logger.LogInformation("Backfilled {Count} slots for block {Code}", newSlots.Count, blk.Code);
+            }
+        }
+    }
+
+    private static List<YardSlot> CreateBlockSlots(Block block)
+    {
+        var slots = new List<YardSlot>();
+        for (var bay = 1; bay <= block.MaxBay!.Value; bay++)
+        {
+            for (var row = 1; row <= block.MaxRow!.Value; row++)
+            {
+                for (var tier = 1; tier <= block.MaxTier!.Value; tier++)
                 {
-                    newSlots.Add(new YardSlot
+                    slots.Add(new YardSlot
                     {
-                        BlockId = blk.Id,
+                        BlockId = block.Id,
                         Bay = bay,
                         Row = row,
                         Tier = tier,
                         IsOccupied = false
                     });
                 }
-                context.YardSlots.AddRange(newSlots);
-                await context.SaveChangesAsync();
-                logger.LogInformation("Backfilled {Count} slots for block {Code}", newSlots.Count, blk.Code);
             }
         }
+        return slots;
     }
 }

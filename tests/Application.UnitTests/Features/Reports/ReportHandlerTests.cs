@@ -17,7 +17,7 @@ public sealed class YardAgingReportHandlerTests
 
         var ct = new ContainerType { Code = "22G1", Name = "Dry 20'", Family = "Dry" };
         db.ContainerTypes.Add(ct);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // CMA — 2 fresh, 1 old
         for (var i = 0; i < 3; i++)
@@ -31,7 +31,7 @@ public sealed class YardAgingReportHandlerTests
                 Condition = ContainerCondition.Normal
             };
             db.Containers.Add(c);
-            await db.SaveChangesAsync();
+            await db.SaveChangesAsync(TestContext.Current.CancellationToken);
             db.ContainerMovements.Add(new ContainerMovement
             {
                 ContainerId = c.Id,
@@ -42,7 +42,7 @@ public sealed class YardAgingReportHandlerTests
                 Status = MovementStatus.InYard
             });
         }
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetYardAgingReportQueryHandler(db);
         var result = await handler.HandleAsync(new GetYardAgingReportQuery(), TestContext.Current.CancellationToken);
@@ -65,7 +65,7 @@ public sealed class DailyThroughputReportHandlerTests
         db.LineOperators.Add(op);
         var ct = new ContainerType { Code = "22G1", Name = "Dry 20'", Family = "Dry" };
         db.ContainerTypes.Add(ct);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         for (var i = 0; i < 2; i++)
         {
@@ -78,7 +78,7 @@ public sealed class DailyThroughputReportHandlerTests
                 Condition = ContainerCondition.Normal
             };
             db.Containers.Add(c);
-            await db.SaveChangesAsync();
+            await db.SaveChangesAsync(TestContext.Current.CancellationToken);
             db.ContainerMovements.Add(new ContainerMovement
             {
                 ContainerId = c.Id,
@@ -90,7 +90,7 @@ public sealed class DailyThroughputReportHandlerTests
                 Status = MovementStatus.GateOut
             });
         }
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetDailyThroughputReportQueryHandler(db);
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -100,6 +100,6 @@ public sealed class DailyThroughputReportHandlerTests
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.Rows.Should().NotBeEmpty();
-        result.Value.Rows.Sum(r => r.GateInCount).Should().Be(2);
+        result.Value!.Rows.Sum(r => r.GateInCount).Should().Be(2);
     }
 }

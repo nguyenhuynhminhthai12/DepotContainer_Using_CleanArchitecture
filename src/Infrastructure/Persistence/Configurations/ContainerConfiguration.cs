@@ -6,6 +6,7 @@ namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Configuration
 
 public sealed class ContainerConfiguration : IEntityTypeConfiguration<Container>
 {
+#pragma warning disable S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<Container> builder)
     {
         builder.HasKey(c => c.Id);

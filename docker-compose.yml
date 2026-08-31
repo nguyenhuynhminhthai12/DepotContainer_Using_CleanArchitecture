@@ -6,6 +6,7 @@
 #   docker compose --profile elk up -d        # + ELK Stack (Elasticsearch, Logstash, Kibana)
 #   docker compose --profile grafana up -d    # + Grafana Stack (Loki, Grafana, Tempo, Prometheus)
 #   docker compose --profile tools up -d      # + pgAdmin + RedisInsight
+#   docker compose --profile sonar up -d      # + SonarQube
 # ============================================================
 
 services:
@@ -223,6 +224,24 @@ services:
     restart: unless-stopped
 
   # ============================================================
+  #  SonarQube (profile: sonar)
+  # ============================================================
+
+  sonarqube:
+    image: sonarqube:lts
+    container_name: techspherex-sonarqube
+    profiles: [sonar]
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - techspherex-net
+    restart: unless-stopped
+
+  # ============================================================
   #  OpenTelemetry Collector (shared by elk & grafana)
   # ============================================================
 
@@ -248,6 +267,9 @@ volumes:
   tempo_data:
   prometheus_data:
   grafana_data:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
 
 # ──────────────────────── Networks ───────────────────────────
 networks:

@@ -8,12 +8,14 @@ namespace TechSpherex.CleanArchitecture.Application.UnitTests.Features.Container
 
 public sealed class CreateContainerCommandHandlerTests
 {
+    private const string TestContainerNumber = "CMAU1234564";
+
     [Fact]
     public async Task HandleAsync_Should_Reject_Invalid_CheckDigit()
     {
         await using var db = TestDbContextFactory.Create();
         db.ContainerTypes.Add(new ContainerType { Code = "22G1", Name = "Dry 20'", Family = "Dry" });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new CreateContainerCommandHandler(db);
         var cmd = new CreateContainerCommand(
@@ -33,16 +35,16 @@ public sealed class CreateContainerCommandHandlerTests
         await using var db = TestDbContextFactory.Create();
         var ct = new ContainerType { Code = "22G1", Name = "Dry 20'", Family = "Dry" };
         db.ContainerTypes.Add(ct);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Create the first container with a valid check-digit number via factory
-        db.Containers.Add(Container.Create("CMAU1234564", ct.Id, "22G1", 20, 30000m, 2200m,
+        db.Containers.Add(Container.Create(TestContainerNumber, ct.Id, "22G1", 20, 30000m, 2200m,
             DateTimeOffset.UtcNow, "CMA"));
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new CreateContainerCommandHandler(db);
         var result = await handler.HandleAsync(
-            new CreateContainerCommand("CMAU1234564", ct.Id, "22G1", 20, 30000m, 2200m,
+            new CreateContainerCommand(TestContainerNumber, ct.Id, "22G1", 20, 30000m, 2200m,
                 DateTimeOffset.UtcNow, "CMA", "Normal"),
             TestContext.Current.CancellationToken);
 
@@ -56,17 +58,17 @@ public sealed class CreateContainerCommandHandlerTests
         await using var db = TestDbContextFactory.Create();
         var ct = new ContainerType { Code = "22G1", Name = "Dry 20'", Family = "Dry" };
         db.ContainerTypes.Add(ct);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new CreateContainerCommandHandler(db);
         var result = await handler.HandleAsync(
-            new CreateContainerCommand("CMAU1234564", ct.Id, "22G1", 20, 30000m, 2200m,
+            new CreateContainerCommand(TestContainerNumber, ct.Id, "22G1", 20, 30000m, 2200m,
                 DateTimeOffset.UtcNow, "CMA", "Normal"),
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.ContainerNumber.Should().Be("CMAU1234564");
-        result.Value.SizeFeet.Should().Be(20);
+        result.Value!.ContainerNumber.Should().Be(TestContainerNumber);
+        result.Value!.SizeFeet.Should().Be(20);
     }
 }
 
@@ -78,7 +80,7 @@ public sealed class GetContainersQueryHandlerTests
         await using var db = TestDbContextFactory.Create();
         var ct = new ContainerType { Code = "22G1", Name = "Dry 20'", Family = "Dry" };
         db.ContainerTypes.Add(ct);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         for (var i = 0; i < 5; i++)
         {
@@ -95,14 +97,14 @@ public sealed class GetContainersQueryHandlerTests
                 Condition = ContainerCondition.Normal
             });
         }
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var handler = new GetContainersQueryHandler(db);
         var result = await handler.HandleAsync(new GetContainersQuery(1, 3), TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.TotalCount.Should().Be(5);
-        result.Value.Items.Should().HaveCount(3);
-        result.Value.TotalPages.Should().Be(2);
+        result.Value!.TotalCount.Should().Be(5);
+        result.Value!.Items.Should().HaveCount(3);
+        result.Value!.TotalPages.Should().Be(2);
     }
 }

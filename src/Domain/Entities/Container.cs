@@ -26,9 +26,11 @@ public sealed class Container : AuditableEntity, ITenantEntity
     /// <summary>Strongly-typed view of <see cref="ContainerNumberRaw"/>.</summary>
     public ContainerNumber ContainerNumber => new(ContainerNumberRaw);
 
+#pragma warning disable S107 // Factory method requires multiple parameters
     public static Container Create(string containerNumber, Guid containerTypeId, string isoCode,
         int sizeFeet, decimal maxWeightKg, decimal tareWeightKg,
         DateTimeOffset manufactureDate, string owner, ContainerCondition condition = ContainerCondition.Normal)
+#pragma warning restore S107 // Factory method requires multiple parameters
     {
         var normalized = (containerNumber ?? string.Empty).Trim().ToUpperInvariant();
         Domain.Common.Rules.BusinessRuleValidator.CheckRule(

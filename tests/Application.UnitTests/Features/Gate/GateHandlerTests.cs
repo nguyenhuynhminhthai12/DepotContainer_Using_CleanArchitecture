@@ -18,13 +18,13 @@ public sealed class GateInContainerCommandHandlerTests
         var depot = new Depot { Code = "D1", Name = "D1", Address = "addr" };
         db.LineOperators.Add(lineOp);
         db.Depots.Add(depot);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var block = new Block { DepotId = depot.Id, Code = "A", Name = "A", IsVirtual = false, MaxBay = 3, MaxRow = 1, MaxTier = 1 };
         db.Blocks.Add(block);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var slot = new YardSlot { BlockId = block.Id, Bay = 1, Row = 1, Tier = 1, IsOccupied = false };
         db.YardSlots.Add(slot);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var rules = Substitute.For<IRuleEngine>();
         rules.Evaluate(Arg.Any<string>(), Arg.Any<IDictionary<string, object?>>())
@@ -51,7 +51,7 @@ public sealed class GateInContainerCommandHandlerTests
         db.ContainerTypes.Add(ct);
         db.LineOperators.Add(lineOp);
         db.Depots.Add(depot);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // 40ft container to test bay-parity
         db.Containers.Add(new Container
@@ -69,12 +69,12 @@ public sealed class GateInContainerCommandHandlerTests
 
         var block = new Block { DepotId = depot.Id, Code = "A", Name = "A", IsVirtual = false, MaxBay = 3, MaxRow = 1, MaxTier = 1 };
         db.Blocks.Add(block);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Odd bay — wrong for 40ft
         var slot = new YardSlot { BlockId = block.Id, Bay = 1, Row = 1, Tier = 1, IsOccupied = false };
         db.YardSlots.Add(slot);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var rules = Substitute.For<IRuleEngine>();
         rules.Evaluate(Arg.Any<string>(), Arg.Any<IDictionary<string, object?>>())
@@ -100,7 +100,7 @@ public sealed class GateInContainerCommandHandlerTests
         db.ContainerTypes.Add(ct);
         db.LineOperators.Add(lineOp);
         db.Depots.Add(depot);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         db.Containers.Add(new Container
         {
@@ -116,10 +116,10 @@ public sealed class GateInContainerCommandHandlerTests
         });
         var block = new Block { DepotId = depot.Id, Code = "A", Name = "A", IsVirtual = false, MaxBay = 3, MaxRow = 1, MaxTier = 1 };
         db.Blocks.Add(block);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var slot = new YardSlot { BlockId = block.Id, Bay = 1, Row = 1, Tier = 1, IsOccupied = false };
         db.YardSlots.Add(slot);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var rules = Substitute.For<IRuleEngine>();
         rules.Evaluate(Arg.Any<string>(), Arg.Any<IDictionary<string, object?>>())
@@ -151,7 +151,7 @@ public sealed class GateOutContainerCommandHandlerTests
         db.Customers.Add(customer);
         var ct = new ContainerType { Code = "22G1", Name = "Dry 20'", Family = "Dry" };
         db.ContainerTypes.Add(ct);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var order = new DeliveryOrder
         {
             OrderNumber = "DO-001",
@@ -166,7 +166,7 @@ public sealed class GateOutContainerCommandHandlerTests
             DeliveredQuantity = 0
         });
         db.DeliveryOrders.Add(order);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var rules = Substitute.For<IRuleEngine>();
         rules.Evaluate(Arg.Any<string>(), Arg.Any<IDictionary<string, object?>>())
@@ -193,7 +193,7 @@ public sealed class GateOutContainerCommandHandlerTests
         db.Customers.Add(customer);
         var ct = new ContainerType { Code = "22G1", Name = "Dry 20'", Family = "Dry" };
         db.ContainerTypes.Add(ct);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var order = new DeliveryOrder
         {
             OrderNumber = "DO-001",
@@ -211,13 +211,13 @@ public sealed class GateOutContainerCommandHandlerTests
 
         var depot = new Depot { Code = "D1", Name = "D1", Address = "addr" };
         db.Depots.Add(depot);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var block = new Block { DepotId = depot.Id, Code = "A", Name = "A", IsVirtual = false, MaxBay = 1, MaxRow = 1, MaxTier = 1 };
         db.Blocks.Add(block);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var slot = new YardSlot { BlockId = block.Id, Bay = 1, Row = 1, Tier = 1, IsOccupied = true, CurrentContainerId = Guid.NewGuid() };
         db.YardSlots.Add(slot);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var container = new Container
         {
@@ -232,7 +232,7 @@ public sealed class GateOutContainerCommandHandlerTests
             Condition = ContainerCondition.Normal
         };
         db.Containers.Add(container);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var movement = new ContainerMovement
         {
@@ -246,7 +246,7 @@ public sealed class GateOutContainerCommandHandlerTests
             Status = MovementStatus.InYard
         };
         db.ContainerMovements.Add(movement);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var rules = Substitute.For<IRuleEngine>();
         rules.Evaluate(Arg.Any<string>(), Arg.Any<IDictionary<string, object?>>())
@@ -275,7 +275,7 @@ public sealed class GateOutContainerCommandHandlerTests
         db.Customers.Add(customer);
         var ct = new ContainerType { Code = "22G1", Name = "Dry 20'", Family = "Dry" };
         db.ContainerTypes.Add(ct);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var order = new DeliveryOrder
         {
             OrderNumber = "DO-OLD",
@@ -285,7 +285,7 @@ public sealed class GateOutContainerCommandHandlerTests
         };
         order.Lines.Add(new DeliveryOrderLine { ContainerTypeId = ct.Id, RequestedQuantity = 1 });
         db.DeliveryOrders.Add(order);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var container = new Container
         {
@@ -296,7 +296,7 @@ public sealed class GateOutContainerCommandHandlerTests
             Condition = ContainerCondition.Normal
         };
         db.Containers.Add(container);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var movement = new ContainerMovement
         {
             ContainerId = container.Id, LineOperatorId = lineOp.Id,
@@ -304,7 +304,7 @@ public sealed class GateOutContainerCommandHandlerTests
             GateInAt = DateTimeOffset.UtcNow.AddDays(-3), Status = MovementStatus.InYard
         };
         db.ContainerMovements.Add(movement);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var rules = Substitute.For<IRuleEngine>();
         var cache = Substitute.For<ICacheService>();
