@@ -5,8 +5,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence;
 
+/// <summary>
+/// Lớp trợ giúp seed dữ liệu mẫu (roles, admin user, todos, depot domain) vào database.
+/// </summary>
 public static class AppDbSeeder
 {
+    /// <summary>
+    /// Thực hiện toàn bộ quá trình seed: migrations, roles, admin, todos, và dữ liệu depot mẫu.
+    /// </summary>
+    /// <param name="serviceProvider">Service provider để lấy các dịch vụ.</param>
     public static async Task SeedAsync(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
@@ -23,6 +30,9 @@ public static class AppDbSeeder
         await SeedDepotDomainAsync(context, logger);
     }
 
+    /// <summary>
+    /// Tạo các role mặc định: Admin, YardOperator, Viewer, User.
+    /// </summary>
     private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager, ILogger logger)
     {
         string[] roles = ["Admin", "YardOperator", "Viewer", "User"];
@@ -32,17 +42,25 @@ public static class AppDbSeeder
             if (!await roleManager.RoleExistsAsync(role))
             {
                 await roleManager.CreateAsync(new IdentityRole(role));
-                logger.LogInformation("Created role: {Role}", role);
+                if (logger.IsEnabled(LogLevel.Information))
+                {
+                    logger.LogInformation("Created role: {Role}", role);
+                }
             }
         }
     }
 
+    /// <summary>
+    /// Tạo tài khoản admin mẫu với mật khẩu "Admin@123" và gán role Admin/YardOperator/Viewer.
+    /// </summary>
     private static async Task SeedAdminUserAsync(UserManager<ApplicationUser> userManager, ILogger logger)
     {
         const string adminEmail = "admin@TechSpherex.dev";
 
         if (await userManager.FindByEmailAsync(adminEmail) is not null)
+        {
             return;
+        }
 
         var admin = new ApplicationUser
         {
@@ -60,14 +78,22 @@ public static class AppDbSeeder
             await userManager.AddToRoleAsync(admin, "Admin");
             await userManager.AddToRoleAsync(admin, "YardOperator");
             await userManager.AddToRoleAsync(admin, "Viewer");
-            logger.LogInformation("Seeded admin user: {Email}", adminEmail);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Seeded admin user: {Email}", adminEmail);
+            }
         }
     }
 
+    /// <summary>
+    /// Tạo 5 công việc Todo mẫu.
+    /// </summary>
     private static async Task SeedSampleTodosAsync(AppDbContext context, ILogger logger)
     {
         if (await context.Todos.AnyAsync())
+        {
             return;
+        }
 
         var todos = new List<TodoItem>
         {
@@ -80,9 +106,15 @@ public static class AppDbSeeder
 
         context.Todos.AddRange(todos);
         await context.SaveChangesAsync();
-        logger.LogInformation("Seeded {Count} sample todos", todos.Count);
+        if (logger.IsEnabled(LogLevel.Information))
+        {
+            logger.LogInformation("Seeded {Count} sample todos", todos.Count);
+        }
     }
 
+    /// <summary>
+    /// Seed toàn bộ dữ liệu miền depot: loại container, hành đường, khách hàng, depot mặc định.
+    /// </summary>
     private static async Task SeedDepotDomainAsync(AppDbContext context, ILogger logger)
     {
         await SeedContainerTypesAsync(context, logger);
@@ -91,6 +123,9 @@ public static class AppDbSeeder
         await SeedDefaultDepotAsync(context, logger);
     }
 
+    /// <summary>
+    /// Seed 12 loại container theo chuẩn ISO 6346.
+    /// </summary>
     private static async Task SeedContainerTypesAsync(AppDbContext context, ILogger logger)
     {
         if (!await context.ContainerTypes.AnyAsync())
@@ -113,6 +148,9 @@ public static class AppDbSeeder
         }
     }
 
+    /// <summary>
+    /// Seed 9 hành đường (line operators) lớn thế giới.
+    /// </summary>
     private static async Task SeedLineOperatorsAsync(AppDbContext context, ILogger logger)
     {
         if (!await context.LineOperators.AnyAsync())
@@ -132,6 +170,9 @@ public static class AppDbSeeder
         }
     }
 
+    /// <summary>
+    /// Seed một khách hàng mẫu.
+    /// </summary>
     private static async Task SeedSampleCustomerAsync(AppDbContext context, ILogger logger)
     {
         if (!await context.Customers.AnyAsync())
@@ -150,6 +191,9 @@ public static class AppDbSeeder
         }
     }
 
+    /// <summary>
+    /// Seed depot mặc định bao gồm Block A (thực) và Block V (ảo), đồng thời backfill slot nếu thiếu.
+    /// </summary>
     private static async Task SeedDefaultDepotAsync(AppDbContext context, ILogger logger)
     {
         if (!await context.Depots.AnyAsync())
@@ -162,6 +206,9 @@ public static class AppDbSeeder
         await BackfillMissingSlotsAsync(context, logger);
     }
 
+    /// <summary>
+    /// Tạo depot mặc định và hai block (A thực, V ảo).
+    /// </summary>
     private static async Task<Depot> CreateDefaultDepotAsync(AppDbContext context)
     {
         var depot = new Depot
@@ -200,6 +247,9 @@ public static class AppDbSeeder
         return depot;
     }
 
+    /// <summary>
+    /// Tạo 60 yard slot (5 Bay × 4 Row × 3 Tier) cho Block A.
+    /// </summary>
     private static async Task SeedBlockASlotsAsync(AppDbContext context, Depot depot)
     {
         var blockA = await context.Blocks.FirstAsync(b => b.Code == "A" && b.DepotId == depot.Id);
@@ -224,6 +274,9 @@ public static class AppDbSeeder
         await context.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// Backfill các yard slot còn thiếu cho các block thực chưa có slot.
+    /// </summary>
     private static async Task BackfillMissingSlotsAsync(AppDbContext context, ILogger logger)
     {
         var nonVirtualBlocks = await context.Blocks
@@ -238,11 +291,17 @@ public static class AppDbSeeder
                 var newSlots = CreateBlockSlots(blk);
                 context.YardSlots.AddRange(newSlots);
                 await context.SaveChangesAsync();
-                logger.LogInformation("Backfilled {Count} slots for block {Code}", newSlots.Count, blk.Code);
+                if (logger.IsEnabled(LogLevel.Information))
+                {
+                    logger.LogInformation("Backfilled {Count} slots for block {Code}", newSlots.Count, blk.Code);
+                }
             }
         }
     }
 
+    /// <summary>
+    /// Tạo danh sách <see cref="YardSlot"/> cho một block thực theo lưới Bay/Row/Tier.
+    /// </summary>
     private static List<YardSlot> CreateBlockSlots(Block block)
     {
         var slots = new List<YardSlot>();

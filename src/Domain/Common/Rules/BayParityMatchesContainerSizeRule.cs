@@ -1,29 +1,29 @@
 namespace TechSpherex.CleanArchitecture.Domain.Common.Rules;
 
 /// <summary>
-/// Validates that the slot's Bay parity matches the container size.
-/// Odd Bays (1, 3, 5, …) host 20 ft containers.
-/// Even Bays (2, 4, 6, …) host 40 ft containers.
+/// Xác thực sự rằng tính chẵn/lẻ của Bay khớp với kích thước container.
+/// Bay lẻ (1, 3, 5…) chứa container 20 feet.
+/// Bay chẵn (2, 4, 6…) chứa container 40 feet.
 /// </summary>
-public sealed class BayParityMatchesContainerSizeRule : IBusinessRule
+public sealed class BayParityMatchesContainerSizeRule(int bay, int containerSizeFeet) : IBusinessRule
 {
-    private readonly int _bay;
-    private readonly int _containerSizeFeet;
-
-    public BayParityMatchesContainerSizeRule(int bay, int containerSizeFeet)
-    {
-        _bay = bay;
-        _containerSizeFeet = containerSizeFeet;
-    }
-
+    /// <summary>Mã quy tắc: "Yard.BayParityMatchesContainerSize".</summary>
     public string RuleCode => "Yard.BayParityMatchesContainerSize";
+
+    /// <summary>Thông điệp lỗi: "Odd Bays host 20 ft containers; even Bays host 40 ft containers."</summary>
     public string Message => "Odd Bays host 20 ft containers; even Bays host 40 ft containers.";
+
+    /// <summary>Độ ưu tiên: 1.</summary>
     public int Priority => 1;
 
+    /// <summary>
+    /// Đánh giá: trả về True nếu Bay và kích thước container không khớp.
+    /// Bay lẻ chỉ chứa container 20 feet, bay chẵn chỉ chứa 40 feet.
+    /// </summary>
     public bool IsBroken()
     {
-        var bayIsOdd = _bay % 2 != 0;
-        var sizeIs20 = _containerSizeFeet == 20;
+        var bayIsOdd = bay % 2 != 0;
+        var sizeIs20 = containerSizeFeet == 20;
         return bayIsOdd != sizeIs20;
     }
 }

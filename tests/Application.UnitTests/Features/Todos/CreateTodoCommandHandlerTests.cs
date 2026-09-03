@@ -1,3 +1,8 @@
+/**
+ * Bộ test cho chức năng Tạo Todo (Create Todo Command Handler).
+ * Kiểm tra các trường hợp: tạo thành công, lưu trữ Title và Description.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 using FluentAssertions;
 using TechSpherex.CleanArchitecture.Application.Features.Todos.Create;
 

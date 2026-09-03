@@ -1,3 +1,8 @@
+/**
+ * Bộ test cho chức năng Xóa Todo (Delete Todo Command Handler).
+ * Kiểm tra các trường hợp: xóa thành công khi tìm thấy và trả về NotFound khi không tồn tại.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 using FluentAssertions;
 using TechSpherex.CleanArchitecture.Application.Features.Todos.Delete;
 using TechSpherex.CleanArchitecture.Domain.Common;

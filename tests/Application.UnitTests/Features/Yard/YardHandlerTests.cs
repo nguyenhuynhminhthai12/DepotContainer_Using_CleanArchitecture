@@ -1,3 +1,8 @@
+/**
+ * Bộ test cho chức năng Yard (Yard Handlers).
+ * Bao gồm test tạo Block vật lý, Block ảo, Resize Block, và lấy sơ đồ Yard Map.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 using FluentAssertions;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Caching;
 using TechSpherex.CleanArchitecture.Application.Features.Yard;

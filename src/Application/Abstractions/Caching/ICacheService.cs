@@ -1,16 +1,23 @@
 namespace TechSpherex.CleanArchitecture.Application.Abstractions.Caching;
 
 /// <summary>
-/// Clean cache abstraction for the Application layer.
-/// Wraps HybridCache (L1 In-Memory + L2 Redis) so handlers
-/// never depend on infrastructure packages directly.
+/// Lớp trừu tượng cache sạch cho tầng Application.
+/// Bọc (wrap) HybridCache (L1 In-Memory + L2 Redis) để các handler
+/// không phụ thuộc trực tiếp vào các gói infrastructure.
 /// </summary>
 public interface ICacheService
 {
     /// <summary>
-    /// Gets a value from cache or creates it using the factory.
-    /// L1 (RAM) → L2 (Redis) → Factory fallback.
+    /// Lấy giá trị từ cache hoặc tạo mới bằng hàm factory.
+    /// Trình tự: L1 (RAM) → L2 (Redis) → Factory fallback.
     /// </summary>
+    /// <typeparam name="T">Kiểu dữ liệu của giá trị cache.</typeparam>
+    /// <param name="key">Khóa cache.</param>
+    /// <param name="factory">Hàm tạo giá trị khi không có trong cache.</param>
+    /// <param name="expiration">Thời gian hết hạn chung (cả L1 và L2).</param>
+    /// <param name="localExpiration">Thời gian hết hạn riêng cho L1 (RAM).</param>
+    /// <param name="tags">Danh sách thẻ để xóa bỏ cache theo nhóm.</param>
+    /// <param name="cancellationToken">Token hủy hoạt động bất đồng bộ.</param>
     Task<T> GetOrCreateAsync<T>(
         string key,
         Func<CancellationToken, Task<T>> factory,
@@ -19,7 +26,7 @@ public interface ICacheService
         IEnumerable<string>? tags = null,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Sets a value directly in both L1 and L2 cache.</summary>
+    /// <summary>Đặt một giá trị vào cả hai lớp cache L1 và L2.</summary>
     Task SetAsync<T>(
         string key,
         T value,
@@ -28,9 +35,9 @@ public interface ICacheService
         IEnumerable<string>? tags = null,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Removes a specific key from all cache layers.</summary>
+    /// <summary>Xóa một khóa cụ thể khỏi tất cả các lớp cache.</summary>
     Task RemoveAsync(string key, CancellationToken cancellationToken = default);
 
-    /// <summary>Invalidates all entries tagged with the given tag.</summary>
+    /// <summary>Vô hiệu hóa mọi mục được đánh dấu bởi thẻ (tag) cho trước.</summary>
     Task InvalidateByTagAsync(string tag, CancellationToken cancellationToken = default);
 }

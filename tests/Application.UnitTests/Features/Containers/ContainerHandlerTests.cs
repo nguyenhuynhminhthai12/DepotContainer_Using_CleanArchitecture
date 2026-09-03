@@ -1,3 +1,9 @@
+/**
+ * Bộ test cho chức năng Container (Container Handlers).
+ * Bao gồm test tạo container, từ chối số chẵn lẻ không hợp lệ, từ chối trùng lặp,
+ * và phân trang danh sách container.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 using FluentAssertions;
 using TechSpherex.CleanArchitecture.Application.Features.Containers;
 using TechSpherex.CleanArchitecture.Domain.Common;

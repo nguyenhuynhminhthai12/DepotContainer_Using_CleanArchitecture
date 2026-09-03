@@ -5,8 +5,13 @@ using TechSpherex.CleanArchitecture.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 namespace TechSpherex.CleanArchitecture.Application.Features.Identity.Register;
 
+/// <summary>
+/// Xử lý lệnh đăng ký tài khoản người dùng mới bằng ASP.NET Core Identity.
+/// </summary>
+/// <param name="userManager">Quản lý người dùng Identity.</param>
 public sealed class RegisterCommandHandler(UserManager<ApplicationUser> userManager) : ICommandHandler<RegisterCommand>
 {
+    /// <inheritdoc/>
     public async Task<Result> HandleAsync(RegisterCommand command, CancellationToken cancellationToken = default)
     {
         var existingUser = await userManager.FindByEmailAsync(command.Email);

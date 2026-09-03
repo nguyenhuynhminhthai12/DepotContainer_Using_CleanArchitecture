@@ -6,16 +6,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TechSpherex.CleanArchitecture.Application.Features.Reports;
 
+/// <summary>
+/// Xử lý truy vấn lấy báo cáo thời gian lưu trữ container trong yard theo hành đường.
+/// Bucket hóa thành hai nhóm: trong vòng 10 ngày và 10 ngày trở lên.
+/// </summary>
 public sealed class GetYardAgingReportQueryHandler(IAppDbContext dbContext) :
     IQueryHandler<GetYardAgingReportQuery, Result<YardAgingReport>>
 {
+    /// <inheritdoc/>
     public async Task<Result<YardAgingReport>> HandleAsync(GetYardAgingReportQuery query, CancellationToken cancellationToken = default)
     {
         var now = DateTimeOffset.UtcNow;
         var cutoff = now.AddDays(-10);
 
-        // Fetch in-yard movements and bucket in memory — keeps us portable
-        // across Npgsql versions and gives a deterministic 0-10 / >=10 split.
+        // Lấy các movement đang InYard và bucket trong bộ nhớ
+        // để duy trì khả năng port khẩp các phiên bản Npgsql
+        // và đảm bảo kết quả 0-10 / >=10 chính xác.
         var movements = await dbContext.ContainerMovements
             .AsNoTracking()
             .Where(m => m.Status == MovementStatus.InYard)
@@ -54,9 +60,13 @@ public sealed class GetYardAgingReportQueryHandler(IAppDbContext dbContext) :
     }
 }
 
+/// <summary>
+/// Xử lý truy vấn lấy báo cáo khẩu lượng giao nhận (Gate-In/Gate-Out) hàng ngày theo hành đường.
+/// </summary>
 public sealed class GetDailyThroughputReportQueryHandler(IAppDbContext dbContext) :
     IQueryHandler<GetDailyThroughputReportQuery, Result<DailyThroughputReport>>
 {
+    /// <inheritdoc/>
     public async Task<Result<DailyThroughputReport>> HandleAsync(GetDailyThroughputReportQuery query, CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
@@ -74,7 +84,7 @@ public sealed class GetDailyThroughputReportQueryHandler(IAppDbContext dbContext
         var lineOperators = await dbContext.LineOperators.AsNoTracking().ToListAsync(cancellationToken);
         var opLookup = lineOperators.ToDictionary(l => l.Id);
 
-        // Group both Gate-In (count) and Gate-Out (count, where GateOutAt in range).
+        // Gom nhóm cả số lần Gate-In (đếm) và Gate-Out (đếm, trong khoảng thời gian).
         var rows = movements
             .GroupBy(m => new
             {
@@ -86,7 +96,7 @@ public sealed class GetDailyThroughputReportQueryHandler(IAppDbContext dbContext
                 g.Key.LineOperatorId,
                 g.Key.Day,
                 GateInCount = g.Count(),
-                GateOutCount = g.Count(m => m.GateOutAt.HasValue && m.GateOutAt.Value >= fromDateTime && m.GateOutAt.Value < toDateTime)
+                GateOutCount = g.Count(m => m.GateOutAt >= fromDateTime && m.GateOutAt < toDateTime)
             })
             .Where(r => opLookup.ContainsKey(r.LineOperatorId))
             .Select(r =>

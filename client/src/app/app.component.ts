@@ -1,3 +1,9 @@
+/**
+ * Component chính của ứng dụng (App Root Component).
+ * Hiển thị topbar điều hướng với logo, menu nav, thông tin tenant/user, và nút đăng xuất.
+ * Render <router-outlet> để hiển thị các trang con theo tuyến đường hiện tại.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';

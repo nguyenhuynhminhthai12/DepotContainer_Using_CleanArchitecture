@@ -1,3 +1,8 @@
+/**
+ * Bộ test cho chức năng Hoàn thành Todo (Complete Todo Command Handler).
+ * Kiểm tra các trường hợp: đánh dấu hoàn thành thành công và trả về NotFound khi không tìm thấy.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 using FluentAssertions;
 using TechSpherex.CleanArchitecture.Application.Features.Todos.Complete;
 using TechSpherex.CleanArchitecture.Domain.Common;

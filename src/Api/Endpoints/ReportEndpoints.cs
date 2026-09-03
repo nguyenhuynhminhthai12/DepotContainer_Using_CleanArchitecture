@@ -5,8 +5,15 @@ using TechSpherex.CleanArchitecture.Application.Features.Reports;
 using TechSpherex.CleanArchitecture.Domain.Common;
 namespace TechSpherex.CleanArchitecture.Api.Endpoints;
 
+/// <summary>
+/// Nhóm các endpoint REST cho chức năng Báo cáo (thời gian lưu, khẩu lượng).
+/// </summary>
 public static class ReportEndpoints
 {
+    /// <summary>
+    /// Đăng ký tất cả endpoint Báo cáo vào <see cref="IEndpointRouteBuilder"/>.
+    /// </summary>
+    /// <param name="app">Route builder để đăng ký endpoint.</param>
     public static void MapReportEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/reports")
@@ -14,17 +21,18 @@ public static class ReportEndpoints
 
         group.MapGet("/yard-aging", YardAging)
             .WithName("GetYardAgingReport")
-            .WithSummary("Containers in-yard by Line Operator (0–10 days vs ≥10 days).");
+            .WithSummary("Container trong yard theo hành đường (0–10 ngày vs ≥10 ngày).");
 
         group.MapGet("/yard-occupancy", YardAging)
             .WithName("GetYardOccupancyReport")
-            .WithSummary("Yard occupancy & aging report by Line Operator.");
+            .WithSummary("Báo cáo lưu kho và thời gian lưu theo hành đường.");
 
         group.MapGet("/daily-throughput", DailyThroughput)
             .WithName("GetDailyThroughputReport")
-            .WithSummary("Daily gate-in / gate-out throughput by Line Operator.");
+            .WithSummary("Khẩu lượng Gate-In/Gate-Out hàng ngày theo hành đường.");
     }
 
+    /// <summary>Xử lý GET /api/reports/yard-aging — báo cáo thời gian lưu container.</summary>
     private static async Task<IResult> YardAging(
         IQueryHandler<GetYardAgingReportQuery, Result<YardAgingReport>> handler,
         CancellationToken cancellationToken)
@@ -33,6 +41,7 @@ public static class ReportEndpoints
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.ToProblemDetails();
     }
 
+    /// <summary>Xử lý GET /api/reports/daily-throughput — báo cáo khẩu lượng hàng ngày.</summary>
     private static async Task<IResult> DailyThroughput(
         DateOnly? from,
         DateOnly? to,
@@ -44,8 +53,15 @@ public static class ReportEndpoints
     }
 }
 
+/// <summary>
+/// Nhóm các endpoint REST cho chức năng Tra cứu (hành đường, loại container, khách hàng).
+/// </summary>
 public static class LookupEndpoints
 {
+    /// <summary>
+    /// Đăng ký tất cả endpoint Tra cứu vào <see cref="IEndpointRouteBuilder"/>.
+    /// </summary>
+    /// <param name="app">Route builder để đăng ký endpoint.</param>
     public static void MapLookupEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/lookups")
@@ -53,22 +69,23 @@ public static class LookupEndpoints
 
         group.MapGet("/line-operators", GetLineOperators)
             .WithName("GetLineOperators")
-            .WithSummary("List active line operators (shipping lines).");
+            .WithSummary("Liệt kê các hành đường đang hoạt động.");
 
         group.MapGet("/container-types", GetContainerTypes)
             .WithName("GetContainerTypes")
-            .WithSummary("List active container types.");
+            .WithSummary("Liệt kê các loại container đang hoạt động.");
 
         group.MapGet("/customers", GetCustomers)
             .WithName("GetCustomers")
-            .WithSummary("List customers.");
+            .WithSummary("Liệt kê khách hàng.");
 
         group.MapPost("/customers", CreateCustomer)
             .RequireAuthorization()
             .WithName("CreateCustomer")
-            .WithSummary("Create a new customer.");
+            .WithSummary("Tạo khách hàng mới.");
     }
 
+    /// <summary>Xử lý GET /api/lookups/line-operators — lấy danh sách hành đường.</summary>
     private static async Task<IResult> GetLineOperators(
         IQueryHandler<GetLineOperatorsQuery, Result<IReadOnlyList<LineOperatorResponse>>> handler,
         CancellationToken cancellationToken)
@@ -77,6 +94,7 @@ public static class LookupEndpoints
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.ToProblemDetails();
     }
 
+    /// <summary>Xử lý GET /api/lookups/container-types — lấy danh sách loại container.</summary>
     private static async Task<IResult> GetContainerTypes(
         IQueryHandler<GetContainerTypesQuery, Result<IReadOnlyList<ContainerTypeResponse>>> handler,
         CancellationToken cancellationToken)
@@ -85,6 +103,7 @@ public static class LookupEndpoints
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.ToProblemDetails();
     }
 
+    /// <summary>Xử lý GET /api/lookups/customers — lấy danh sách khách hàng.</summary>
     private static async Task<IResult> GetCustomers(
         IQueryHandler<GetCustomersQuery, Result<IReadOnlyList<CustomerResponse>>> handler,
         CancellationToken cancellationToken)
@@ -93,6 +112,7 @@ public static class LookupEndpoints
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.ToProblemDetails();
     }
 
+    /// <summary>Xử lý POST /api/lookups/customers — tạo khách hàng mới.</summary>
     private static async Task<IResult> CreateCustomer(
         CreateCustomerCommand command,
         ICommandHandler<CreateCustomerCommand, Result<CustomerResponse>> handler,

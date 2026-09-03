@@ -1,3 +1,9 @@
+/**
+ * Cấu hình ứng dụng Angular (Application Config).
+ * Đăng ký các providers: ZoneChangeDetection, Router, HttpClient với authInterceptor,
+ * và Animations cho ứng dụng Container Depot TOS.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';

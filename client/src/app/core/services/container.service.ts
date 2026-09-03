@@ -1,3 +1,12 @@
+/**
+ * Dịch vụ quản lý Container (Container Service) cho ứng dụng Angular.
+ * Cung cấp các phương thức CRUD cho Container Master Data:
+ * - Liệt kê containers (có phân trang và bộ lọc)
+ * - Lấy container theo số (Container Number ISO 6346)
+ * - Tạo / cập nhật / xóa container
+ * - Liệt kê các loại container (Container Types)
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';

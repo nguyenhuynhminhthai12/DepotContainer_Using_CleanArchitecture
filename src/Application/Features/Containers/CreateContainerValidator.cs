@@ -3,6 +3,9 @@ using TechSpherex.CleanArchitecture.Domain.Entities;
 
 namespace TechSpherex.CleanArchitecture.Application.Features.Containers;
 
+/// <summary>
+/// Validator cho <see cref="CreateContainerCommand"/> — xác thực dữ liệu đầu vào khi tạo container.
+/// </summary>
 public sealed class CreateContainerValidator : AbstractValidator<CreateContainerCommand>
 {
     public CreateContainerValidator()
@@ -21,6 +24,6 @@ public sealed class CreateContainerValidator : AbstractValidator<CreateContainer
 
         RuleFor(x => x.Condition)
             .Must(c => Enum.TryParse<ContainerCondition>(c, out _))
-            .WithMessage("Condition must be a valid ContainerCondition (Normal, Damaged, Dented, Twisted, Cracked, Leaking, Other).");
+            .WithMessage("Condition phải là một ContainerCondition hợp lệ (Normal, Damaged, Dented, Twisted, Cracked, Leaking, Other).");
     }
 }

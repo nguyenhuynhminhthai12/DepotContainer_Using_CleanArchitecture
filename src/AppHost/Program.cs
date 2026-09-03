@@ -1,5 +1,9 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
+/// <summary>
+/// Cấu hình Aspire orchestration cho toàn bộ hệ thống.
+/// Khai báo các container infrastructure (PostgreSQL, Redis) và ánh xạ API project.
+/// </summary>
 var postgres = builder.AddPostgres("postgres")
     .WithImageTag("17.6")
     .WithPgAdmin()
@@ -13,6 +17,10 @@ var redis = builder.AddRedis("TechSpherex-cache")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume("techspherex-redis-data");
 
+/// <summary>
+/// Thêm API project với tham chiếu đến database và redis,
+/// cấu hình HTTP/HTTPS endpoints.
+/// </summary>
 builder.AddProject<Projects.TechSpherex_CleanArchitecture_Api>("api")
     .WithReference(database)
     .WaitFor(database)
@@ -24,4 +32,3 @@ builder.AddProject<Projects.TechSpherex_CleanArchitecture_Api>("api")
 
 var app = builder.Build();
 await app.RunAsync();
-

@@ -1,25 +1,28 @@
 namespace TechSpherex.CleanArchitecture.Application.Abstractions.Agents;
 
 /// <summary>
-/// Represents a skill that an AI agent can execute.
-/// Each skill maps to a specific domain capability (e.g., manage todos, generate reports).
+/// Đại diện cho một kỹ năng (skill) mà một AI agent có thể thực thi.
+/// Mỗi skill tương ứng với một khả năng miền (domain capability) cụ thể (ví dụ: quản lý todo, tạo báo cáo).
 /// </summary>
 public interface ISkillAgent
 {
-    /// <summary>Unique identifier for this skill.</summary>
+    /// <summary>Mã định danh duy nhất cho skill này.</summary>
     string SkillId { get; }
 
-    /// <summary>Human-readable name.</summary>
+    /// <summary>Tên có thể đọc được của skill.</summary>
     string Name { get; }
 
-    /// <summary>Description of what this skill does.</summary>
+    /// <summary>Mô tả chức năng của skill này.</summary>
     string Description { get; }
 
-    /// <summary>Example prompts that trigger this skill.</summary>
+    /// <summary>Danh sách các ví dụ prompt có thể kích hoạt skill này.</summary>
     IReadOnlyList<string> ExamplePrompts { get; }
 
     /// <summary>
-    /// Execute the skill with the given context.
+    /// Thực thi skill với bối cảnh (context) được cung cấp.
     /// </summary>
+    /// <param name="context">Bối cảnh thực thi chứa prompt và tham số.</param>
+    /// <param name="cancellationToken">Token hủy.</param>
+    /// <returns>Kết quả thực thi dưỗng <see cref="AgentResult"/>.</returns>
     Task<AgentResult> ExecuteAsync(AgentContext context, CancellationToken cancellationToken = default);
 }

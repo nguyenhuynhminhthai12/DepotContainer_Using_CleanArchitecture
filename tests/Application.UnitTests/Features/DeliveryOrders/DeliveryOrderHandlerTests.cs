@@ -1,3 +1,8 @@
+/**
+ * Bộ test cho chức năng Đơn Giao hàng (Delivery Order Handlers).
+ * Bao gồm test tạo đơn, từ chối trùng lặp số đơn, và lọc đơn hết hạn/đã đóng.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 using FluentAssertions;
 using TechSpherex.CleanArchitecture.Application.Features.DeliveryOrders;
 using TechSpherex.CleanArchitecture.Domain.Entities;

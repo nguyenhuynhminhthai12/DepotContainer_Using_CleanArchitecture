@@ -7,9 +7,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TechSpherex.CleanArchitecture.Application.Features.Containers;
 
+/// <summary>
+/// Xử lý lệnh tạo container mới — kiểm tra trùng số, loại container tồn tại,
+/// và xác thực chữ số kiểm tra ISO 6346 qua domain rule.
+/// </summary>
 public sealed class CreateContainerCommandHandler(IAppDbContext dbContext) :
     ICommandHandler<CreateContainerCommand, Result<ContainerResponse>>
 {
+    /// <inheritdoc/>
     public async Task<Result<ContainerResponse>> HandleAsync(CreateContainerCommand command, CancellationToken cancellationToken = default)
     {
         var normalized = command.ContainerNumber.Trim().ToUpperInvariant();
@@ -19,13 +24,13 @@ public sealed class CreateContainerCommandHandler(IAppDbContext dbContext) :
         if (existing)
         {
             return Result.Failure<ContainerResponse>(Error.Conflict("Container.Duplicate",
-                $"Container '{normalized}' already exists."));
+                $"Container '{normalized}' đã tồn tại."));
         }
 
         if (!Enum.TryParse<ContainerCondition>(command.Condition, true, out var condition))
         {
             return Result.Failure<ContainerResponse>(Error.Validation("Container.InvalidCondition",
-                "Invalid container condition."));
+                "Tình trạng container không hợp lệ."));
         }
 
         var typeExists = await dbContext.ContainerTypes
@@ -33,7 +38,7 @@ public sealed class CreateContainerCommandHandler(IAppDbContext dbContext) :
         if (!typeExists)
         {
             return Result.Failure<ContainerResponse>(Error.NotFound("ContainerType.NotFound",
-                $"Container type '{command.ContainerTypeId}' was not found."));
+                $"Loại container '{command.ContainerTypeId}' không tìm thấy."));
         }
 
         Container container;
@@ -72,9 +77,13 @@ public sealed class CreateContainerCommandHandler(IAppDbContext dbContext) :
     }
 }
 
+/// <summary>
+/// Xử lý truy vấn lấy container theo số thùng hàng.
+/// </summary>
 public sealed class GetContainerByNumberQueryHandler(IAppDbContext dbContext) :
     IQueryHandler<GetContainerByNumberQuery, Result<ContainerResponse>>
 {
+    /// <inheritdoc/>
     public async Task<Result<ContainerResponse>> HandleAsync(GetContainerByNumberQuery query, CancellationToken cancellationToken = default)
     {
         var normalized = query.ContainerNumber.Trim().ToUpperInvariant();
@@ -85,21 +94,26 @@ public sealed class GetContainerByNumberQueryHandler(IAppDbContext dbContext) :
         if (c is null)
         {
             return Result.Failure<ContainerResponse>(Error.NotFound("Container.NotFound",
-                $"Container '{normalized}' was not found."));
+                $"Container '{normalized}' không tìm thấy."));
         }
 
         return Result.Success(Map(c));
     }
 
+    /// <summary>Ánh xạ từ thực thể <see cref="Container"/> sang <see cref="ContainerResponse"/>.</summary>
     private static ContainerResponse Map(Container c) => new(
         c.Id, c.ContainerNumberRaw, c.ContainerTypeId, c.IsoCode,
         c.SizeFeet, c.MaxWeightKg, c.TareWeightKg,
         c.ManufactureDate, c.Owner, c.Condition.ToString());
 }
 
+/// <summary>
+/// Xử lý truy vấn lấy danh sách container có phân trang và bộ lọc.
+/// </summary>
 public sealed class GetContainersQueryHandler(IAppDbContext dbContext) :
     IQueryHandler<GetContainersQuery, Result<PagedResult<ContainerResponse>>>
 {
+    /// <inheritdoc/>
     public async Task<Result<PagedResult<ContainerResponse>>> HandleAsync(GetContainersQuery query, CancellationToken cancellationToken = default)
     {
         var q = dbContext.Containers.AsNoTracking().AsQueryable();
@@ -115,7 +129,7 @@ public sealed class GetContainersQueryHandler(IAppDbContext dbContext) :
 
         if (query.LineOperatorId is not null)
         {
-            // Filter by line operator: latest in-yard movement for this container.
+            // Lọc theo hành đường: container xuất hiện trong bản ghi di chuyển InYard của hành đường đó.
             var allowedContainerIds = dbContext.ContainerMovements
                 .Where(m => m.LineOperatorId == query.LineOperatorId)
                 .Select(m => m.ContainerId);
@@ -138,9 +152,13 @@ public sealed class GetContainersQueryHandler(IAppDbContext dbContext) :
     }
 }
 
+/// <summary>
+/// Xử lý lệnh cập nhật thông tin container.
+/// </summary>
 public sealed class UpdateContainerCommandHandler(IAppDbContext dbContext) :
     ICommandHandler<UpdateContainerCommand, Result<ContainerResponse>>
 {
+    /// <inheritdoc/>
     public async Task<Result<ContainerResponse>> HandleAsync(UpdateContainerCommand command, CancellationToken cancellationToken = default)
     {
         var container = await dbContext.Containers
@@ -148,13 +166,13 @@ public sealed class UpdateContainerCommandHandler(IAppDbContext dbContext) :
         if (container is null)
         {
             return Result.Failure<ContainerResponse>(Error.NotFound("Container.NotFound",
-                $"Container '{command.Id}' was not found."));
+                $"Container '{command.Id}' không tìm thấy."));
         }
 
         if (!Enum.TryParse<ContainerCondition>(command.Condition, true, out var condition))
         {
             return Result.Failure<ContainerResponse>(Error.Validation("Container.InvalidCondition",
-                "Invalid container condition."));
+                "Tình trạng container không hợp lệ."));
         }
 
         var typeExists = await dbContext.ContainerTypes
@@ -162,7 +180,7 @@ public sealed class UpdateContainerCommandHandler(IAppDbContext dbContext) :
         if (!typeExists)
         {
             return Result.Failure<ContainerResponse>(Error.NotFound("ContainerType.NotFound",
-                $"Container type '{command.ContainerTypeId}' was not found."));
+                $"Loại container '{command.ContainerTypeId}' không tìm thấy."));
         }
 
         container.ContainerTypeId = command.ContainerTypeId;
@@ -190,9 +208,13 @@ public sealed class UpdateContainerCommandHandler(IAppDbContext dbContext) :
     }
 }
 
+/// <summary>
+/// Xử lý lệnh xóa container. Kiểm tra container không đang chiếm slot trong yard trước khi xóa.
+/// </summary>
 public sealed class DeleteContainerCommandHandler(IAppDbContext dbContext) :
     ICommandHandler<DeleteContainerCommand, Result>
 {
+    /// <inheritdoc/>
     public async Task<Result> HandleAsync(DeleteContainerCommand command, CancellationToken cancellationToken = default)
     {
         var container = await dbContext.Containers
@@ -200,7 +222,7 @@ public sealed class DeleteContainerCommandHandler(IAppDbContext dbContext) :
         if (container is null)
         {
             return Result.Failure(Error.NotFound("Container.NotFound",
-                $"Container '{command.Id}' was not found."));
+                $"Container '{command.Id}' không tìm thấy."));
         }
 
         var inYard = await dbContext.YardSlots
@@ -208,10 +230,10 @@ public sealed class DeleteContainerCommandHandler(IAppDbContext dbContext) :
         if (inYard)
         {
             return Result.Failure(Error.Conflict("Container.InYardCannotDelete",
-                $"Container '{container.ContainerNumberRaw}' is currently occupying a yard slot. Gate-out or vacate slot before deleting."));
+                $"Container '{container.ContainerNumberRaw}' đang chiếm một yard slot. Vượt cửa ra hoặc giải phóng slot trước khi xóa."));
         }
 
-        // Remove any historical movements for this container
+        // Xóa các bản ghi di chuyển lịch sử của container này
         var movements = await dbContext.ContainerMovements
             .Where(m => m.ContainerId == container.Id)
             .ToListAsync(cancellationToken);

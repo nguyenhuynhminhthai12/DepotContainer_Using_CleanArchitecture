@@ -1,3 +1,12 @@
+/**
+ * Dịch vụ thao tác Cổng (Gate Service) cho ứng dụng Angular.
+ * Cung cấp các phương thức giao tiếp với API Cổng (Gate):
+ * - Gate-In: Tạo biên nhận EIR khi container vào bãi
+ * - Gate-Out: Xác nhận xuất container dựa trên Đơn giao hàng
+ * - Move: Di chuyển container trong nội bộ bãi (thay đổi vị trí Yard Slot)
+ * - GetHistory: Lấy lịch sử di chuyển container
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';

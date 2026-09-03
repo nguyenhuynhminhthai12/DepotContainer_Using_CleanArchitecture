@@ -1,14 +1,14 @@
 namespace TechSpherex.CleanArchitecture.Application.Abstractions.Tenancy;
 
 /// <summary>
-/// Provides the current tenant context for the request.
-/// Resolved from HTTP headers, JWT claims, or subdomain.
+/// Cung cấp bối cảnh tenant hiện tại cho request đang xử lý.
+/// Được giải quyết từ HTTP headers, JWT claims, hoặc subdomain.
 /// </summary>
 public interface ITenantProvider
 {
-    /// <summary>Current tenant ID. Null for system/global operations.</summary>
+    /// <summary>ID tenant hiện tại (null nếu là thao tác hệ thống/toàn cục).</summary>
     string? TenantId { get; }
 
-    /// <summary>Current tenant metadata.</summary>
+    /// <summary>Thông tin metadata của tenant hiện tại.</summary>
     TenantInfo? CurrentTenant { get; }
 }

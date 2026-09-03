@@ -1,3 +1,9 @@
+/**
+ * Bộ test cho các Business Rules trong Domain.
+ * Bao gồm test quy tắc Bay Parity (số chẵn/lẻ của Bay phù hợp với kích thước container),
+ * quy tắc Đơn giao hàng không hết hạn, đủ số lượng, và Slot Yard không bị chiếm.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 using FluentAssertions;
 using TechSpherex.CleanArchitecture.Domain.Common.Rules;
 

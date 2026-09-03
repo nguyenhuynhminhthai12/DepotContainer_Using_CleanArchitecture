@@ -1,27 +1,30 @@
 namespace TechSpherex.CleanArchitecture.Application.Abstractions.Agents;
 
 /// <summary>
-/// Context passed to a skill agent for execution.
+/// Bối cảnh (context) được truyền cho một skill agent để thực thi.
 /// </summary>
 public sealed record AgentContext
 {
-    /// <summary>The user's natural language prompt.</summary>
+    /// <summary>Lời nhắn ngôn ngữ tự nhiên của người dùng.</summary>
     public required string Prompt { get; init; }
 
-    /// <summary>Optional structured parameters extracted from the prompt.</summary>
+    /// <summary>Các tham số có cấu trúc tùy chọn được trích xuất từ prompt.</summary>
     public Dictionary<string, object?> Parameters { get; init; } = [];
 
-    /// <summary>The authenticated user ID (if available).</summary>
+    /// <summary>ID người dùng đã xác thực (nếu có).</summary>
     public string? UserId { get; init; }
 
-    /// <summary>The current tenant ID (if multi-tenant).</summary>
+    /// <summary>ID tenant hiện tại (nếu đa tenant).</summary>
     public string? TenantId { get; init; }
 
-    /// <summary>Conversation history for multi-turn interactions.</summary>
+    /// <summary>Lịch sử hội thoại cho tương tác đa lượt (multi-turn).</summary>
     public List<AgentMessage> ConversationHistory { get; init; } = [];
 }
 
 /// <summary>
-/// A message in the agent conversation history.
+/// Một tin nhắn trong lịch sử hội thoại của agent.
 /// </summary>
+/// <param name="Role">Vai trò gửi tin nhắn (ví dụ: "user", "assistant").</param>
+/// <param name="Content">Nội dung tin nhắn.</param>
+/// <param name="Timestamp">Thời điểm gửi tin nhắn.</param>
 public sealed record AgentMessage(string Role, string Content, DateTimeOffset Timestamp);

@@ -10,21 +10,50 @@ using TechSpherex.CleanArchitecture.Domain.Entities;
 namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence;
 
 // Copyright (c) 2026 TechSpherex
+/// <summary>
+/// DbContext chính kết hợp ASP.NET Core Identity và các bảng domain của depot.
+/// Tự động cập nhật thời gian bản ghi (auditable) và áp dụng bộ lọc tenant.
+/// </summary>
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser>(options), IAppDbContext
 {
+    /// <summary>Tập hợp các công việc Todo.</summary>
     public DbSet<TodoItem> Todos => Set<TodoItem>();
 
+    #region Depot domain DbSets
+    /// <summary>Tập hợp các depot.</summary>
     public DbSet<Depot> Depots => Set<Depot>();
-    public DbSet<Block> Blocks => Set<Block>();
-    public DbSet<YardSlot> YardSlots => Set<YardSlot>();
-    public DbSet<ContainerType> ContainerTypes => Set<ContainerType>();
-    public DbSet<Container> Containers => Set<Container>();
-    public DbSet<LineOperator> LineOperators => Set<LineOperator>();
-    public DbSet<ContainerMovement> ContainerMovements => Set<ContainerMovement>();
-    public DbSet<Customer> Customers => Set<Customer>();
-    public DbSet<DeliveryOrder> DeliveryOrders => Set<DeliveryOrder>();
-    public DbSet<DeliveryOrderLine> DeliveryOrderLines => Set<DeliveryOrderLine>();
 
+    /// <summary>Tập hợp các block trong depot.</summary>
+    public DbSet<Block> Blocks => Set<Block>();
+
+    /// <summary>Tập hợp các vị trí yard slot.</summary>
+    public DbSet<YardSlot> YardSlots => Set<YardSlot>();
+
+    /// <summary>Tập hợp các loại container.</summary>
+    public DbSet<ContainerType> ContainerTypes => Set<ContainerType>();
+
+    /// <summary>Tập hợp các container.</summary>
+    public DbSet<Container> Containers => Set<Container>();
+
+    /// <summary>Tập hợp các hành đường (line operators).</summary>
+    public DbSet<LineOperator> LineOperators => Set<LineOperator>();
+
+    /// <summary>Tập hợp các bản ghi di chuyển container (EIR).</summary>
+    public DbSet<ContainerMovement> ContainerMovements => Set<ContainerMovement>();
+
+    /// <summary>Tập hợp các khách hàng.</summary>
+    public DbSet<Customer> Customers => Set<Customer>();
+
+    /// <summary>Tập hợp các đơn giao hàng.</summary>
+    public DbSet<DeliveryOrder> DeliveryOrders => Set<DeliveryOrder>();
+
+    /// <summary>Tập hợp các dòng chi tiết đơn giao hàng.</summary>
+    public DbSet<DeliveryOrderLine> DeliveryOrderLines => Set<DeliveryOrderLine>();
+    #endregion
+
+    /// <summary>
+    /// Cấu hình model — áp dụng cấu hình từ assembly và thêm bộ lọc tenant cho các thực thể ITenantEntity.
+    /// </summary>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -43,6 +72,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
         }
     }
 
+    /// <summary>
+    /// Áp dụng bộ lọc truy vấn và chỉ mục cho entity kiểu <typeparamref name="TEntity"/>.
+    /// Hiện tại luôn lọc theo TenantId = "default".
+    /// </summary>
     private static void ApplyTenantFilter<TEntity>(ModelBuilder builder)
         where TEntity : class, ITenantEntity
     {
@@ -50,6 +83,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
         builder.Entity<TEntity>().HasIndex(e => e.TenantId);
     }
 
+    /// <summary>
+    /// Lưu thay đổi — tự động cập nhật thời gian auditable và đặt TenantId cho thực thể mới.
+    /// </summary>
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         UpdateAuditableEntities();
@@ -57,6 +93,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
         return base.SaveChangesAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Cập nhật CreatedAt / LastModifiedAt cho các thực thể AuditableEntity.
+    /// </summary>
     private void UpdateAuditableEntities()
     {
         foreach (var entry in ChangeTracker.Entries<AuditableEntity>())
@@ -73,6 +112,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
         }
     }
 
+    /// <summary>
+    /// Đặt TenantId cho các thực thể ITenantEntity mới được thêm.
+    /// </summary>
     private void SetTenantId()
     {
         var serviceProvider = this.GetInfrastructure();

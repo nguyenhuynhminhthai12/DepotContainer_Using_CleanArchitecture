@@ -2,6 +2,9 @@ using FluentValidation;
 
 namespace TechSpherex.CleanArchitecture.Application.Features.DeliveryOrders;
 
+/// <summary>
+/// Validator cho <see cref="CreateDeliveryOrderCommand"/> — xác thực thông tin đơn giao hàng.
+/// </summary>
 public sealed class CreateDeliveryOrderValidator : AbstractValidator<CreateDeliveryOrderCommand>
 {
     public CreateDeliveryOrderValidator()

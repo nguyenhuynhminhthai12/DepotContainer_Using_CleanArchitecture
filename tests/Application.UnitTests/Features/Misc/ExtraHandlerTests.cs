@@ -1,3 +1,10 @@
+/**
+ * Bộ test cho các chức năng hỗn hợp (Misc Handlers).
+ * Bao gồm test Lookup (Line Operators, Container Types, Customers),
+ * Delivery Orders mở rộng (GetById, Close), Move Container trong Yard,
+ * và lịch sử di chuyển Container.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 using FluentAssertions;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Caching;
 using TechSpherex.CleanArchitecture.Application.Features.Lookups;

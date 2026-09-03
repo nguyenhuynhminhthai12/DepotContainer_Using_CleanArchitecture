@@ -1,3 +1,13 @@
+/**
+ * Dịch vụ quản lý Yard (Yard Service) cho ứng dụng Angular.
+ * Cung cấp các phương thức:
+ * - Liệt kê các Depot (kho bãi)
+ * - Lấy sơ đồ Yard Map (Block + Slot)
+ * - Tạo Block vật lý và Block ảo (Virtual Block)
+ * - Resize Block (thay đổi kích thước Bay × Row × Tier)
+ * - Cập nhật và xóa Block
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';

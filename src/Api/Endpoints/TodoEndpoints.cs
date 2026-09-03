@@ -1,4 +1,3 @@
-
 using TechSpherex.CleanArchitecture.Api.Extensions;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Messaging;
 using TechSpherex.CleanArchitecture.Application.Features.Todos.Complete;
@@ -10,8 +9,15 @@ using TechSpherex.CleanArchitecture.Application.Features.Todos.Update;
 using TechSpherex.CleanArchitecture.Domain.Common;
 namespace TechSpherex.CleanArchitecture.Api.Endpoints;
 
+/// <summary>
+/// Nhóm các endpoint REST cho chức năng Todo (CRUD + hoàn thành).
+/// </summary>
 public static class TodoEndpoints
 {
+    /// <summary>
+    /// Đăng ký tất cả endpoint Todo vào <see cref="IEndpointRouteBuilder"/>.
+    /// </summary>
+    /// <param name="app">Route builder để đăng ký endpoint.</param>
     public static void MapTodoEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/todos")
@@ -20,31 +26,32 @@ public static class TodoEndpoints
 
         group.MapGet("/", GetAll)
             .WithName("GetAllTodos")
-            .WithSummary("Get all todos with pagination");
+            .WithSummary("Lấy danh sách todo có phân trang");
 
         group.MapGet("/{id:guid}", GetById)
             .WithName("GetTodoById")
-            .WithSummary("Get a todo by ID");
+            .WithSummary("Lấy một todo theo ID");
 
         group.MapPost("/", Create)
             .AddEndpointFilter<ValidationFilter<CreateTodoCommand>>()
             .WithName("CreateTodo")
-            .WithSummary("Create a new todo");
+            .WithSummary("Tạo một todo mới");
 
         group.MapPut("/{id:guid}", Update)
             .AddEndpointFilter<ValidationFilter<UpdateTodoRequest>>()
             .WithName("UpdateTodo")
-            .WithSummary("Update an existing todo");
+            .WithSummary("Cập nhật một todo đã tồn tại");
 
         group.MapPatch("/{id:guid}/complete", Complete)
             .WithName("CompleteTodo")
-            .WithSummary("Mark a todo as completed");
+            .WithSummary("Đánh dấu một todo là đã hoàn thành");
 
         group.MapDelete("/{id:guid}", Delete)
             .WithName("DeleteTodo")
-            .WithSummary("Delete a todo");
+            .WithSummary("Xóa một todo");
     }
 
+    /// <summary>Xử lý GET /api/todos — lấy danh sách todo có phân trang.</summary>
     private static async Task<IResult> GetAll(
         int? page,
         int? pageSize,
@@ -56,6 +63,7 @@ public static class TodoEndpoints
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.ToProblemDetails();
     }
 
+    /// <summary>Xử lý GET /api/todos/{id} — lấy một todo theo ID.</summary>
     private static async Task<IResult> GetById(
         Guid id,
         IQueryHandler<GetTodoQuery, Result<TodoDetailResponse>> handler,
@@ -65,6 +73,7 @@ public static class TodoEndpoints
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.ToProblemDetails();
     }
 
+    /// <summary>Xử lý POST /api/todos — tạo một todo mới.</summary>
     private static async Task<IResult> Create(
         CreateTodoCommand command,
         ICommandHandler<CreateTodoCommand, Result<CreateTodoResponse>> handler,
@@ -76,6 +85,7 @@ public static class TodoEndpoints
             : result.ToProblemDetails();
     }
 
+    /// <summary>Xử lý PUT /api/todos/{id} — cập nhật một todo đã tồn tại.</summary>
     private static async Task<IResult> Update(
         Guid id,
         UpdateTodoRequest request,
@@ -87,6 +97,7 @@ public static class TodoEndpoints
         return result.IsSuccess ? TypedResults.NoContent() : result.ToProblemDetails();
     }
 
+    /// <summary>Xử lý PATCH /api/todos/{id}/complete — đánh dấu todo hoàn thành.</summary>
     private static async Task<IResult> Complete(
         Guid id,
         ICommandHandler<CompleteTodoCommand, Result> handler,
@@ -96,6 +107,7 @@ public static class TodoEndpoints
         return result.IsSuccess ? TypedResults.NoContent() : result.ToProblemDetails();
     }
 
+    /// <summary>Xử lý DELETE /api/todos/{id} — xóa một todo.</summary>
     private static async Task<IResult> Delete(
         Guid id,
         ICommandHandler<DeleteTodoCommand, Result> handler,
@@ -106,4 +118,9 @@ public static class TodoEndpoints
     }
 }
 
+/// <summary>
+/// Yêu cầu cập nhật todo (dùng cho PUT).
+/// </summary>
+/// <param name="Title">Tiêu đề mới.</param>
+/// <param name="Description">Mô tả mới (tùy chọn).</param>
 public sealed record UpdateTodoRequest(string Title, string? Description);

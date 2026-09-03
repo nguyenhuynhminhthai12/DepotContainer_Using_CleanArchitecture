@@ -2,6 +2,9 @@ using FluentValidation;
 
 namespace TechSpherex.CleanArchitecture.Application.Features.Todos.Update;
 
+/// <summary>
+/// Validator cho <see cref="UpdateTodoCommand"/> — xác thực ID và tiêu đề khi cập nhật Todo.
+/// </summary>
 public sealed class UpdateTodoValidator : AbstractValidator<UpdateTodoCommand>
 {
     public UpdateTodoValidator()

@@ -1,3 +1,15 @@
+/**
+ * Component thao tác Cổng (Gate Component).
+ * Giao diện thực hiện 3 nghiệp vụ cổng chính của hệ thống TOS:
+ * - Gate-In (Receiving): Tạo biên nhận EIR khi container vào bãi,
+ *   chọn Block đích, nhập thông tin phương tiện và tài xế.
+ * - Yard Relocation (Move): Di chuyển container trong nội bộ bãi đến vị trí Slot mới.
+ *   Áp dụng quy tắc Bay Parity: container 20ft → Odd Bay (1,3,5...), container 40ft → Even Bay (2,4,6...).
+ * - Gate-Out (Delivery): Xuất container dựa trên Delivery Order đã được phê duyệt,
+ *   cập nhật số lượng đã giao trên đơn.
+ * Dropdown gợi ý số container (từ API + presets phổ biến).
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { Component, OnInit, inject, signal, computed, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';

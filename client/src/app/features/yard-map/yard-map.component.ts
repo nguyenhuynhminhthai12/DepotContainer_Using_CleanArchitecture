@@ -1,3 +1,13 @@
+/**
+ * Component sơ đồ Yard Map tương tác (Yard Map Component).
+ * Hiển thị sơ đồ bố trí bãi container theo cấu trúc Block (Bay × Row × Tier):
+ * - Tạo Block vật lý (với ma trận Slot) và Block ảo (Virtual Block)
+ * - Trực quan hóa trạng thái Slot: Occupied (xanh) / Free (trắng)
+ * - KPI cards: Occupied Slots, Occupancy Rate, Total Blocks
+ * - Slot Inspector: click vào slot để xem chi tiết trạng thái
+ * - Resize Block: thay đổi kích thước Bay/Row/Tier
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';

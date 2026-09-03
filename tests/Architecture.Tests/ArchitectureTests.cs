@@ -1,3 +1,14 @@
+/**
+ * Bộ test kiến trúc (Architecture Tests) cho hệ thống TechSpherex Container Depot TOS.
+ * Kiểm tra các ràng buộc phụ thuộc (dependency rules) giữa các layer:
+ * Domain không được phụ thuộc Application, Infrastructure, hay Api;
+ * Application không được phụ thuộc Infrastructure hay Api;
+ * Infrastructure không được phụ thuộc Api.
+ * Ngoài ra còn kiểm tra: Handlers và Validators phải là sealed class,
+ * Domain Entities không có public setter cho Id, tất cả entity trong Depot aggregate
+ * phải implement ITenantEntity, và tất cả Business Rules phải implement IBusinessRule.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 using System.Reflection;
 using FluentAssertions;
 using NetArchTest.Rules;

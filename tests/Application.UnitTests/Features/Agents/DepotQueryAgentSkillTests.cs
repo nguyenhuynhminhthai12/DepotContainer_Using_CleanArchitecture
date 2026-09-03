@@ -1,3 +1,11 @@
+/**
+ * Bộ test cho Skill Agent truy vấn Depot (DepotQueryAgentSkill).
+ * Kiểm tra khả năng định tuyến câu hỏi của agent:
+ * - Câu hỏi rỗng → NeedsMoreInfo
+ * - Câu hỏi về thời gian lưu trữ container → định tuyến đến YardAgingReport
+ * - Câu hỏi đếm số lượng container trong yard → đếm trực tiếp
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 using FluentAssertions;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Agents;
 using TechSpherex.CleanArchitecture.Application.Features.Agents.Skills;
@@ -67,7 +75,7 @@ public sealed class DepotQueryAgentSkillTests
             TestContext.Current.CancellationToken);
 
         result.Status.Should().Be(AgentResultStatus.Success);
-        result.Message.Should().Contain("Yard aging");
+        result.Message.Should().Contain("Thời gian lưu trữ");
     }
 
     [Fact]
@@ -111,6 +119,6 @@ public sealed class DepotQueryAgentSkillTests
             TestContext.Current.CancellationToken);
 
         result.Status.Should().Be(AgentResultStatus.Success);
-        result.Message.Should().Contain("Total in-yard: 1");
+        result.Message.Should().Contain("Tổng số trong yard: 1");
     }
 }

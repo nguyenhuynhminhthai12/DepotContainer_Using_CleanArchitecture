@@ -1,3 +1,9 @@
+/**
+ * Dịch vụ xác thực (Authentication Service) cho ứng dụng Angular.
+ * Cung cấp các phương thức: đăng nhập (login), đăng ký (register), làm mới token (refresh), và đăng xuất (logout).
+ * Giao tiếp với API qua HttpClient và lưu trữ phiên qua AuthStore.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';

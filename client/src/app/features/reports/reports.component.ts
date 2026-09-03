@@ -1,3 +1,13 @@
+/**
+ * Component Báo cáo Vận hành (Reports Component).
+ * Cung cấp hai loại báo cáo:
+ * - Yard Aging & Dwell Time Analysis: Phân tích thời gian lưu trữ container
+ *   (0-10 ngày / ≥10 ngày long stay) theo Line Operator, có thanh phân bố trực quan.
+ * - Daily Gate Throughput Log: Nhật ký thông lượng cổng theo ngày và hãng vận tải,
+ *   thể hiện Gate-In, Gate-Out và Net Flow.
+ * Hỗ trợ xuất CSV.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReportService } from '../../core/services/report.service';

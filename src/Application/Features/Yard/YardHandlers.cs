@@ -7,10 +7,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TechSpherex.CleanArchitecture.Application.Features.Yard;
 
+/// <summary>
+/// Xử lý lệnh tạo Block thực (có lưới vị trí Bay/Row/Tier).
+/// Tự động tạo các YardSlot cho toàn bộ lưới nếu block là block thực.
+/// </summary>
 public sealed class CreateBlockCommandHandler(IAppDbContext dbContext, ICacheService cache) :
     ICommandHandler<CreateBlockCommand, Result<CreateBlockResponse>>
 {
 #pragma warning disable S3776 // Cognitive Complexity: handler methods contain necessary validation logic
+    /// <inheritdoc/>
     public async Task<Result<CreateBlockResponse>> HandleAsync(CreateBlockCommand command, CancellationToken cancellationToken = default)
     {
         var depotExists = await dbContext.Depots.AnyAsync(d => d.Id == command.DepotId, cancellationToken);
@@ -75,9 +80,13 @@ public sealed class CreateBlockCommandHandler(IAppDbContext dbContext, ICacheSer
     }
 }
 
+/// <summary>
+/// Xử lý lệnh tạo Block ảo — không tạo YardSlot.
+/// </summary>
 public sealed class CreateVirtualBlockCommandHandler(IAppDbContext dbContext, ICacheService cache) :
     ICommandHandler<CreateVirtualBlockCommand, Result<CreateBlockResponse>>
 {
+    /// <inheritdoc/>
     public async Task<Result<CreateBlockResponse>> HandleAsync(CreateVirtualBlockCommand command, CancellationToken cancellationToken = default)
     {
         var depotExists = await dbContext.Depots.AnyAsync(d => d.Id == command.DepotId, cancellationToken);
@@ -117,10 +126,15 @@ public sealed class CreateVirtualBlockCommandHandler(IAppDbContext dbContext, IC
     }
 }
 
+/// <summary>
+/// Xử lý lệnh thay đổi kích thước Block — tạo thêm slot nếu mở rộng,
+/// từ chối nếu thu nhỏ dưới vị trí đang có container.
+/// </summary>
 public sealed class ResizeBlockCommandHandler(IAppDbContext dbContext, ICacheService cache) :
     ICommandHandler<ResizeBlockCommand, Result>
 {
 #pragma warning disable S3776 // Cognitive Complexity: handler methods contain necessary validation logic
+    /// <inheritdoc/>
     public async Task<Result> HandleAsync(ResizeBlockCommand command, CancellationToken cancellationToken = default)
     {
         var block = await dbContext.Blocks
@@ -138,7 +152,7 @@ public sealed class ResizeBlockCommandHandler(IAppDbContext dbContext, ICacheSer
                 "Virtual blocks cannot be resized — they don't have a Bay/Row/Tier grid."));
         }
 
-        // Shrinking dimensions below already-occupied slots is rejected.
+        // Từ chối thu nhỏ dưới kích thước slot đang có container.
         var occupied = await dbContext.YardSlots
             .Where(s => s.BlockId == block.Id && s.IsOccupied)
             .ToListAsync(cancellationToken);
@@ -155,7 +169,7 @@ public sealed class ResizeBlockCommandHandler(IAppDbContext dbContext, ICacheSer
         block.MaxRow = command.MaxRow;
         block.MaxTier = command.MaxTier;
 
-        // Ensure slots exist up to the new max dimensions.
+        // Đảm bảo các slot tồn tại đến kích thước tối đa mới.
         var existingSlots = await dbContext.YardSlots
             .Where(s => s.BlockId == block.Id)
             .ToListAsync(cancellationToken);
@@ -193,9 +207,13 @@ public sealed class ResizeBlockCommandHandler(IAppDbContext dbContext, ICacheSer
     }
 }
 
+/// <summary>
+/// Xử lý truy vấn lấy danh sách Depot.
+/// </summary>
 public sealed class GetDepotsQueryHandler(IAppDbContext dbContext) :
     IQueryHandler<GetDepotsQuery, Result<IReadOnlyList<DepotDto>>>
 {
+    /// <inheritdoc/>
     public async Task<Result<IReadOnlyList<DepotDto>>> HandleAsync(GetDepotsQuery query, CancellationToken cancellationToken = default)
     {
         var depots = await dbContext.Depots
@@ -208,11 +226,23 @@ public sealed class GetDepotsQueryHandler(IAppDbContext dbContext) :
     }
 }
 
+/// <summary>
+/// DTO trả về thông tin Depot.
+/// </summary>
+/// <param name="Id">Mã depot.</param>
+/// <param name="Code">Mã code.</param>
+/// <param name="Name">Tên depot.</param>
+/// <param name="Address">Địa chỉ.</param>
+/// <param name="IsActive">Trạng thái hoạt động.</param>
 public sealed record DepotDto(Guid Id, string Code, string Name, string Address, bool IsActive);
 
+/// <summary>
+/// Xử lý truy vấn lấy bản đồ yard (blocks + slots) của một Depot — có cache 5 phút.
+/// </summary>
 public sealed class GetYardMapQueryHandler(IAppDbContext dbContext, ICacheService cache) :
     IQueryHandler<GetYardMapQuery, Result<YardMapDto>>
 {
+    /// <inheritdoc/>
     public async Task<Result<YardMapDto>> HandleAsync(GetYardMapQuery query, CancellationToken cancellationToken = default)
     {
         var key = $"yard-map:{query.DepotId}";
@@ -231,6 +261,12 @@ public sealed class GetYardMapQueryHandler(IAppDbContext dbContext, ICacheServic
             : Result.Success(map);
     }
 
+    /// <summary>
+    /// Xây dựng bản đồ yard từ cơ sở dữ liệu — lấy Depot, Blocks và YardSlots.
+    /// </summary>
+    /// <param name="depotId">Mã depot.</param>
+    /// <param name="ct">Token hủy.</param>
+    /// <returns><see cref="YardMapDto"/> hoặc null nếu depot không tồn tại.</returns>
     private async Task<YardMapDto?> BuildMapAsync(Guid depotId, CancellationToken ct)
     {
         var depot = await dbContext.Depots
@@ -280,9 +316,13 @@ public sealed class GetYardMapQueryHandler(IAppDbContext dbContext, ICacheServic
     }
 }
 
+/// <summary>
+/// Xử lý lệnh cập nhật mã code và tên của Block.
+/// </summary>
 public sealed class UpdateBlockCommandHandler(IAppDbContext dbContext, ICacheService cache) :
     ICommandHandler<UpdateBlockCommand, Result<CreateBlockResponse>>
 {
+    /// <inheritdoc/>
     public async Task<Result<CreateBlockResponse>> HandleAsync(UpdateBlockCommand command, CancellationToken cancellationToken = default)
     {
         var block = await dbContext.Blocks
@@ -310,9 +350,13 @@ public sealed class UpdateBlockCommandHandler(IAppDbContext dbContext, ICacheSer
     }
 }
 
+/// <summary>
+/// Xử lý lệnh xóa Block — chỉ cho phép xóa khi không có container nào đang chiếm slot.
+/// </summary>
 public sealed class DeleteBlockCommandHandler(IAppDbContext dbContext, ICacheService cache) :
     ICommandHandler<DeleteBlockCommand, Result>
 {
+    /// <inheritdoc/>
     public async Task<Result> HandleAsync(DeleteBlockCommand command, CancellationToken cancellationToken = default)
     {
         var block = await dbContext.Blocks

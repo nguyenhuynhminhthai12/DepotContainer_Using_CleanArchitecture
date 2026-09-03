@@ -6,8 +6,13 @@ using TechSpherex.CleanArchitecture.Domain.Common;
 using Microsoft.EntityFrameworkCore;
 namespace TechSpherex.CleanArchitecture.Application.Features.Todos.GetAll;
 
+/// <summary>
+/// Xử lý truy vấn lấy danh sách Todo có phân trang (sắp xếp theo thời gian tạo giảm dần).
+/// </summary>
+/// <param name="dbContext">Context cơ sở dữ liệu.</param>
 public sealed class GetAllTodosQueryHandler(IAppDbContext dbContext) : IQueryHandler<GetAllTodosQuery, Result<PagedResult<TodoDetailResponse>>>
 {
+    /// <inheritdoc/>
     public async Task<Result<PagedResult<TodoDetailResponse>>> HandleAsync(GetAllTodosQuery query, CancellationToken cancellationToken = default)
     {
         var totalCount = await dbContext.Todos.CountAsync(cancellationToken);

@@ -4,8 +4,13 @@ using TechSpherex.CleanArchitecture.Application.Abstractions.Messaging;
 using TechSpherex.CleanArchitecture.Domain.Common;
 namespace TechSpherex.CleanArchitecture.Application.Features.Todos.Complete;
 
+/// <summary>
+/// Xử lý lệnh đánh dấu một Todo là đã hoàn thành (gọi <see cref="TodoItem.MarkAsCompleted"/>).
+/// </summary>
+/// <param name="dbContext">Context cơ sở dữ liệu.</param>
 public sealed class CompleteTodoCommandHandler(IAppDbContext dbContext) : ICommandHandler<CompleteTodoCommand>
 {
+    /// <inheritdoc/>
     public async Task<Result> HandleAsync(CompleteTodoCommand command, CancellationToken cancellationToken = default)
     {
         var todo = await dbContext.Todos.FindAsync([command.Id], cancellationToken);

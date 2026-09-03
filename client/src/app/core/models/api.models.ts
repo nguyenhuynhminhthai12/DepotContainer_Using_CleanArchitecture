@@ -1,3 +1,15 @@
+/**
+ * Các interface mô hình dữ liệu dùng chung cho API (Shared API Models).
+ * Định nghĩa tất cả các DTO (Data Transfer Object) trao đổi giữa frontend và backend:
+ * - Container, ContainerType (dữ liệu container)
+ * - Block, YardSlot, YardMapDto (cấu trúc Yard)
+ * - ContainerMovement, GateInRequest, GateOutRequest (EIR - biên nhận thiết bị)
+ * - DeliveryOrder, DeliveryOrderLine (đơn giao hàng)
+ * - Customer, LineOperator (dữ liệu chủ)
+ * - YardAgingReport, DailyThroughputReport (báo cáo)
+ * - LoginRequest, AuthResponse (xác thực)
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 /** Shared API response wrapper (PagedResult<T> on the server). */
 export interface PagedResult<T> {
   items: T[];

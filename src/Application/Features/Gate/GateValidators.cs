@@ -3,6 +3,9 @@ using TechSpherex.CleanArchitecture.Domain.Entities;
 
 namespace TechSpherex.CleanArchitecture.Application.Features.Gate;
 
+/// <summary>
+/// Validator cho <see cref="GateInContainerCommand"/> — xác thực dữ liệu nhập cửa.
+/// </summary>
 public sealed class GateInContainerValidator : AbstractValidator<GateInContainerCommand>
 {
     public GateInContainerValidator()
@@ -24,6 +27,9 @@ public sealed class GateInContainerValidator : AbstractValidator<GateInContainer
     }
 }
 
+/// <summary>
+/// Validator cho <see cref="GateOutContainerCommand"/> — xác thực dữ liệu xuất cửa.
+/// </summary>
 public sealed class GateOutContainerValidator : AbstractValidator<GateOutContainerCommand>
 {
     public GateOutContainerValidator()
@@ -36,6 +42,9 @@ public sealed class GateOutContainerValidator : AbstractValidator<GateOutContain
     }
 }
 
+/// <summary>
+/// Validator cho <see cref="MoveContainerInYardCommand"/> — xác thực thông tin di chuyển trong yard.
+/// </summary>
 public sealed class MoveContainerInYardValidator : AbstractValidator<MoveContainerInYardCommand>
 {
     public MoveContainerInYardValidator()

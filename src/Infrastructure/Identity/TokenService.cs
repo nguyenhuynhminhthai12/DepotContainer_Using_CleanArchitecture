@@ -10,10 +10,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 namespace TechSpherex.CleanArchitecture.Infrastructure.Identity;
+
+/// <summary>
+/// Dịch vụ tạo và làm mới JWT token cho người dùng.
+/// </summary>
 public sealed class TokenService(
     UserManager<ApplicationUser> userManager,
     IConfiguration configuration) : ITokenService
 {
+    /// <inheritdoc/>
     public async Task<TokenResponse> GenerateTokenAsync(ApplicationUser user, CancellationToken cancellationToken = default)
     {
         var claims = new List<Claim>
@@ -49,6 +54,7 @@ public sealed class TokenService(
     }
 
     // Copyright (c) 2026 TechSpherex
+    /// <inheritdoc/>
     public async Task<TokenResponse> RefreshTokenAsync(string accessToken, string refreshToken, CancellationToken cancellationToken = default)
     {
         var principal = GetPrincipalFromExpiredToken(accessToken);
@@ -64,6 +70,12 @@ public sealed class TokenService(
         return await GenerateTokenAsync(user, cancellationToken);
     }
 
+    /// <summary>
+    /// Trích xuất <see cref="ClaimsPrincipal"/> từ access token đã hết hạn (không kiểm tra thời gian sống).
+    /// </summary>
+    /// <param name="token">Access token JWT đã hết hạn.</param>
+    /// <returns>Principal chứa các claims của token.</returns>
+    /// <exception cref="InvalidOperationException">Nếu token không hợp lệ.</exception>
     private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
     {
         var tokenValidationParameters = new TokenValidationParameters
@@ -82,12 +94,18 @@ public sealed class TokenService(
 
         if (securityToken is not JwtSecurityToken jwtSecurityToken ||
             !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+        {
             throw new InvalidOperationException("Invalid token.");
+        }
 
         return principal;
     }
 
     // Copyright (c) 2026 TechSpherex
+    /// <summary>
+    /// Tạo một refresh token ngẫu nhiên an toàn bằng cách sử dụng RNGCryptoServiceProvider.
+    /// </summary>
+    /// <returns>Chuỗi Base64 của refresh token.</returns>
     private static string GenerateRefreshToken()
     {
         var randomNumber = new byte[64];

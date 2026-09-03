@@ -1,3 +1,4 @@
+
 using TechSpherex.CleanArchitecture.Application.Abstractions.Agents;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Data;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Messaging;
@@ -5,65 +6,69 @@ using TechSpherex.CleanArchitecture.Application.Features.Reports;
 using TechSpherex.CleanArchitecture.Domain.Common;
 using TechSpherex.CleanArchitecture.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace TechSpherex.CleanArchitecture.Application.Features.Agents.Skills;
 
 /// <summary>
-/// Skill agent that lets depot operators ask natural-language questions about
-/// inventory and throughput — e.g. "How many MSC containers are stuck >10 days?".
-/// Routes to the same CQRS handlers used by the REST endpoints so business
-/// logic is never duplicated.
+/// Skill agent cho phép vận hành viên depot đặt câu hỏi bằng ngôn ngữ tự nhiên về
+/// tồn kho và khẩu lượng — ví dụ: "Có bao nhiêu container MSC bị kẹt >10 ngày?".
+/// Điều hướng tới cùng các CQRS handler được dùng bởi REST endpoints để logic nghiệp vụ
+/// không bị trùng lặp.
 /// </summary>
 public sealed class DepotQueryAgentSkill(
     IAppDbContext dbContext,
     IQueryHandler<GetYardAgingReportQuery, Result<YardAgingReport>> yardAgingHandler,
     IQueryHandler<GetDailyThroughputReportQuery, Result<DailyThroughputReport>> throughputHandler) : ISkillAgent
 {
+    /// <inheritdoc/>
     public string SkillId => "depot-query";
-    public string Name => "Depot Query";
-    public string Description => "Answer natural-language questions about yard inventory, aging, and throughput by line operator.";
 
+    /// <inheritdoc/>
+    public string Name => "Depot Query";
+
+    /// <inheritdoc/>
+    public string Description => "Trả lời câu hỏi ngôn ngữ tự nhiên về tồn kho yard, thời gian lưu và khẩu lượng theo hành đường.";
+
+    /// <inheritdoc/>
     public IReadOnlyList<string> ExamplePrompts =>
     [
-        "How many containers are in the yard?",
-        "How many MSC containers have been here over 10 days?",
-        "What is the daily throughput for CMA CGM?",
-        "Which line operators have the most containers in yard?"
+        "Có bao nhiêu container trong yard?",
+        "Có bao nhiêu container MSC đã ở đây hơn 10 ngày?",
+        "Khẩu lượng hàng ngày của CMA CGM là bao nhiêu?",
+        "Hành đường nào có nhiều container trong yard nhất?"
     ];
 
+    /// <inheritdoc/>
     public async Task<AgentResult> ExecuteAsync(AgentContext context, CancellationToken cancellationToken = default)
     {
         var prompt = context.Prompt?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(prompt))
-            return AgentResult.NeedsMoreInfo("Please ask a question about the depot — e.g. 'How many containers are in the yard?'");
+            return AgentResult.NeedsMoreInfo("Vui lòng hỏi một câu hỏi về depot — ví dụ: 'Có bao nhiêu container trong yard?'");
 
-        var lower = prompt.ToLowerInvariant();
-
-        // Detect "stuck / long stay / aging" → yard aging report.
-        if (ContainsAny(lower, "stuck", "long stay", "aging", "over 10 days", ">= 10", "old container"))
+        // Phát hiện "stuck / long stay / aging" → báo cáo yard aging.
+        if (ContainsAny(prompt, "stuck", "long stay", "aging", "over 10 days", ">= 10", "old container"))
         {
             var agingResult = await yardAgingHandler.HandleAsync(new GetYardAgingReportQuery(), cancellationToken);
             if (agingResult.IsFailure)
                 return AgentResult.Failure(agingResult.Error!.Message);
 
-            // Optional filter on line operator mentioned in prompt.
+            // Lọc theo hành đường được đề cập trong prompt (tùy chọn).
             var row = agingResult.Value!.Rows.FirstOrDefault(r =>
-                lower.Contains(r.LineOperatorCode.ToLowerInvariant())
-                || lower.Contains(r.LineOperatorName.ToLowerInvariant()));
+                prompt.Contains(r.LineOperatorCode, StringComparison.OrdinalIgnoreCase)
+                || prompt.Contains(r.LineOperatorName, StringComparison.OrdinalIgnoreCase));
             if (row is not null)
             {
                 return AgentResult.Success(
-                    $"{row.LineOperatorName} ({row.LineOperatorCode}) in-yard: {row.Buckets.WithinTenDays} within 10 days, {row.Buckets.TenDaysOrMore} ≥10 days.",
+                    $"{row.LineOperatorName} ({row.LineOperatorCode}) trong yard: {row.Buckets.WithinTenDays} trong vòng 10 ngày, {row.Buckets.TenDaysOrMore} >=10 ngày.",
                     new { Row = row });
             }
 
             return AgentResult.Success(
-                $"Yard aging across all line operators (as of {agingResult.Value.AsOf:O}):",
+                $"Thời gian lưu trữ container trong yard (đến {agingResult.Value.AsOf:O}):",
                 new { Report = agingResult.Value });
         }
 
-        if (ContainsAny(lower, "throughput", "daily", "gate in", "gate out", "movements today"))
+        if (ContainsAny(prompt, "throughput", "daily", "gate in", "gate out", "movements today"))
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
             var tp = await throughputHandler.HandleAsync(
@@ -72,17 +77,17 @@ public sealed class DepotQueryAgentSkill(
                 return AgentResult.Failure(tp.Error!.Message);
 
             var filtered = tp.Value!.Rows
-                .Where(r => lower.Contains(r.LineOperatorCode.ToLowerInvariant())
-                            || lower.Contains(r.LineOperatorName.ToLowerInvariant()))
+                .Where(r => prompt.Contains(r.LineOperatorCode, StringComparison.OrdinalIgnoreCase)
+                            || prompt.Contains(r.LineOperatorName, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             var target = filtered.Count > 0 ? filtered : tp.Value.Rows;
             return AgentResult.Success(
-                $"Daily throughput (last 7 days) — {target.Count} entries.",
+                $"Khẩu lượng hàng ngày (7 ngày qua) — {target.Count} bản ghi.",
                 new { Rows = target });
         }
 
-        if (ContainsAny(lower, "how many", "count", "in the yard", "in yard", "total containers"))
+        if (ContainsAny(prompt, "how many", "count", "in the yard", "in yard", "total containers"))
         {
             var total = await dbContext.ContainerMovements
                 .CountAsync(m => m.Status == MovementStatus.InYard, cancellationToken);
@@ -96,19 +101,24 @@ public sealed class DepotQueryAgentSkill(
 
             var breakdown = string.Join(", ", byOp.Select(o => $"{o.Code}={o.Count}"));
             return AgentResult.Success(
-                $"Total in-yard: {total}. Breakdown: {breakdown}.",
+                $"Tổng số trong yard: {total}. Phân bổ: {breakdown}.",
                 new { Total = total, ByLineOperator = byOp });
         }
 
         return AgentResult.NeedsMoreInfo(
-            "Try one of:\n" +
-            "- 'How many containers are in the yard?'\n" +
-            "- 'How many <LINE> containers have been here over 10 days?'\n" +
-            "- 'Daily throughput for <LINE>'");
+            "Thử một trong các câu sau:\n" +
+            "- 'Có bao nhiêu container trong yard?'\n" +
+            "- 'Có bao nhiêu container <LINE> ở đây hơn 10 ngày?'\n" +
+            "- 'Khẩu lượng hàng ngày cho <LINE>'");
     }
 
-    private static bool ContainsAny(string text, params string[] tokens)
-    {
-        return tokens.Any(t => text.Contains(t, StringComparison.OrdinalIgnoreCase));
-    }
+    /// <summary>
+    /// Kiểm tra xem chuỗi <paramref name="text"/> có chứa bất kỳ token nào trong <paramref name="tokens"/> không
+    /// (so sánh không phân biệt chữ hoa/thường theo OrdinalIgnoreCase).
+    /// </summary>
+    /// <param name="text">Văn bản cần kiểm tra.</param>
+    /// <param name="tokens">Danh sách các từ khóa cần tìm.</param>
+    /// <returns>True nếu tìm thấy ít nhất một token.</returns>
+    private static bool ContainsAny(string text, params string[] tokens) =>
+        tokens.Any(t => text.Contains(t, StringComparison.OrdinalIgnoreCase));
 }

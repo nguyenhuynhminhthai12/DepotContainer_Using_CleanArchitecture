@@ -1,41 +1,41 @@
-
 using TechSpherex.CleanArchitecture.Application.Abstractions.Agents;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Data;
 using TechSpherex.CleanArchitecture.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+
 namespace TechSpherex.CleanArchitecture.Application.Features.Agents.Skills;
 
 /// <summary>
-/// Sample skill agent that manages Todos through natural language commands.
-/// Demonstrates how to integrate skill agents with existing CQRS handlers.
+/// Skill agent mẫu quản lý các mục việc thông qua lệnh ngôn ngữ tự nhiên.
+/// Minh họa cách tích hợp skill agent với các CQRS handler hiện có.
 /// </summary>
-public sealed class TodoAgentSkill : ISkillAgent
+public sealed class TodoAgentSkill(IAppDbContext dbContext) : ISkillAgent
 {
-    private readonly IAppDbContext _dbContext;
-
-    public TodoAgentSkill(IAppDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
+    /// <inheritdoc/>
     public string SkillId => "todo-manager";
-    public string Name => "Todo Manager";
-    public string Description => "Manage todo items — create, list, complete, and delete todos using natural language.";
 
+    /// <inheritdoc/>
+    public string Name => "Todo Manager";
+
+    /// <inheritdoc/>
+    public string Description => "Quản lý các mục việc — tạo, liệt kê, đánh dấu hoàn thành và xóa bằng ngôn ngữ tự nhiên.";
+
+    /// <inheritdoc/>
     public IReadOnlyList<string> ExamplePrompts =>
     [
-        "Show me all my todos",
-        "Create a todo: Review PR #42",
-        "Mark todo as completed",
-        "Delete all completed todos",
-        "How many todos do I have?"
+        "Hiển thị tất cả việc cần làm",
+        "Tạo một mục việc: Review PR #42",
+        "Đánh dấu mục việc là đã hoàn thành",
+        "Xóa tất cả việc đã hoàn thành",
+        "Tôi có bao nhiêu mục việc?"
     ];
 
+    /// <inheritdoc/>
     public async Task<AgentResult> ExecuteAsync(AgentContext context, CancellationToken cancellationToken = default)
     {
         var prompt = context.Prompt.ToLowerInvariant().Trim();
 
-        // Simple intent detection (in production, use an LLM for this)
+        // Phát hiện intent đơn giản (trong môi trường sản xuất, dùng LLM)
         return prompt switch
         {
             var p when p.Contains("list") || p.Contains("show") || p.Contains("all") =>
@@ -54,15 +54,21 @@ public sealed class TodoAgentSkill : ISkillAgent
                 await CountTodosAsync(cancellationToken),
 
             _ => AgentResult.NeedsMoreInfo(
-                "I can help you manage todos. Try:\n" +
-                "- 'Show all todos'\n" +
-                "- 'Create a todo: <title>'\n" +
-                "- 'Complete todo: <title>'\n" +
-                "- 'Delete completed todos'\n" +
-                "- 'How many todos do I have?'")
+                "Tôi có thể giúp bạn quản lý mục việc. Thử:\n" +
+                "- 'Hiển thị tất cả việc cần làm'\n" +
+                "- 'Tạo một mục việc: <tiêu đề>'\n" +
+                "- 'Hoàn thành mục việc: <tiêu đề>'\n" +
+                "- 'Xóa việc đã hoàn thành'\n" +
+                "- 'Tôi có bao nhiêu mục việc?'")
         };
     }
 
+    /// <summary>
+    /// Trích xuất tiêu đề từ prompt dựa trên vị trí dấu phẩy (colon).
+    /// </summary>
+    /// <param name="prompt">Prompt gốc của người dùng.</param>
+    /// <param name="colonIndex">Vị trí chỉ số của dấu phẩy.</param>
+    /// <returns>Tiêu đề đã trích xuất, hoặc null nếu không tìm thấy.</returns>
     private static string? ExtractTitle(string prompt, int colonIndex)
     {
         if (colonIndex >= 0)
@@ -72,40 +78,48 @@ public sealed class TodoAgentSkill : ISkillAgent
         return parts.Length > 2 ? string.Join(' ', parts.Skip(2)) : null;
     }
 
+    /// <summary>
+    /// Liệt kê tối đa 20 mục việc gần đây nhất.
+    /// </summary>
     private async Task<AgentResult> ListTodosAsync(CancellationToken ct)
     {
-        var todos = await _dbContext.Todos.OrderByDescending(t => t.CreatedAt).Take(20).ToListAsync(ct);
+        var todos = await dbContext.Todos.OrderByDescending(t => t.CreatedAt).Take(20).ToListAsync(ct);
 
         if (todos.Count == 0)
-            return AgentResult.Success("You have no todos. Use 'Create a todo: <title>' to add one.");
+            return AgentResult.Success("Bạn chưa có mục việc nào. Dùng 'Tạo một mục việc: <tiêu đề>' để thêm.");
 
         var list = todos.Select((t, i) =>
             $"{i + 1}. [{(t.IsCompleted ? "✓" : " ")}] {t.Title}").ToList();
 
         return AgentResult.Success(
-            $"Found {todos.Count} todos:",
+            $"Tìm thấy {todos.Count} mục việc:",
             new { Todos = list, Total = todos.Count });
     }
 
+    /// <summary>
+    /// Tạo mới một mục việc từ prompt.
+    /// </summary>
     private async Task<AgentResult> CreateTodoAsync(AgentContext context, CancellationToken ct)
     {
-        // Extract title after "create" or "add" keyword
         var prompt = context.Prompt;
         var colonIndex = prompt.IndexOf(':');
         var title = ExtractTitle(prompt, colonIndex);
 
         if (string.IsNullOrWhiteSpace(title))
-            return AgentResult.NeedsMoreInfo("Please provide a title. Example: 'Create a todo: Review PR #42'");
+            return AgentResult.NeedsMoreInfo("Vui lòng cung cấp tiêu đề. Ví dụ: 'Tạo một mục việc: Review PR #42'");
 
         var todo = new TodoItem { Title = title };
-        _dbContext.Todos.Add(todo);
-        await _dbContext.SaveChangesAsync(ct);
+        dbContext.Todos.Add(todo);
+        await dbContext.SaveChangesAsync(ct);
 
         return AgentResult.Success(
-            $"Created todo: \"{title}\"",
-            new { Id = todo.Id, Title = title });
+            $"Đã tạo mục việc: \"{title}\"",
+            new { todo.Id, Title = title });
     }
 
+    /// <summary>
+    /// Đánh dấu một mục việc chưa hoàn thành là đã hoàn thành.
+    /// </summary>
     private async Task<AgentResult> CompleteTodoAsync(AgentContext context, CancellationToken ct)
     {
         var prompt = context.Prompt;
@@ -113,41 +127,47 @@ public sealed class TodoAgentSkill : ISkillAgent
         var search = colonIndex >= 0 ? prompt[(colonIndex + 1)..].Trim() : null;
 
         if (string.IsNullOrWhiteSpace(search))
-            return AgentResult.NeedsMoreInfo("Please specify which todo to complete. Example: 'Complete todo: Review PR #42'");
+            return AgentResult.NeedsMoreInfo("Vui lòng chỉ rõ mục việc cần hoàn thành. Ví dụ: 'Hoàn thành mục việc: Review PR #42'");
 
-        var todo = await _dbContext.Todos
-            .FirstOrDefaultAsync(t => t.Title.ToLower().Contains(search.ToLower()) && !t.IsCompleted, ct);
+        var todo = await dbContext.Todos
+            .FirstOrDefaultAsync(t => t.Title.Contains(search, StringComparison.OrdinalIgnoreCase) && !t.IsCompleted, ct);
 
         if (todo is null)
-            return AgentResult.Failure($"Could not find an incomplete todo matching: \"{search}\"");
+            return AgentResult.Failure($"Không tìm thấy mục việc chưa hoàn thành nào khớp: \"{search}\"");
 
         todo.MarkAsCompleted();
-        await _dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct);
 
-        return AgentResult.Success($"Completed: \"{todo.Title}\" ✓");
+        return AgentResult.Success($"Đã hoàn thành: \"{todo.Title}\" ✓");
     }
 
+    /// <summary>
+    /// Xóa tất cả các việc đã hoàn thành.
+    /// </summary>
     private async Task<AgentResult> DeleteCompletedAsync(CancellationToken ct)
     {
-        var completed = await _dbContext.Todos.Where(t => t.IsCompleted).ToListAsync(ct);
+        var completed = await dbContext.Todos.Where(t => t.IsCompleted).ToListAsync(ct);
 
         if (completed.Count == 0)
-            return AgentResult.Success("No completed todos to delete.");
+            return AgentResult.Success("Không có việc đã hoàn thành để xóa.");
 
-        _dbContext.Todos.RemoveRange(completed);
-        await _dbContext.SaveChangesAsync(ct);
+        dbContext.Todos.RemoveRange(completed);
+        await dbContext.SaveChangesAsync(ct);
 
-        return AgentResult.Success($"Deleted {completed.Count} completed todo(s).");
+        return AgentResult.Success($"Đã xóa {completed.Count} việc đã hoàn thành.");
     }
 
+    /// <summary>
+    /// Đếm tổng số mục việc, số đã hoàn thành và số chưa hoàn thành.
+    /// </summary>
     private async Task<AgentResult> CountTodosAsync(CancellationToken ct)
     {
-        var total = await _dbContext.Todos.CountAsync(ct);
-        var completed = await _dbContext.Todos.CountAsync(t => t.IsCompleted, ct);
+        var total = await dbContext.Todos.CountAsync(ct);
+        var completed = await dbContext.Todos.CountAsync(t => t.IsCompleted, ct);
         var pending = total - completed;
 
         return AgentResult.Success(
-            $"You have {total} todos: {pending} pending, {completed} completed.",
+            $"Bạn có {total} mục việc: {pending} chưa hoàn thành, {completed} đã hoàn thành.",
             new { Total = total, Pending = pending, Completed = completed });
     }
 }

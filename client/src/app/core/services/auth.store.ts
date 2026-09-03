@@ -1,3 +1,10 @@
+/**
+ * Lưu trữ trạng thái xác thực (Authentication State) trong Angular.
+ * Chứa JWT access token và refresh token trong sessionStorage của trình duyệt,
+ * giúp duy trì đăng nhập qua các lần reload trang nhưng xóa khi đóng tab.
+ * Cung cấp các signal để theo dõi trạng thái isAuthenticated, tenantId, userEmail.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { Injectable, signal, computed } from '@angular/core';
 
 /**

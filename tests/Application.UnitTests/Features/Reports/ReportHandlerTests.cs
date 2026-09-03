@@ -1,3 +1,9 @@
+/**
+ * Bộ test cho chức năng Báo cáo (Report Handlers).
+ * Bao gồm test báo cáo thời gian lưu trữ container trong Yard
+ * và báo cáo thông lượng cổng theo ngày và hãng vận tải.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 using FluentAssertions;
 using TechSpherex.CleanArchitecture.Application.Features.Reports;
 using TechSpherex.CleanArchitecture.Domain.Entities;

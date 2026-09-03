@@ -1,18 +1,18 @@
-
 using TechSpherex.CleanArchitecture.Application.Abstractions.Agents;
 using Microsoft.Extensions.Logging;
 
 namespace TechSpherex.CleanArchitecture.Application.Features.Agents;
 
 /// <summary>
-/// Default agent orchestrator that routes prompts to the appropriate skill agent.
-/// Uses keyword matching for skill selection. In production, replace with
-/// LLM-based intent detection (e.g., OpenAI function calling, Semantic Kernel).
+/// Agent orchestrator mặc định — định tuyến prompt đến skill agent phù hợp.
+/// Sử dụng keyword matching để lựa chọn skill. Trong môi trường sản xuất,
+/// thay thế bằng LLM-based intent detection (ví dụ: OpenAI function calling, Semantic Kernel).
 /// </summary>
 public sealed class AgentOrchestrator(
     IEnumerable<ISkillAgent> skills,
     ILogger<AgentOrchestrator> logger) : IAgentOrchestrator
 {
+    /// <inheritdoc/>
     public async Task<AgentResult> ExecuteAsync(AgentContext context, CancellationToken cancellationToken = default)
     {
         if (logger.IsEnabled(LogLevel.Information))
@@ -24,7 +24,7 @@ public sealed class AgentOrchestrator(
         {
             var available = GetAvailableSkills();
             return AgentResult.NeedsMoreInfo(
-                "I couldn't determine which skill to use. Available skills:\n" +
+                "Tôi không thể xác định skill nào phù hợp. Các skill khả dụng:\n" +
                 string.Join("\n", available.Select(s => $"* **{s.Name}** — {s.Description}")));
         }
 
@@ -41,23 +41,31 @@ public sealed class AgentOrchestrator(
         catch (Exception ex)
         {
             logger.LogError(ex, "Skill {SkillId} failed with exception", skill.SkillId);
-            return AgentResult.Failure($"An error occurred while executing '{skill.Name}': {ex.Message}");
+            return AgentResult.Failure($"Đã xảy ra lỗi khi thực thi '{skill.Name}': {ex.Message}");
         }
     }
 
+    /// <inheritdoc/>
     public async Task<AgentResult> ExecuteSkillAsync(string skillId, AgentContext context, CancellationToken cancellationToken = default)
     {
         var skill = skills.FirstOrDefault(s => s.SkillId.Equals(skillId, StringComparison.OrdinalIgnoreCase));
 
         if (skill is null)
-            return AgentResult.Failure($"Skill '{skillId}' not found.");
+            return AgentResult.Failure($"Skill '{skillId}' không tìm thấy.");
 
         return await skill.ExecuteAsync(context, cancellationToken);
     }
 
+    /// <inheritdoc/>
     public IReadOnlyList<SkillInfo> GetAvailableSkills() =>
         [.. skills.Select(s => new SkillInfo(s.SkillId, s.Name, s.Description, s.ExamplePrompts))];
 
+    /// <summary>
+    /// Chọn skill phù hợp dựa trên từ khóa trong prompt.
+    /// Nếu chỉ có một skill, tự động chọn skill đó.
+    /// </summary>
+    /// <param name="prompt">Lời nhắn của người dùng.</param>
+    /// <returns>Skill được chọn, hoặc null nếu không khớp skill nào.</returns>
     private ISkillAgent? SelectSkill(string prompt)
     {
         var lower = prompt.ToLowerInvariant();

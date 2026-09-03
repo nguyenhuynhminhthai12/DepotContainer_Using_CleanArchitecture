@@ -1,3 +1,13 @@
+/**
+ * Component quản lý Đơn Giao hàng (Delivery Orders Component).
+ * Cung cấp giao diện CRUD đầy đủ cho Đơn giao hàng (Delivery Order / Lệnh xuất hàng):
+ * - Tạo đơn với nhiều loại container và số lượng (multi-line support)
+ * - Theo dõi tiến độ giao hàng (Fulfillment Progress)
+ * - Quick-create Khách hàng trong modal
+ * - Đóng / xóa / chỉnh sửa đơn
+ * - KPI cards: Active Orders, Delivered Units, Total Requested, Fulfillment Rate
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';

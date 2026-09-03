@@ -1,3 +1,8 @@
+/**
+ * Interceptor HTTP gắn JWT Bearer Token và Header X-Tenant-Id vào mọi request API.
+ * Tự động bắt lỗi 401 Unauthorized (token hết hạn) và chuyển hướng về trang đăng nhập.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';

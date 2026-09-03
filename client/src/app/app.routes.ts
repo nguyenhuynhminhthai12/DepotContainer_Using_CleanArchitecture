@@ -1,3 +1,14 @@
+/**
+ * Định nghĩa các tuyến đường (Routes) của ứng dụng Angular.
+ * Các tuyến được bảo vệ bởi AuthGuard (yêu cầu đăng nhập):
+ * - /yard-map: Sơ đồ Yard Map tương tác
+ * - /containers: Quản lý Container Master Fleet
+ * - /gate: Thao tác Cổng (Gate-In / Gate-Out / Move)
+ * - /delivery-orders: Quản lý Đơn giao hàng
+ * - /reports: Báo cáo vận hành
+ * - /login: Trang đăng nhập / đăng ký (không cần bảo vệ)
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 

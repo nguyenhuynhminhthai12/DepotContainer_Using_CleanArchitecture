@@ -1,3 +1,9 @@
+/**
+ * Dịch vụ quản lý Đơn Giao hàng (Delivery Order Service) cho ứng dụng Angular.
+ * Cung cấp các phương thức CRUD cho Đơn giao hàng, Khách hàng, Line Operator, và Container Types.
+ * Đơn giao hàng (Delivery Order / Lệnh xuất hàng) là giấy phép cho phép depot xuất container rỗng/ladenn.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';

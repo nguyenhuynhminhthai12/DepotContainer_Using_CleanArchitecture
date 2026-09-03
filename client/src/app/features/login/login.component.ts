@@ -1,3 +1,9 @@
+/**
+ * Component đăng nhập / đăng ký (Login Component).
+ * Hỗ trợ hai chế độ: Sign In (đăng nhập) và Register (đăng ký tài khoản mới).
+ * Sử dụng AuthService để gọi API và AuthStore để lưu trữ phiên đăng nhập.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';

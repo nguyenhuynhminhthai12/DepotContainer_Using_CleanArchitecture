@@ -1,3 +1,9 @@
+/**
+ * Lớp Factory tạo AppDbContext cho Unit Tests.
+ * Sử dụng InMemory Database của Entity Framework Core để test không phụ thuộc database thật.
+ * Mỗi lần gọi Create() sẽ tạo một database mới với tên ngẫu nhiên (Guid) để đảm bảo isolation giữa các test.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 using Microsoft.EntityFrameworkCore;
 using TechSpherex.CleanArchitecture.Infrastructure.Persistence;
 

@@ -1,3 +1,9 @@
+/**
+ * Bộ test cho chức năng Cổng (Gate Handlers - Gate-In / Gate-Out).
+ * Bao gồm test từ chối container không tồn tại, từ chối sai quy tắc Bay,
+ * từ chối đơn hết hạn, và thành công Gate-In/Out hợp lệ.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 using FluentAssertions;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Caching;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Rules;

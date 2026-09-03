@@ -4,8 +4,15 @@ using TechSpherex.CleanArchitecture.Application.Features.Containers;
 using TechSpherex.CleanArchitecture.Domain.Common;
 namespace TechSpherex.CleanArchitecture.Api.Endpoints;
 
+/// <summary>
+/// Nhóm các endpoint REST cho chức năng quản lý Container (CRUD).
+/// </summary>
 public static class ContainerEndpoints
 {
+    /// <summary>
+    /// Đăng ký tất cả endpoint Container vào <see cref="IEndpointRouteBuilder"/>.
+    /// </summary>
+    /// <param name="app">Route builder để đăng ký endpoint.</param>
     public static void MapContainerEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/containers")
@@ -13,29 +20,30 @@ public static class ContainerEndpoints
 
         group.MapGet("/", GetContainers)
             .WithName("GetContainers")
-            .WithSummary("List containers (paginated, filterable by line operator / condition / search).");
+            .WithSummary("Liệt kê container có phân trang, lọc theo hành đường/tình trạng/tìm kiếm.");
 
         group.MapGet("/{number}", GetByNumber)
             .WithName("GetContainerByNumber")
-            .WithSummary("Get a container by its 11-character container number.");
+            .WithSummary("Lấy một container theo số thùng hàng 11 ký tự.");
 
         group.MapPost("/", Create)
             .AddEndpointFilter<ValidationFilter<CreateContainerCommand>>()
             .RequireAuthorization()
             .WithName("CreateContainer")
-            .WithSummary("Register a new container (validates ISO 6346 check digit).");
+            .WithSummary("Đăng ký container mới (xác thực chữ số kiểm tra ISO 6346).");
 
         group.MapPut("/{id:guid}", Update)
             .RequireAuthorization()
             .WithName("UpdateContainer")
-            .WithSummary("Update an existing container's metadata and condition.");
+            .WithSummary("Cập nhật thông tin và tình trạng container.");
 
         group.MapDelete("/{id:guid}", Delete)
             .RequireAuthorization()
             .WithName("DeleteContainer")
-            .WithSummary("Delete a container if not in yard.");
+            .WithSummary("Xóa container nếu không đang chiếm yard slot.");
     }
 
+    /// <summary>Xử lý GET /api/containers — liệt kê container có phân trang.</summary>
     private static async Task<IResult> GetContainers(
         int? page,
         int? pageSize,
@@ -55,6 +63,7 @@ public static class ContainerEndpoints
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.ToProblemDetails();
     }
 
+    /// <summary>Xử lý GET /api/containers/{number} — lấy container theo số thùng hàng.</summary>
     private static async Task<IResult> GetByNumber(
         string number,
         IQueryHandler<GetContainerByNumberQuery, Result<ContainerResponse>> handler,
@@ -64,6 +73,7 @@ public static class ContainerEndpoints
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.ToProblemDetails();
     }
 
+    /// <summary>Xử lý POST /api/containers — tạo container mới.</summary>
     private static async Task<IResult> Create(
         CreateContainerCommand command,
         ICommandHandler<CreateContainerCommand, Result<ContainerResponse>> handler,
@@ -75,6 +85,7 @@ public static class ContainerEndpoints
             : result.ToProblemDetails();
     }
 
+    /// <summary>Xử lý PUT /api/containers/{id} — cập nhật thông tin container.</summary>
     private static async Task<IResult> Update(
         Guid id,
         UpdateContainerCommand command,
@@ -88,6 +99,7 @@ public static class ContainerEndpoints
         return result.IsSuccess ? TypedResults.Ok(result.Value) : result.ToProblemDetails();
     }
 
+    /// <summary>Xử lý DELETE /api/containers/{id} — xóa container.</summary>
     private static async Task<IResult> Delete(
         Guid id,
         ICommandHandler<DeleteContainerCommand, Result> handler,

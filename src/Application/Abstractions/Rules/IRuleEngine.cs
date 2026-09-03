@@ -1,28 +1,30 @@
 namespace TechSpherex.CleanArchitecture.Application.Abstractions.Rules;
 
 /// <summary>
-/// Application-layer rule engine abstraction.
-/// Evaluates configurable business rules against a context object.
-/// Supports dynamic rule definitions loaded from configuration.
+/// Lớp trừu tượng engine quy tắc nghiệp vụ ở tầng Application.
+/// Đánh giá các quy tắc nghiệp vụ có thể cấu hình trước dựa trên đối tượng bối cảnh.
+/// Hỗ trợ định nghĩa quy tắc động được tải từ cấu hình.
 /// </summary>
 public interface IRuleEngine
 {
     /// <summary>
-    /// Evaluates all rules in the specified rule set against the given context.
+    /// Đánh giá tất cả quy tắc trong một rule set chống lại bối cảnh cung cấp.
     /// </summary>
-    /// <param name="ruleSetName">Name of the rule set (e.g. "TodoCreation", "OrderApproval").</param>
-    /// <param name="context">Dictionary of facts/context values to evaluate rules against.</param>
+    /// <param name="ruleSetName">Tên rule set (ví dụ: "TodoCreation", "OrderApproval").</param>
+    /// <param name="context">Từ điển các giá trị bối cảnh (facts) để đánh giá quy tắc.</param>
+    /// <returns><see cref="RuleResult"/> chứa kết quả và danh sách vi phạm.</returns>
     RuleResult Evaluate(string ruleSetName, IDictionary<string, object?> context);
 
     /// <summary>
-    /// Evaluates a single inline rule expression against the given context.
+    /// Đánh giá một biểu thức quy tắc đơn lẻ trên bối cảnh đã cho.
     /// </summary>
-    /// <param name="expression">A rule expression (e.g. "Amount > 1000").</param>
-    /// <param name="context">Dictionary of facts/context values.</param>
+    /// <param name="expression">Biểu thức quy tắc (ví dụ: "Amount > 1000").</param>
+    /// <param name="context">Từ điển các giá trị bối cảnh (facts).</param>
+    /// <returns>True nếu quy tắc thỏa mãn, False nếu không.</returns>
     bool EvaluateExpression(string expression, IDictionary<string, object?> context);
 
     /// <summary>
-    /// Gets all available rule set names.
+    /// Lấy danh sách tất cả tên rule set khả dụng.
     /// </summary>
     IReadOnlyList<string> GetRuleSetNames();
 }

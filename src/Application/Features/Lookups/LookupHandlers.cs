@@ -7,24 +7,62 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TechSpherex.CleanArchitecture.Application.Features.Lookups;
 
+/// <summary>
+/// DTO trả về thông tin hành đường (line operator).
+/// </summary>
+/// <param name="Id">Mã định danh.</param>
+/// <param name="Code">Mã BIC 3 chữ cái.</param>
+/// <param name="Name">Tên hành đường.</param>
+/// <param name="Country">Quốc gia (có thể null).</param>
 public sealed record LineOperatorResponse(Guid Id, string Code, string Name, string? Country);
 
+/// <summary>Truy vấn lấy danh sách hành đường đang hoạt động.</summary>
 public sealed record GetLineOperatorsQuery() : IQuery<Result<IReadOnlyList<LineOperatorResponse>>>;
 
+/// <summary>
+/// DTO trả về thông tin loại container.
+/// </summary>
+/// <param name="Id">Mã định danh.</param>
+/// <param name="Code">Mã ISO.</param>
+/// <param name="Name">Tên loại container.</param>
+/// <param name="Family">Nhóm container (Dry / Reefer / ...).</param>
 public sealed record ContainerTypeResponse(Guid Id, string Code, string Name, string Family);
 
+/// <summary>Truy vấn lấy danh sách loại container đang hoạt động.</summary>
 public sealed record GetContainerTypesQuery() : IQuery<Result<IReadOnlyList<ContainerTypeResponse>>>;
 
+/// <summary>
+/// DTO trả về thông tin khách hàng.
+/// </summary>
+/// <param name="Id">Mã định danh.</param>
+/// <param name="TaxCode">Mã số thuế (MST).</param>
+/// <param name="Name">Tên khách hàng.</param>
+/// <param name="Address">Địa chỉ.</param>
+/// <param name="Phone">Số điện thoại.</param>
+/// <param name="IsActive">Trạng thái hoạt động.</param>
 public sealed record CustomerResponse(Guid Id, string TaxCode, string Name, string? Address, string? Phone, bool IsActive);
 
+/// <summary>Truy vấn lấy danh sách khách hàng.</summary>
 public sealed record GetCustomersQuery() : IQuery<Result<IReadOnlyList<CustomerResponse>>>;
 
+/// <summary>
+/// Lệnh tạo khách hàng mới.
+/// </summary>
+/// <param name="TaxCode">Mã số thuế.</param>
+/// <param name="Name">Tên khách hàng.</param>
+/// <param name="Address">Địa chỉ.</param>
+/// <param name="Phone">Số điện thoại.</param>
+/// <param name="Email">Email liên hệ.</param>
 public sealed record CreateCustomerCommand(string TaxCode, string Name, string? Address, string? Phone, string? Email)
     : ICommand<Result<CustomerResponse>>;
 
+/// <summary>
+/// Xử lý truy vấn lấy danh sách hành đường đang hoạt động (có cache 10 phút).
+/// </summary>
 public sealed class GetLineOperatorsQueryHandler(IAppDbContext dbContext, ICacheService cache) :
     IQueryHandler<GetLineOperatorsQuery, Result<IReadOnlyList<LineOperatorResponse>>>
 {
+    /// <inheritdoc/>
     public async Task<Result<IReadOnlyList<LineOperatorResponse>>> HandleAsync(GetLineOperatorsQuery query, CancellationToken cancellationToken = default)
     {
         var list = await cache.GetOrCreateAsync(
@@ -42,9 +80,13 @@ public sealed class GetLineOperatorsQueryHandler(IAppDbContext dbContext, ICache
     }
 }
 
+/// <summary>
+/// Xử lý truy vấn lấy danh sách loại container đang hoạt động (có cache 10 phút).
+/// </summary>
 public sealed class GetContainerTypesQueryHandler(IAppDbContext dbContext, ICacheService cache) :
     IQueryHandler<GetContainerTypesQuery, Result<IReadOnlyList<ContainerTypeResponse>>>
 {
+    /// <inheritdoc/>
     public async Task<Result<IReadOnlyList<ContainerTypeResponse>>> HandleAsync(GetContainerTypesQuery query, CancellationToken cancellationToken = default)
     {
         var list = await cache.GetOrCreateAsync(
@@ -62,9 +104,13 @@ public sealed class GetContainerTypesQueryHandler(IAppDbContext dbContext, ICach
     }
 }
 
+/// <summary>
+/// Xử lý truy vấn lấy danh sách khách hàng.
+/// </summary>
 public sealed class GetCustomersQueryHandler(IAppDbContext dbContext) :
     IQueryHandler<GetCustomersQuery, Result<IReadOnlyList<CustomerResponse>>>
 {
+    /// <inheritdoc/>
     public async Task<Result<IReadOnlyList<CustomerResponse>>> HandleAsync(GetCustomersQuery query, CancellationToken cancellationToken = default)
     {
         var list = await dbContext.Customers.AsNoTracking()
@@ -75,14 +121,20 @@ public sealed class GetCustomersQueryHandler(IAppDbContext dbContext) :
     }
 }
 
+/// <summary>
+/// Xử lý lệnh tạo khách hàng mới — kiểm tra trùng MST trước khi tạo.
+/// </summary>
 public sealed class CreateCustomerCommandHandler(IAppDbContext dbContext) :
     ICommandHandler<CreateCustomerCommand, Result<CustomerResponse>>
 {
+    /// <inheritdoc/>
     public async Task<Result<CustomerResponse>> HandleAsync(CreateCustomerCommand command, CancellationToken cancellationToken = default)
     {
         if (await dbContext.Customers.AnyAsync(c => c.TaxCode == command.TaxCode, cancellationToken))
+        {
             return Result.Failure<CustomerResponse>(Error.Conflict("Customer.DuplicateTaxCode",
                 $"A customer with tax code '{command.TaxCode}' already exists."));
+        }
 
         var c = new Customer
         {

@@ -1,3 +1,9 @@
+/**
+ * Bộ test cho Business Rule kiểm tra số container tuân thủ ISO 6346 (chữ số kiểm tra Modulo-11).
+ * Test các số container hợp lệ (pass) và không hợp lệ (fail),
+ * cũng như kiểm tra các thuộc tính RuleCode, Message, Priority.
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 using FluentAssertions;
 using TechSpherex.CleanArchitecture.Domain.Common.Rules;
 

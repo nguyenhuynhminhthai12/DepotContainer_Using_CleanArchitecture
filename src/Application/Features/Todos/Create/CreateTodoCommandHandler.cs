@@ -1,12 +1,16 @@
-
 using TechSpherex.CleanArchitecture.Application.Abstractions.Data;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Messaging;
 using TechSpherex.CleanArchitecture.Domain.Common;
 using TechSpherex.CleanArchitecture.Domain.Entities;
+
 namespace TechSpherex.CleanArchitecture.Application.Features.Todos.Create;
 
+/// <summary>
+/// Xử lý lệnh tạo mục việc — thêm mới một công việc vào cơ sở dữ liệu.
+/// </summary>
 public sealed class CreateTodoCommandHandler(IAppDbContext dbContext) : ICommandHandler<CreateTodoCommand, Result<CreateTodoResponse>>
 {
+    /// <inheritdoc/>
     public async Task<Result<CreateTodoResponse>> HandleAsync(CreateTodoCommand command, CancellationToken cancellationToken = default)
     {
         var todo = new TodoItem

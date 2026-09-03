@@ -2,6 +2,9 @@ using FluentValidation;
 
 namespace TechSpherex.CleanArchitecture.Application.Features.Yard;
 
+/// <summary>
+/// Validator cho <see cref="CreateBlockCommand"/> — xác thực thông tin tạo Block thực.
+/// </summary>
 public sealed class CreateBlockValidator : AbstractValidator<CreateBlockCommand>
 {
     public CreateBlockValidator()
@@ -34,6 +37,9 @@ public sealed class CreateBlockValidator : AbstractValidator<CreateBlockCommand>
     }
 }
 
+/// <summary>
+/// Validator cho <see cref="CreateVirtualBlockCommand"/> — xác thực thông tin tạo Block ảo.
+/// </summary>
 public sealed class CreateVirtualBlockValidator : AbstractValidator<CreateVirtualBlockCommand>
 {
     public CreateVirtualBlockValidator()
@@ -44,6 +50,9 @@ public sealed class CreateVirtualBlockValidator : AbstractValidator<CreateVirtua
     }
 }
 
+/// <summary>
+/// Validator cho <see cref="ResizeBlockCommand"/> — xác thực kích thước mới của Block.
+/// </summary>
 public sealed class ResizeBlockValidator : AbstractValidator<ResizeBlockCommand>
 {
     public ResizeBlockValidator()

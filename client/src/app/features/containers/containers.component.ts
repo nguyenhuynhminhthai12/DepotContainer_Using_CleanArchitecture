@@ -1,3 +1,13 @@
+/**
+ * Component quản lý Container Master Fleet (Containers Component).
+ * Cung cấp giao diện CRUD đầy đủ cho Container: tạo mới, chỉnh sửa, xóa, tìm kiếm và lọc.
+ * Tính năng nổi bật:
+ * - Nhập số container theo chuẩn ISO 6346 với 3 phần: Owner Code (4 chữ) + Serial (6 số) + Check Digit (tự động tính Modulo-11)
+ * - Dropdown chọn hãng vận tải (shipping line prefixes phổ biến)
+ * - KPI cards thống kê tổng số, phân loại 20ft/40ft, tình trạng Normal
+ * - Tích hợp điều hướng đến Gate Operations
+ * Bản quyền (c) 2026 TechSpherex.
+ */
 import { Component, OnInit, inject, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';

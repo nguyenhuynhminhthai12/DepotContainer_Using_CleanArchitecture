@@ -4,8 +4,13 @@ using TechSpherex.CleanArchitecture.Application.Abstractions.Messaging;
 using TechSpherex.CleanArchitecture.Domain.Common;
 namespace TechSpherex.CleanArchitecture.Application.Features.Todos.Get;
 
+/// <summary>
+/// Xử lý truy vấn lấy thông tin chi tiết một Todo theo ID.
+/// </summary>
+/// <param name="dbContext">Context cơ sở dữ liệu.</param>
 public sealed class GetTodoQueryHandler(IAppDbContext dbContext) : IQueryHandler<GetTodoQuery, Result<TodoDetailResponse>>
 {
+    /// <inheritdoc/>
     public async Task<Result<TodoDetailResponse>> HandleAsync(GetTodoQuery query, CancellationToken cancellationToken = default)
     {
         var todo = await dbContext.Todos.FindAsync([query.Id], cancellationToken);
