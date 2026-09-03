@@ -26,4 +26,12 @@ export class YardService {
   resizeBlock(id: string, maxBay: number, maxRow: number, maxTier: number): Observable<void> {
     return this.http.patch<void>(`/api/blocks/${id}/resize`, { maxBay, maxRow, maxTier });
   }
+
+  updateBlock(id: string, req: { code: string; name: string }): Observable<BlockWithSlots> {
+    return this.http.put<BlockWithSlots>(`/api/blocks/${id}`, req);
+  }
+
+  deleteBlock(id: string): Observable<void> {
+    return this.http.delete<void>(`/api/blocks/${id}`);
+  }
 }

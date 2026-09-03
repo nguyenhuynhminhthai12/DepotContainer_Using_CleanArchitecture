@@ -34,6 +34,13 @@ public sealed record ResizeBlockCommand(
     int MaxRow,
     int MaxTier) : ICommand<Result>;
 
+public sealed record UpdateBlockCommand(
+    Guid BlockId,
+    string Code,
+    string Name) : ICommand<Result<CreateBlockResponse>>;
+
+public sealed record DeleteBlockCommand(Guid BlockId) : ICommand<Result>;
+
 public sealed record YardSlotDto(
     Guid Id,
     int Bay,

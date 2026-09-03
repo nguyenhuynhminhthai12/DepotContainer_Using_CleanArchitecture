@@ -10,6 +10,8 @@ namespace TechSpherex.CleanArchitecture.Application.UnitTests.Features.Gate;
 
 public sealed class GateInContainerCommandHandlerTests
 {
+    private const string ContainerNumber = "CMAU1234564";
+
     [Fact]
     public async Task HandleAsync_Should_Reject_When_Container_Not_Found()
     {
@@ -34,7 +36,7 @@ public sealed class GateInContainerCommandHandlerTests
         var handler = new GateInContainerCommandHandler(db, rules, cache);
 
         var result = await handler.HandleAsync(
-            new GateInContainerCommand("CMAU1234564", lineOp.Id, block.Id, 1, 1, 1, "A", "Normal", "ABC-123", "Driver"),
+            new GateInContainerCommand(ContainerNumber, lineOp.Id, block.Id, 1, 1, 1, "A", "Normal", "ABC-123", "Driver"),
             TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
@@ -56,7 +58,7 @@ public sealed class GateInContainerCommandHandlerTests
         // 40ft container to test bay-parity
         db.Containers.Add(new Container
         {
-            ContainerNumberRaw = "CMAU1234564",
+            ContainerNumberRaw = ContainerNumber,
             ContainerTypeId = ct.Id,
             IsoCode = "42G1",
             SizeFeet = 40,
@@ -83,7 +85,7 @@ public sealed class GateInContainerCommandHandlerTests
 
         var handler = new GateInContainerCommandHandler(db, rules, cache);
         var result = await handler.HandleAsync(
-            new GateInContainerCommand("CMAU1234564", lineOp.Id, block.Id, 1, 1, 1, "A", "Normal", null, null),
+            new GateInContainerCommand(ContainerNumber, lineOp.Id, block.Id, 1, 1, 1, "A", "Normal", null, null),
             TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
@@ -104,7 +106,7 @@ public sealed class GateInContainerCommandHandlerTests
 
         db.Containers.Add(new Container
         {
-            ContainerNumberRaw = "CMAU1234564",
+            ContainerNumberRaw = ContainerNumber,
             ContainerTypeId = ct.Id,
             IsoCode = "22G1",
             SizeFeet = 20,
@@ -128,7 +130,7 @@ public sealed class GateInContainerCommandHandlerTests
 
         var handler = new GateInContainerCommandHandler(db, rules, cache);
         var result = await handler.HandleAsync(
-            new GateInContainerCommand("CMAU1234564", lineOp.Id, block.Id, 1, 1, 1, "A", "Normal", "ABC-1", "Drv"),
+            new GateInContainerCommand(ContainerNumber, lineOp.Id, block.Id, 1, 1, 1, "A", "Normal", "ABC-1", "Drv"),
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
@@ -141,6 +143,8 @@ public sealed class GateInContainerCommandHandlerTests
 
 public sealed class GateOutContainerCommandHandlerTests
 {
+    private const string ContainerNumber = "CMAU1234564";
+
     [Fact]
     public async Task HandleOut_Should_Fail_When_No_Open_Movement()
     {
@@ -177,7 +181,7 @@ public sealed class GateOutContainerCommandHandlerTests
 
         // Container does not exist → first check fails with NotFound
         var result = await handler.HandleAsync(
-            new GateOutContainerCommand("CMAU1234564", order.Id, null, null, "Normal"),
+            new GateOutContainerCommand(ContainerNumber, order.Id, null, null, "Normal"),
             TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
@@ -221,7 +225,7 @@ public sealed class GateOutContainerCommandHandlerTests
 
         var container = new Container
         {
-            ContainerNumberRaw = "CMAU1234564",
+            ContainerNumberRaw = ContainerNumber,
             ContainerTypeId = ct.Id,
             IsoCode = "22G1",
             SizeFeet = 20,
@@ -256,7 +260,7 @@ public sealed class GateOutContainerCommandHandlerTests
         var handler = new GateOutContainerCommandHandler(db, rules, cache);
 
         var result = await handler.HandleAsync(
-            new GateOutContainerCommand("CMAU1234564", order.Id, "OUT-1", "DrvOut", "Normal"),
+            new GateOutContainerCommand(ContainerNumber, order.Id, "OUT-1", "DrvOut", "Normal"),
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
@@ -289,7 +293,7 @@ public sealed class GateOutContainerCommandHandlerTests
 
         var container = new Container
         {
-            ContainerNumberRaw = "CMAU1234564",
+            ContainerNumberRaw = ContainerNumber,
             ContainerTypeId = ct.Id, IsoCode = "22G1", SizeFeet = 20,
             MaxWeightKg = 30000m, TareWeightKg = 2200m,
             ManufactureDate = DateTimeOffset.UtcNow, Owner = "CMA",
@@ -311,7 +315,7 @@ public sealed class GateOutContainerCommandHandlerTests
         var handler = new GateOutContainerCommandHandler(db, rules, cache);
 
         var result = await handler.HandleAsync(
-            new GateOutContainerCommand("CMAU1234564", order.Id, null, null, "Normal"),
+            new GateOutContainerCommand(ContainerNumber, order.Id, null, null, "Normal"),
             TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();

@@ -35,3 +35,16 @@ public sealed record GetContainersQuery(
     Guid? LineOperatorId = null,
     string? Condition = null,
     string? Search = null) : IQuery<Result<PagedResult<ContainerResponse>>>;
+
+public sealed record UpdateContainerCommand(
+    Guid Id,
+    Guid ContainerTypeId,
+    string IsoCode,
+    int SizeFeet,
+    decimal MaxWeightKg,
+    decimal TareWeightKg,
+    DateTimeOffset ManufactureDate,
+    string Owner,
+    string Condition) : ICommand<Result<ContainerResponse>>;
+
+public sealed record DeleteContainerCommand(Guid Id) : ICommand<Result>;

@@ -28,6 +28,14 @@ public static class DeliveryOrderEndpoints
         group.MapPost("/{id:guid}/close", Close)
             .WithName("CloseDeliveryOrder")
             .WithSummary("Close a Delivery Order (prevents further Gate-Out authorisations).");
+
+        group.MapPut("/{id:guid}", Update)
+            .WithName("UpdateDeliveryOrder")
+            .WithSummary("Update an existing Delivery Order.");
+
+        group.MapDelete("/{id:guid}", Delete)
+            .WithName("DeleteDeliveryOrder")
+            .WithSummary("Delete a Delivery Order if no containers have been discharged.");
     }
 
     private static async Task<IResult> Create(
@@ -64,6 +72,30 @@ public static class DeliveryOrderEndpoints
         CancellationToken cancellationToken)
     {
         var result = await handler.HandleAsync(new CloseDeliveryOrderCommand(id), cancellationToken);
+        return result.IsSuccess ? TypedResults.NoContent() : result.ToProblemDetails();
+    }
+
+    private static async Task<IResult> Update(
+        Guid id,
+        UpdateDeliveryOrderCommand command,
+        ICommandHandler<UpdateDeliveryOrderCommand, Result<DeliveryOrderResponse>> handler,
+        CancellationToken cancellationToken)
+    {
+        if (id != command.Id)
+        {
+            return TypedResults.BadRequest("Route ID does not match body ID.");
+        }
+
+        var result = await handler.HandleAsync(command, cancellationToken);
+        return result.IsSuccess ? TypedResults.Ok(result.Value) : result.ToProblemDetails();
+    }
+
+    private static async Task<IResult> Delete(
+        Guid id,
+        ICommandHandler<DeleteDeliveryOrderCommand, Result> handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(new DeleteDeliveryOrderCommand(id), cancellationToken);
         return result.IsSuccess ? TypedResults.NoContent() : result.ToProblemDetails();
     }
 }

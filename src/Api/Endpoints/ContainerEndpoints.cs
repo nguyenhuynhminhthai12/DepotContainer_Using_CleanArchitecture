@@ -24,6 +24,16 @@ public static class ContainerEndpoints
             .RequireAuthorization()
             .WithName("CreateContainer")
             .WithSummary("Register a new container (validates ISO 6346 check digit).");
+
+        group.MapPut("/{id:guid}", Update)
+            .RequireAuthorization()
+            .WithName("UpdateContainer")
+            .WithSummary("Update an existing container's metadata and condition.");
+
+        group.MapDelete("/{id:guid}", Delete)
+            .RequireAuthorization()
+            .WithName("DeleteContainer")
+            .WithSummary("Delete a container if not in yard.");
     }
 
     private static async Task<IResult> GetContainers(
@@ -63,5 +73,27 @@ public static class ContainerEndpoints
         return result.IsSuccess
             ? TypedResults.Created($"/api/containers/{result.Value!.ContainerNumber}", result.Value)
             : result.ToProblemDetails();
+    }
+
+    private static async Task<IResult> Update(
+        Guid id,
+        UpdateContainerCommand command,
+        ICommandHandler<UpdateContainerCommand, Result<ContainerResponse>> handler,
+        CancellationToken cancellationToken)
+    {
+        if (id != command.Id)
+            return TypedResults.BadRequest("Route ID does not match body ID.");
+
+        var result = await handler.HandleAsync(command, cancellationToken);
+        return result.IsSuccess ? TypedResults.Ok(result.Value) : result.ToProblemDetails();
+    }
+
+    private static async Task<IResult> Delete(
+        Guid id,
+        ICommandHandler<DeleteContainerCommand, Result> handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(new DeleteContainerCommand(id), cancellationToken);
+        return result.IsSuccess ? TypedResults.NoContent() : result.ToProblemDetails();
     }
 }

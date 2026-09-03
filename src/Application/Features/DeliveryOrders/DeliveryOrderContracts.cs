@@ -31,3 +31,12 @@ public sealed record GetDeliveryOrderByIdQuery(Guid Id) : IQuery<Result<Delivery
 public sealed record GetActiveDeliveryOrdersQuery() : IQuery<Result<IReadOnlyList<DeliveryOrderResponse>>>;
 
 public sealed record CloseDeliveryOrderCommand(Guid Id) : ICommand<Result>;
+
+public sealed record UpdateDeliveryOrderCommand(
+    Guid Id,
+    DateTimeOffset ExpiryDate,
+    string? VesselVoyage,
+    string? Notes,
+    IReadOnlyList<DeliveryOrderLineDto>? Lines) : ICommand<Result<DeliveryOrderResponse>>;
+
+public sealed record DeleteDeliveryOrderCommand(Guid Id) : ICommand<Result>;

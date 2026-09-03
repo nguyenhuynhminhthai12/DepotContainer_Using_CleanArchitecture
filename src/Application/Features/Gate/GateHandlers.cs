@@ -23,36 +23,46 @@ public sealed class GateInContainerCommandHandler(
         var container = await dbContext.Containers
             .FirstOrDefaultAsync(c => c.ContainerNumberRaw == normalizedNumber, cancellationToken);
         if (container is null)
+        {
             return Result.Failure<ContainerMovementResponse>(Error.NotFound("Container.NotFound",
                 $"Container '{normalizedNumber}' was not found."));
+        }
 
         // Reject if already in-yard (the latest movement is still open).
         var alreadyInYard = await dbContext.ContainerMovements
             .AnyAsync(m => m.ContainerId == container.Id && m.Status == MovementStatus.InYard, cancellationToken);
         if (alreadyInYard)
+        {
             return Result.Failure<ContainerMovementResponse>(Error.Conflict("Gate.AlreadyInYard",
                 $"Container '{normalizedNumber}' is already in the yard. Move it before a new Gate-In."));
+        }
 
         var block = await dbContext.Blocks.FirstOrDefaultAsync(b => b.Id == command.BlockId, cancellationToken);
         if (block is null)
+        {
             return Result.Failure<ContainerMovementResponse>(Error.NotFound("Block.NotFound",
                 $"Block '{command.BlockId}' was not found."));
+        }
 
         YardSlot? slot = null;
 
         if (!block.IsVirtual)
         {
             if (!command.Bay.HasValue || !command.Row.HasValue || !command.Tier.HasValue)
+            {
                 return Result.Failure<ContainerMovementResponse>(Error.Validation("Gate.BayRowTierRequired",
                     "Bay/Row/Tier are required for non-virtual blocks."));
+            }
 
             slot = await dbContext.YardSlots
                 .FirstOrDefaultAsync(s => s.BlockId == block.Id && s.Bay == command.Bay.Value
                     && s.Row == command.Row.Value && s.Tier == command.Tier.Value, cancellationToken);
 
             if (slot is null)
+            {
                 return Result.Failure<ContainerMovementResponse>(Error.NotFound("YardSlot.NotFound",
                     "Yard slot not found for the given Block/Bay/Row/Tier."));
+            }
 
             // Rule: Bay parity matches container size.
             var bayRule = new BayParityMatchesContainerSizeRule(slot.Bay, container.SizeFeet);
@@ -80,8 +90,10 @@ public sealed class GateInContainerCommandHandler(
         }
 
         if (!Enum.TryParse<ContainerCondition>(command.ConditionAtGateIn, true, out var conditionAtGateIn))
+        {
             return Result.Failure<ContainerMovementResponse>(Error.Validation("Gate.InvalidCondition",
                 "Invalid ConditionAtGateIn value."));
+        }
 
         var movement = new ContainerMovement
         {
@@ -112,7 +124,7 @@ public sealed class GateInContainerCommandHandler(
 #pragma warning restore S3776 // Cognitive Complexity: handler methods contain necessary validation logic
     }
 
-    private static ContainerMovementResponse Map(ContainerMovement m) => new(
+    internal static ContainerMovementResponse Map(ContainerMovement m) => new(
         m.Id, m.ContainerId, m.LineOperatorId, m.YardSlotId, m.BlockId,
         m.Classification,
         m.ConditionAtGateIn.ToString(),
@@ -135,29 +147,39 @@ public sealed class GateOutContainerCommandHandler(
         var container = await dbContext.Containers
             .FirstOrDefaultAsync(c => c.ContainerNumberRaw == normalizedNumber, cancellationToken);
         if (container is null)
+        {
             return Result.Failure<ContainerMovementResponse>(Error.NotFound("Container.NotFound",
                 $"Container '{normalizedNumber}' was not found."));
+        }
 
         var openMovement = await dbContext.ContainerMovements
             .FirstOrDefaultAsync(m => m.ContainerId == container.Id && m.Status == MovementStatus.InYard, cancellationToken);
         if (openMovement is null)
+        {
             return Result.Failure<ContainerMovementResponse>(Error.Conflict("Gate.NotInYard",
                 $"Container '{normalizedNumber}' is not in the yard."));
+        }
 
         var deliveryOrder = await dbContext.DeliveryOrders
             .Include(d => d.Lines)
             .FirstOrDefaultAsync(d => d.Id == command.DeliveryOrderId, cancellationToken);
         if (deliveryOrder is null)
+        {
             return Result.Failure<ContainerMovementResponse>(Error.NotFound("DeliveryOrder.NotFound",
                 $"Delivery order '{command.DeliveryOrderId}' was not found."));
+        }
 
         if (deliveryOrder.LineOperatorId != openMovement.LineOperatorId)
+        {
             return Result.Failure<ContainerMovementResponse>(Error.Conflict("Gate.LineOperatorMismatch",
                 "Delivery order's Line Operator does not match the container's current Line Operator."));
+        }
 
         if (deliveryOrder.IsClosed)
+        {
             return Result.Failure<ContainerMovementResponse>(Error.Conflict("DeliveryOrder.Closed",
                 "Delivery order has been closed."));
+        }
 
         var expiryRule = new DeliveryOrderNotExpiredRule(deliveryOrder.ExpiryDate, DateTimeOffset.UtcNow);
         if (expiryRule.IsBroken())
@@ -165,8 +187,10 @@ public sealed class GateOutContainerCommandHandler(
 
         var line = deliveryOrder.Lines.FirstOrDefault(l => l.ContainerTypeId == container.ContainerTypeId);
         if (line is null)
+        {
             return Result.Failure<ContainerMovementResponse>(Error.Validation("DeliveryOrder.NoLineForType",
                 $"Delivery order has no line for container type '{container.ContainerTypeId}'."));
+        }
 
         var qtyRule = new DeliveryOrderQuantityAvailableRule(line.RequestedQuantity, line.DeliveredQuantity);
         if (qtyRule.IsBroken())
@@ -189,8 +213,10 @@ public sealed class GateOutContainerCommandHandler(
             return Result.Failure<ContainerMovementResponse>(Error.Validation(ruleResult.Violations[0].RuleCode, ruleResult.Violations[0].Message));
 
         if (!Enum.TryParse<ContainerCondition>(command.ConditionAtGateOut, true, out var conditionOut))
+        {
             return Result.Failure<ContainerMovementResponse>(Error.Validation("Gate.InvalidCondition",
                 "Invalid ConditionAtGateOut value."));
+        }
 
         openMovement.Status = MovementStatus.GateOut;
         openMovement.GateOutAt = DateTimeOffset.UtcNow;
@@ -210,21 +236,13 @@ public sealed class GateOutContainerCommandHandler(
             }
         }
 
-        line.DeliveredQuantity += 1;
+        line.DeliveredQuantity++;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
         await cache.InvalidateByTagAsync("yard-map", cancellationToken);
 
-        return Result.Success(new ContainerMovementResponse(
-            openMovement.Id, openMovement.ContainerId, openMovement.LineOperatorId,
-            openMovement.YardSlotId, openMovement.BlockId,
-            openMovement.Classification,
-            openMovement.ConditionAtGateIn.ToString(),
-            openMovement.ConditionAtGateOut?.ToString(),
-            openMovement.VehicleInNumber, openMovement.DriverInName, openMovement.GateInAt,
-            openMovement.VehicleOutNumber, openMovement.DriverOutName, openMovement.GateOutAt,
-            openMovement.Status.ToString(), openMovement.DeliveryOrderId));
+        return Result.Success(GateInContainerCommandHandler.Map(openMovement));
     }
 }
 
@@ -239,29 +257,39 @@ public sealed class MoveContainerInYardCommandHandler(
         var container = await dbContext.Containers
             .FirstOrDefaultAsync(c => c.ContainerNumberRaw == normalizedNumber, cancellationToken);
         if (container is null)
+        {
             return Result.Failure(Error.NotFound("Container.NotFound",
                 $"Container '{normalizedNumber}' was not found."));
+        }
 
         var openMovement = await dbContext.ContainerMovements
             .FirstOrDefaultAsync(m => m.ContainerId == container.Id && m.Status == MovementStatus.InYard, cancellationToken);
         if (openMovement is null)
+        {
             return Result.Failure(Error.Conflict("Gate.NotInYard",
                 "Container is not currently in the yard."));
+        }
 
         var block = await dbContext.Blocks.FirstOrDefaultAsync(b => b.Id == command.NewBlockId, cancellationToken);
         if (block is null)
+        {
             return Result.Failure(Error.NotFound("Block.NotFound",
                 $"Block '{command.NewBlockId}' was not found."));
+        }
         if (block.IsVirtual)
+        {
             return Result.Failure(Error.Validation("Block.Virtual",
                 "Cannot move a container into a virtual block using Bay/Row/Tier."));
+        }
 
         var targetSlot = await dbContext.YardSlots
             .FirstOrDefaultAsync(s => s.BlockId == command.NewBlockId && s.Bay == command.NewBay
                 && s.Row == command.NewRow && s.Tier == command.NewTier, cancellationToken);
         if (targetSlot is null)
+        {
             return Result.Failure(Error.NotFound("YardSlot.NotFound",
                 "Yard slot not found for the given Block/Bay/Row/Tier."));
+        }
 
         var bayRule = new BayParityMatchesContainerSizeRule(targetSlot.Bay, container.SizeFeet);
         if (bayRule.IsBroken())
@@ -269,8 +297,10 @@ public sealed class MoveContainerInYardCommandHandler(
 
         var occupyingContainerId = targetSlot.CurrentContainerId;
         if (targetSlot.IsOccupied && occupyingContainerId != container.Id)
+        {
             return Result.Failure(Error.Conflict("Yard.SlotOccupied",
                 "Yard slot is occupied by another container."));
+        }
 
         // Release old slot
         if (openMovement.YardSlotId is not null)
@@ -307,8 +337,10 @@ public sealed class GetContainerMovementHistoryQueryHandler(IAppDbContext dbCont
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.ContainerNumberRaw == normalizedNumber, cancellationToken);
         if (container is null)
+        {
             return Result.Failure<IReadOnlyList<ContainerMovementResponse>>(Error.NotFound("Container.NotFound",
                 $"Container '{normalizedNumber}' was not found."));
+        }
 
         var items = await dbContext.ContainerMovements
             .AsNoTracking()
@@ -316,13 +348,6 @@ public sealed class GetContainerMovementHistoryQueryHandler(IAppDbContext dbCont
             .OrderByDescending(m => m.GateInAt)
             .ToListAsync(cancellationToken);
 
-        return Result.Success<IReadOnlyList<ContainerMovementResponse>>(items.Select(m => new ContainerMovementResponse(
-            m.Id, m.ContainerId, m.LineOperatorId, m.YardSlotId, m.BlockId,
-            m.Classification,
-            m.ConditionAtGateIn.ToString(),
-            m.ConditionAtGateOut?.ToString(),
-            m.VehicleInNumber, m.DriverInName, m.GateInAt,
-            m.VehicleOutNumber, m.DriverOutName, m.GateOutAt,
-            m.Status.ToString(), m.DeliveryOrderId)).ToList());
+        return Result.Success<IReadOnlyList<ContainerMovementResponse>>([.. items.Select(GateInContainerCommandHandler.Map)]);
     }
 }

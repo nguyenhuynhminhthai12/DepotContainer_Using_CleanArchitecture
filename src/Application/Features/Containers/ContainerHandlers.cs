@@ -17,18 +17,24 @@ public sealed class CreateContainerCommandHandler(IAppDbContext dbContext) :
         var existing = await dbContext.Containers
             .AnyAsync(c => c.ContainerNumberRaw == normalized, cancellationToken);
         if (existing)
+        {
             return Result.Failure<ContainerResponse>(Error.Conflict("Container.Duplicate",
                 $"Container '{normalized}' already exists."));
+        }
 
         if (!Enum.TryParse<ContainerCondition>(command.Condition, true, out var condition))
+        {
             return Result.Failure<ContainerResponse>(Error.Validation("Container.InvalidCondition",
                 "Invalid container condition."));
+        }
 
         var typeExists = await dbContext.ContainerTypes
             .AnyAsync(t => t.Id == command.ContainerTypeId, cancellationToken);
         if (!typeExists)
+        {
             return Result.Failure<ContainerResponse>(Error.NotFound("ContainerType.NotFound",
                 $"Container type '{command.ContainerTypeId}' was not found."));
+        }
 
         Container container;
         try
@@ -77,8 +83,10 @@ public sealed class GetContainerByNumberQueryHandler(IAppDbContext dbContext) :
             .FirstOrDefaultAsync(x => x.ContainerNumberRaw == normalized, cancellationToken);
 
         if (c is null)
+        {
             return Result.Failure<ContainerResponse>(Error.NotFound("Container.NotFound",
                 $"Container '{normalized}' was not found."));
+        }
 
         return Result.Success(Map(c));
     }
@@ -127,5 +135,91 @@ public sealed class GetContainersQueryHandler(IAppDbContext dbContext) :
             .ToListAsync(cancellationToken);
 
         return Result.Success(new PagedResult<ContainerResponse>(items, totalCount, query.Page, query.PageSize));
+    }
+}
+
+public sealed class UpdateContainerCommandHandler(IAppDbContext dbContext) :
+    ICommandHandler<UpdateContainerCommand, Result<ContainerResponse>>
+{
+    public async Task<Result<ContainerResponse>> HandleAsync(UpdateContainerCommand command, CancellationToken cancellationToken = default)
+    {
+        var container = await dbContext.Containers
+            .FirstOrDefaultAsync(c => c.Id == command.Id, cancellationToken);
+        if (container is null)
+        {
+            return Result.Failure<ContainerResponse>(Error.NotFound("Container.NotFound",
+                $"Container '{command.Id}' was not found."));
+        }
+
+        if (!Enum.TryParse<ContainerCondition>(command.Condition, true, out var condition))
+        {
+            return Result.Failure<ContainerResponse>(Error.Validation("Container.InvalidCondition",
+                "Invalid container condition."));
+        }
+
+        var typeExists = await dbContext.ContainerTypes
+            .AnyAsync(t => t.Id == command.ContainerTypeId, cancellationToken);
+        if (!typeExists)
+        {
+            return Result.Failure<ContainerResponse>(Error.NotFound("ContainerType.NotFound",
+                $"Container type '{command.ContainerTypeId}' was not found."));
+        }
+
+        container.ContainerTypeId = command.ContainerTypeId;
+        container.IsoCode = command.IsoCode.Trim();
+        container.SizeFeet = command.SizeFeet;
+        container.MaxWeightKg = command.MaxWeightKg;
+        container.TareWeightKg = command.TareWeightKg;
+        container.ManufactureDate = command.ManufactureDate;
+        container.Owner = command.Owner.Trim();
+        container.Condition = condition;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return Result.Success(new ContainerResponse(
+            container.Id,
+            container.ContainerNumberRaw,
+            container.ContainerTypeId,
+            container.IsoCode,
+            container.SizeFeet,
+            container.MaxWeightKg,
+            container.TareWeightKg,
+            container.ManufactureDate,
+            container.Owner,
+            container.Condition.ToString()));
+    }
+}
+
+public sealed class DeleteContainerCommandHandler(IAppDbContext dbContext) :
+    ICommandHandler<DeleteContainerCommand, Result>
+{
+    public async Task<Result> HandleAsync(DeleteContainerCommand command, CancellationToken cancellationToken = default)
+    {
+        var container = await dbContext.Containers
+            .FirstOrDefaultAsync(c => c.Id == command.Id, cancellationToken);
+        if (container is null)
+        {
+            return Result.Failure(Error.NotFound("Container.NotFound",
+                $"Container '{command.Id}' was not found."));
+        }
+
+        var inYard = await dbContext.YardSlots
+            .AnyAsync(s => s.CurrentContainerId == container.Id && s.IsOccupied, cancellationToken);
+        if (inYard)
+        {
+            return Result.Failure(Error.Conflict("Container.InYardCannotDelete",
+                $"Container '{container.ContainerNumberRaw}' is currently occupying a yard slot. Gate-out or vacate slot before deleting."));
+        }
+
+        // Remove any historical movements for this container
+        var movements = await dbContext.ContainerMovements
+            .Where(m => m.ContainerId == container.Id)
+            .ToListAsync(cancellationToken);
+        dbContext.ContainerMovements.RemoveRange(movements);
+
+        dbContext.Containers.Remove(container);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
     }
 }

@@ -74,4 +74,7 @@ node_modules/
 dist/
 .dotnet/
 *.bak
-*.aspire-baksrc/.sonarqube/
+*.aspire-bak
+.sonarqube/
+.kilo/
+/backups/

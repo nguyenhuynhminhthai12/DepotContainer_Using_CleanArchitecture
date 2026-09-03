@@ -15,7 +15,7 @@
 ### Database
 - [ ] Run EF Core migrations before deployment
 - [ ] Enable connection pooling (Npgsql has built-in)
-- [ ] Set up automated backups
+- [x] Set up automated backups (`scripts/backup-db.sh`, daily at 2 AM via cron)
 - [ ] Enable SSL for PostgreSQL connections
 
 ### Caching

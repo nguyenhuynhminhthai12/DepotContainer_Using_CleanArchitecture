@@ -37,6 +37,14 @@ public static class YardEndpoints
             .AddEndpointFilter<ValidationFilter<ResizeBlockCommand>>()
             .WithName("ResizeBlock")
             .WithSummary("Resize a Block's MaxBay/MaxRow/MaxTier and auto-create missing slots.");
+
+        blocks.MapPut("/{id:guid}", UpdateBlock)
+            .WithName("UpdateBlock")
+            .WithSummary("Update a Block's code and name.");
+
+        blocks.MapDelete("/{id:guid}", DeleteBlock)
+            .WithName("DeleteBlock")
+            .WithSummary("Delete a Block if all its slots are unoccupied.");
     }
 
     private static async Task<IResult> GetDepots(
@@ -87,6 +95,26 @@ public static class YardEndpoints
         var result = await handler.HandleAsync(new ResizeBlockCommand(id, request.MaxBay, request.MaxRow, request.MaxTier), cancellationToken);
         return result.IsSuccess ? TypedResults.NoContent() : result.ToProblemDetails();
     }
+
+    private static async Task<IResult> UpdateBlock(
+        Guid id,
+        UpdateBlockRequest request,
+        ICommandHandler<UpdateBlockCommand, Result<CreateBlockResponse>> handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(new UpdateBlockCommand(id, request.Code, request.Name), cancellationToken);
+        return result.IsSuccess ? TypedResults.Ok(result.Value) : result.ToProblemDetails();
+    }
+
+    private static async Task<IResult> DeleteBlock(
+        Guid id,
+        ICommandHandler<DeleteBlockCommand, Result> handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(new DeleteBlockCommand(id), cancellationToken);
+        return result.IsSuccess ? TypedResults.NoContent() : result.ToProblemDetails();
+    }
 }
 
 public sealed record ResizeBlockRequest(int MaxBay, int MaxRow, int MaxTier);
+public sealed record UpdateBlockRequest(string Code, string Name);

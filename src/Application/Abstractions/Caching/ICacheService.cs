@@ -2,7 +2,7 @@ namespace TechSpherex.CleanArchitecture.Application.Abstractions.Caching;
 
 /// <summary>
 /// Clean cache abstraction for the Application layer.
-/// Wraps HybridCache (L1 In-Memory + L2 Redis) so handlers 
+/// Wraps HybridCache (L1 In-Memory + L2 Redis) so handlers
 /// never depend on infrastructure packages directly.
 /// </summary>
 public interface ICacheService

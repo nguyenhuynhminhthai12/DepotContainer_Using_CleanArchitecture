@@ -15,13 +15,17 @@ public sealed class CreateBlockCommandHandler(IAppDbContext dbContext, ICacheSer
     {
         var depotExists = await dbContext.Depots.AnyAsync(d => d.Id == command.DepotId, cancellationToken);
         if (!depotExists)
+        {
             return Result.Failure<CreateBlockResponse>(Error.NotFound("Depot.NotFound",
                 $"Depot '{command.DepotId}' was not found."));
+        }
 
         var code = command.Code.Trim();
         if (await dbContext.Blocks.AnyAsync(b => b.DepotId == command.DepotId && b.Code == code, cancellationToken))
+        {
             return Result.Failure<CreateBlockResponse>(Error.Conflict("Block.DuplicateCode",
                 $"Block code '{code}' already exists in depot '{command.DepotId}'."));
+        }
 
         var block = new Block
         {
@@ -78,13 +82,17 @@ public sealed class CreateVirtualBlockCommandHandler(IAppDbContext dbContext, IC
     {
         var depotExists = await dbContext.Depots.AnyAsync(d => d.Id == command.DepotId, cancellationToken);
         if (!depotExists)
+        {
             return Result.Failure<CreateBlockResponse>(Error.NotFound("Depot.NotFound",
                 $"Depot '{command.DepotId}' was not found."));
+        }
 
         var code = command.Code.Trim();
         if (await dbContext.Blocks.AnyAsync(b => b.DepotId == command.DepotId && b.Code == code, cancellationToken))
+        {
             return Result.Failure<CreateBlockResponse>(Error.Conflict("Block.DuplicateCode",
                 $"Block code '{code}' already exists in depot '{command.DepotId}'."));
+        }
 
         var block = new Block
         {
@@ -119,21 +127,25 @@ public sealed class ResizeBlockCommandHandler(IAppDbContext dbContext, ICacheSer
             .FirstOrDefaultAsync(b => b.Id == command.BlockId, cancellationToken);
 
         if (block is null)
+        {
             return Result.Failure(Error.NotFound("Block.NotFound",
                 $"Block '{command.BlockId}' was not found."));
+        }
 
         if (block.IsVirtual)
+        {
             return Result.Failure(Error.Validation("Block.VirtualResizeNotSupported",
                 "Virtual blocks cannot be resized — they don't have a Bay/Row/Tier grid."));
+        }
 
         // Shrinking dimensions below already-occupied slots is rejected.
         var occupied = await dbContext.YardSlots
             .Where(s => s.BlockId == block.Id && s.IsOccupied)
             .ToListAsync(cancellationToken);
 
-        if (command.MaxBay < (occupied.Any() ? occupied.Max(s => s.Bay) : 0)
-            || command.MaxRow < (occupied.Any() ? occupied.Max(s => s.Row) : 0)
-            || command.MaxTier < (occupied.Any() ? occupied.Max(s => s.Tier) : 0))
+        if (command.MaxBay < (occupied.Count > 0 ? occupied.Max(s => s.Bay) : 0)
+            || command.MaxRow < (occupied.Count > 0 ? occupied.Max(s => s.Row) : 0)
+            || command.MaxTier < (occupied.Count > 0 ? occupied.Max(s => s.Tier) : 0))
         {
             return Result.Failure(Error.Conflict("Block.ResizeShrinksOccupied",
                 "Cannot shrink the block: at least one occupied slot is outside the new dimensions."));
@@ -239,23 +251,95 @@ public sealed class GetYardMapQueryHandler(IAppDbContext dbContext, ICacheServic
             .Where(s => blockIds.Contains(s.BlockId))
             .ToListAsync(ct);
 
-        var blockDtos = blocks.Select(b => new BlockMapDto(
-            b.Id,
-            b.Code,
-            b.Name,
-            b.IsVirtual,
-            b.MaxBay,
-            b.MaxRow,
-            b.MaxTier,
-            b.IsVirtual
-                ? Array.Empty<YardSlotDto>()
-                : slots
-                    .Where(s => s.BlockId == b.Id)
-                    .OrderBy(s => s.Bay).ThenBy(s => s.Row).ThenBy(s => s.Tier)
+        var slotsByBlock = slots.ToLookup(s => s.BlockId);
+
+        var blockDtos = new List<BlockMapDto>(blocks.Count);
+        foreach (var b in blocks)
+        {
+            var blockSlots = b.IsVirtual
+                ? []
+                : slotsByBlock[b.Id]
+                    .OrderBy(s => s.Bay)
+                    .ThenBy(s => s.Row)
+                    .ThenBy(s => s.Tier)
                     .Select(s => new YardSlotDto(s.Id, s.Bay, s.Row, s.Tier, s.IsOccupied, s.CurrentContainerId))
-                    .ToList()
-        )).ToList();
+                    .ToList();
+
+            blockDtos.Add(new BlockMapDto(
+                b.Id,
+                b.Code,
+                b.Name,
+                b.IsVirtual,
+                b.MaxBay,
+                b.MaxRow,
+                b.MaxTier,
+                blockSlots));
+        }
 
         return new YardMapDto(depot.Id, depot.Name, blockDtos);
+    }
+}
+
+public sealed class UpdateBlockCommandHandler(IAppDbContext dbContext, ICacheService cache) :
+    ICommandHandler<UpdateBlockCommand, Result<CreateBlockResponse>>
+{
+    public async Task<Result<CreateBlockResponse>> HandleAsync(UpdateBlockCommand command, CancellationToken cancellationToken = default)
+    {
+        var block = await dbContext.Blocks
+            .FirstOrDefaultAsync(b => b.Id == command.BlockId, cancellationToken);
+        if (block is null)
+        {
+            return Result.Failure<CreateBlockResponse>(Error.NotFound("Block.NotFound",
+                $"Block '{command.BlockId}' was not found."));
+        }
+
+        block.Code = command.Code.Trim().ToUpperInvariant();
+        block.Name = command.Name.Trim();
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await cache.InvalidateByTagAsync("yard-map", cancellationToken);
+
+        return Result.Success(new CreateBlockResponse(
+            block.Id,
+            block.Code,
+            block.Name,
+            block.IsVirtual,
+            block.MaxBay,
+            block.MaxRow,
+            block.MaxTier));
+    }
+}
+
+public sealed class DeleteBlockCommandHandler(IAppDbContext dbContext, ICacheService cache) :
+    ICommandHandler<DeleteBlockCommand, Result>
+{
+    public async Task<Result> HandleAsync(DeleteBlockCommand command, CancellationToken cancellationToken = default)
+    {
+        var block = await dbContext.Blocks
+            .FirstOrDefaultAsync(b => b.Id == command.BlockId, cancellationToken);
+        if (block is null)
+        {
+            return Result.Failure(Error.NotFound("Block.NotFound",
+                $"Block '{command.BlockId}' was not found."));
+        }
+
+        var hasOccupiedSlots = await dbContext.YardSlots
+            .AnyAsync(s => s.BlockId == block.Id && s.IsOccupied, cancellationToken);
+        if (hasOccupiedSlots)
+        {
+            return Result.Failure(Error.Conflict("Block.OccupiedSlotsCannotDelete",
+                $"Block '{block.Code}' contains occupied container slots. Vacate or gate-out all containers before deleting."));
+        }
+
+        var slots = await dbContext.YardSlots
+            .Where(s => s.BlockId == block.Id)
+            .ToListAsync(cancellationToken);
+        dbContext.YardSlots.RemoveRange(slots);
+
+        dbContext.Blocks.Remove(block);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await cache.InvalidateByTagAsync("yard-map", cancellationToken);
+
+        return Result.Success();
     }
 }

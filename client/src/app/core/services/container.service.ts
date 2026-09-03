@@ -23,6 +23,14 @@ export class ContainerService {
     return this.http.post<Container>('/api/containers', req);
   }
 
+  update(id: string, req: Partial<Container>): Observable<Container> {
+    return this.http.put<Container>(`/api/containers/${id}`, { id, ...req });
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`/api/containers/${id}`);
+  }
+
   listTypes(): Observable<ContainerType[]> {
     return this.http.get<ContainerType[]>('/api/lookups/container-types');
   }
