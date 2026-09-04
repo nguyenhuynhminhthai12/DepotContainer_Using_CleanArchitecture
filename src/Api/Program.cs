@@ -89,7 +89,7 @@ try
             var schemeReference = new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer");
             var securityRequirement = new Microsoft.OpenApi.OpenApiSecurityRequirement
             {
-                [schemeReference] = new List<string>()
+                [schemeReference] = []
             };
 
             document.Security ??= [];

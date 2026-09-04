@@ -7,6 +7,7 @@ namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Configuration
 // Copyright (c) 2026 TechSpherex
 public sealed class TodoItemConfiguration : IEntityTypeConfiguration<TodoItem>
 {
+#pragma warning disable CA1822, S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<TodoItem> builder)
     {
         builder.HasKey(t => t.Id);

@@ -7,6 +7,7 @@
     <UseSharedCompilation>false</UseSharedCompilation>
     <NodeReuse>false</NodeReuse>
     <BuildMaxParallelProjects>1</BuildMaxParallelProjects>
+    <NoWarn>$(NoWarn);S1135</NoWarn>
   </PropertyGroup>
   <PropertyGroup Label="TestSettings">
     <ParallelizeTestRun>false</ParallelizeTestRun>

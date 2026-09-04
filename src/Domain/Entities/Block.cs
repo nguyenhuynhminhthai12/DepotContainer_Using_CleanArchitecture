@@ -36,6 +36,6 @@ namespace TechSpherex.CleanArchitecture.Domain.Entities;
         /// <summary>Vị trí thứ tự hiển thị trong Depot (bắt đầu từ 1).</summary>
         public int DisplayOrder { get; set; }
 
-        ///summary>Depot chứa block này (điều hướng quan hệ).</summary>
+        /// <summary>Depot chứa block này (điều hướng quan hệ).</summary>
         public Depot? Depot { get; set; }
     }

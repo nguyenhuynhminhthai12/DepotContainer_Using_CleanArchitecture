@@ -86,7 +86,7 @@ public static class AppDbSeeder
     }
 
     /// <summary>
-    /// Tạo 5 công việc Todo mẫu.
+    /// Tạo 5 công việc mẫu.
     /// </summary>
     private static async Task SeedSampleTodosAsync(AppDbContext context, ILogger logger)
     {

@@ -6,6 +6,7 @@ namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Configuration
 
 public sealed class YardSlotConfiguration : IEntityTypeConfiguration<YardSlot>
 {
+#pragma warning disable CA1822, S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<YardSlot> builder)
     {
         builder.HasKey(s => s.Id);

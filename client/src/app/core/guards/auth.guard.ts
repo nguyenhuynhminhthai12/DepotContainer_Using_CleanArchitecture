@@ -11,7 +11,11 @@ import { AuthStore } from '../services/auth.store';
 export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthStore);
   const router = inject(Router);
+
+  // 1. Kiểm tra trạng thái đăng nhập từ AuthStore (Signal)
   if (auth.isAuthenticated()) return true;
+
+  // 2. Nếu chưa đăng nhập -> Chuyển hướng ngay về trang /login
   router.navigate(['/login']);
   return false;
 };

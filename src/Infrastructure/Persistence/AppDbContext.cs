@@ -16,7 +16,7 @@ namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence;
 /// </summary>
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser>(options), IAppDbContext
 {
-    /// <summary>Tập hợp các công việc Todo.</summary>
+    /// <summary>Tập hợp các mục công việc TodoItem.</summary>
     public DbSet<TodoItem> Todos => Set<TodoItem>();
 
     #region Depot domain DbSets
@@ -96,6 +96,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
     /// <summary>
     /// Cập nhật CreatedAt / LastModifiedAt cho các thực thể AuditableEntity.
     /// </summary>
+#pragma warning disable CA1822, S2325
     private void UpdateAuditableEntities()
     {
         foreach (var entry in ChangeTracker.Entries<AuditableEntity>())

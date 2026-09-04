@@ -18,7 +18,7 @@ public sealed class TenantMiddleware(RequestDelegate next, ILogger<TenantMiddlew
         var tenantId = tenantProvider.TenantId;
         var tenant = tenantProvider.CurrentTenant;
 
-        if (tenant is not null && !tenant.IsActive)
+        if (tenant is { IsActive: false })
         {
             _logger.LogWarning("Tenant {TenantId} is inactive. Rejecting request.", tenantId);
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
@@ -35,7 +35,10 @@ public sealed class TenantMiddleware(RequestDelegate next, ILogger<TenantMiddlew
         // Enrich Serilog log context with tenant info
         using (Serilog.Context.LogContext.PushProperty("TenantId", tenantId))
         {
-            _logger.LogDebug("Request for tenant: {TenantId}", tenantId);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Request for tenant: {TenantId}", tenantId);
+            }
             await _next(context);
         }
     }

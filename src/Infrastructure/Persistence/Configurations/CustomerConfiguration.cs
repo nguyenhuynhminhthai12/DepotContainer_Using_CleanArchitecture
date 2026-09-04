@@ -6,6 +6,7 @@ namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Configuration
 
 public sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 {
+#pragma warning disable CA1822, S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<Customer> builder)
     {
         builder.HasKey(c => c.Id);

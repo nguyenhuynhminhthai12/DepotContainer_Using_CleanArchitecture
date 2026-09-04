@@ -235,7 +235,7 @@ import { AuthService } from './core/services/auth.service';
   `],
 })
 export class AppComponent {
-  constructor(public auth: AuthStore, private authService: AuthService) {}
+  constructor(public readonly auth: AuthStore, private readonly authService: AuthService) {}
 
   logout(): void {
     this.authService.logout();

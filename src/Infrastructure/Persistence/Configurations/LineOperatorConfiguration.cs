@@ -6,6 +6,7 @@ namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Configuration
 
 public sealed class LineOperatorConfiguration : IEntityTypeConfiguration<LineOperator>
 {
+#pragma warning disable CA1822, S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<LineOperator> builder)
     {
         builder.HasKey(l => l.Id);

@@ -8,10 +8,9 @@ namespace TechSpherex.CleanArchitecture.Infrastructure.Rules;
 
 /// <summary>
 /// Configuration-driven Rule Engine implementation.
-/// Rules are defined in appsettings.json under the "RuleEngine:RuleSets" section.
-///
-/// Supports operators: ==, !=, &gt;, &lt;, &gt;=, &lt;=, Contains, StartsWith, EndsWith, IsNull, IsNotNull.
-/// Supports AND/OR logic between conditions via the "Operator" field on the rule set.
+/// <para>Rules are defined in appsettings.json under the "RuleEngine:RuleSets" section.</para>
+/// <para>Supports operators: ==, !=, &gt;, &lt;, &gt;=, &lt;=, Contains, StartsWith, EndsWith, IsNull, IsNotNull.</para>
+/// <para>Supports AND/OR logic between conditions via the "Operator" field on the rule set.</para>
 /// </summary>
 public sealed partial class RuleEngine : IRuleEngine
 {
@@ -32,7 +31,7 @@ public sealed partial class RuleEngine : IRuleEngine
             {
                 Name = ruleSetSection.Key,
                 Operator = Enum.TryParse<LogicOperator>(ruleSetSection["Operator"], true, out var op) ? op : LogicOperator.And,
-                Rules = new List<RuleConfig>()
+                Rules = []
             };
 
             var rulesSection = ruleSetSection.GetSection("Rules");
@@ -49,12 +48,15 @@ public sealed partial class RuleEngine : IRuleEngine
                 });
             }
 
-            ruleSet.Rules = ruleSet.Rules.OrderBy(r => r.Priority).ToList();
+            ruleSet.Rules = [.. ruleSet.Rules.OrderBy(r => r.Priority)];
             _ruleSets[ruleSet.Name] = ruleSet;
         }
 
-        _logger.LogInformation("RuleEngine loaded {Count} rule sets: {Names}",
-            _ruleSets.Count, string.Join(", ", _ruleSets.Keys));
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation("RuleEngine loaded {Count} rule sets: {Names}",
+                _ruleSets.Count, string.Join(", ", _ruleSets.Keys));
+        }
     }
 
     public RuleResult Evaluate(string ruleSetName, IDictionary<string, object?> context)
@@ -138,9 +140,9 @@ public sealed partial class RuleEngine : IRuleEngine
             "<" or "LT" => CompareNumeric(fieldValue, comparisonValue) < 0,
             ">=" or "GTE" => CompareNumeric(fieldValue, comparisonValue) >= 0,
             "<=" or "LTE" => CompareNumeric(fieldValue, comparisonValue) <= 0,
-            "CONTAINS" => fieldValue?.ToString()?.Contains(comparisonValue?.ToString() ?? "", StringComparison.OrdinalIgnoreCase) == true,
-            "STARTSWITH" => fieldValue?.ToString()?.StartsWith(comparisonValue?.ToString() ?? "", StringComparison.OrdinalIgnoreCase) == true,
-            "ENDSWITH" => fieldValue?.ToString()?.EndsWith(comparisonValue?.ToString() ?? "", StringComparison.OrdinalIgnoreCase) == true,
+            "CONTAINS" => fieldValue?.ToString()?.Contains(comparisonValue?.ToString() ?? "", StringComparison.OrdinalIgnoreCase) is true,
+            "STARTSWITH" => fieldValue?.ToString()?.StartsWith(comparisonValue?.ToString() ?? "", StringComparison.OrdinalIgnoreCase) is true,
+            "ENDSWITH" => fieldValue?.ToString()?.EndsWith(comparisonValue?.ToString() ?? "", StringComparison.OrdinalIgnoreCase) is true,
             _ => false
         };
     }
@@ -190,7 +192,7 @@ internal sealed class RuleSetConfig
 {
     public string Name { get; set; } = default!;
     public LogicOperator Operator { get; set; } = LogicOperator.And;
-    public List<RuleConfig> Rules { get; set; } = new List<RuleConfig>();
+    public List<RuleConfig> Rules { get; set; } = [];
 }
 
 internal sealed class RuleConfig

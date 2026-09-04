@@ -7,6 +7,7 @@ namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Configuration
 // Copyright (c) 2026 TechSpherex
 public sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<ApplicationUser>
 {
+#pragma warning disable CA1822, S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
         builder.Property(u => u.FirstName)

@@ -30,13 +30,13 @@ COPY src/ src/
 
 RUN if [ "$PUBLISH_AOT" = "true" ]; then \
         dotnet publish src/Api/TechSpherex.CleanArchitecture.Api.csproj \
-            -c $BUILD_CONFIGURATION \
+            -c "$BUILD_CONFIGURATION" \
             -o /app/publish \
             /p:PublishAot=true \
             /p:StripSymbols=true; \
     else \
         dotnet publish src/Api/TechSpherex.CleanArchitecture.Api.csproj \
-            -c $BUILD_CONFIGURATION \
+            -c "$BUILD_CONFIGURATION" \
             -o /app/publish \
             /p:PublishAot=false; \
     fi
@@ -54,7 +54,7 @@ COPY --from=build /app/publish .
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
+    CMD ["wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
 
 # Expose default Kestrel port
 ENV ASPNETCORE_URLS=http://+:8080

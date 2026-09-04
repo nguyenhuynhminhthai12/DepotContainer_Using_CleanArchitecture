@@ -11,7 +11,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Block, YardMapDto, BlockWithSlots } from '../models/api.models';
+import { YardMapDto, BlockWithSlots } from '../models/api.models';
 
 @Injectable({ providedIn: 'root' })
 export class YardService {
