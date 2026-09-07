@@ -7,7 +7,6 @@ namespace TechSpherex.CleanArchitecture.Infrastructure.Identity;
 /// <summary>
 /// Triển khai <see cref="ICurrentUser"/> lấy thông tin người dùng từ HttpContext hiện tại.
 /// </summary>
-/// <param name="httpContextAccessor">Accessor để truy cập HttpContext.</param>
 public sealed class CurrentUser(IHttpContextAccessor httpContextAccessor) : ICurrentUser
 {
     /// <inheritdoc/>

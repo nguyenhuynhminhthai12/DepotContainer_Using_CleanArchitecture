@@ -9,8 +9,6 @@ namespace TechSpherex.CleanArchitecture.Application.Features.Identity.Login;
 /// <summary>
 /// Xử lý lệnh đăng nhập — xác thực email/mật khẩu và tạo JWT token.
 /// </summary>
-/// <param name="userManager">Quản lý người dùng ASP.NET Core Identity.</param>
-/// <param name="tokenService">Dịch vụ tạo token JWT.</param>
 public sealed class LoginCommandHandler(
     UserManager<ApplicationUser> userManager,
     ITokenService tokenService) : ICommandHandler<LoginCommand, Result<TokenResponse>>
