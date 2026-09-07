@@ -1,9 +1,10 @@
 /**
- * Bộ test cho chức năng Tạo Todo (Create Todo Command Handler).
+ * Bộ test cho chức năng tạo mục công việc (CreateTodoCommandHandler).
  * Kiểm tra các trường hợp: tạo thành công, lưu trữ Title và Description.
  * Bản quyền (c) 2026 TechSpherex.
  */
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using TechSpherex.CleanArchitecture.Application.Features.Todos.Create;
 
 namespace TechSpherex.CleanArchitecture.Application.UnitTests.Features.Todos;
@@ -41,7 +42,7 @@ public sealed class CreateTodoCommandHandlerTests
         await handler.HandleAsync(command, TestContext.Current.CancellationToken);
 
         // Assert
-        var todo = dbContext.Todos.Single();
+        var todo = await dbContext.Todos.SingleAsync(TestContext.Current.CancellationToken);
         todo.Title.Should().Be("My Task");
         todo.Description.Should().Be("Some details");
     }

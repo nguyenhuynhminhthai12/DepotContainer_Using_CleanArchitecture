@@ -7,9 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace TechSpherex.CleanArchitecture.Application.Features.Todos.GetAll;
 
 /// <summary>
-/// Xử lý truy vấn lấy danh sách Todo có phân trang (sắp xếp theo thời gian tạo giảm dần).
+/// Xử lý truy vấn lấy danh sách mục công việc có phân trang (sắp xếp theo thời gian tạo giảm dần).
 /// </summary>
-/// <param name="dbContext">Context cơ sở dữ liệu.</param>
 public sealed class GetAllTodosQueryHandler(IAppDbContext dbContext) : IQueryHandler<GetAllTodosQuery, Result<PagedResult<TodoDetailResponse>>>
 {
     /// <inheritdoc/>

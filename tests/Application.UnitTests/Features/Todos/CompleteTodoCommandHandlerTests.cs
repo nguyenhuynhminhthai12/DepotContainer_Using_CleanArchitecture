@@ -1,6 +1,6 @@
 /**
- * Bộ test cho chức năng Hoàn thành Todo (Complete Todo Command Handler).
- * Kiểm tra các trường hợp: đánh dấu hoàn thành thành công và trả về NotFound khi không tìm thấy.
+ * Bộ test cho chức năng hoàn thành mục công việc (CompleteTodoCommandHandler).
+ * Kiểm tra các trường hợp: đánh dấu hoàn thành và trả về NotFound khi không tìm thấy.
  * Bản quyền (c) 2026 TechSpherex.
  */
 using FluentAssertions;

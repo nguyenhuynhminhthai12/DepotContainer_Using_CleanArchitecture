@@ -1,5 +1,5 @@
 /**
- * Bộ test cho chức năng Lấy Todo (Get Todo Query Handler).
+ * Bộ test cho chức năng truy vấn mục công việc (GetTodoQueryHandler).
  * Kiểm tra các trường hợp: tìm thấy và không tìm thấy (NotFound).
  * Bản quyền (c) 2026 TechSpherex.
  */

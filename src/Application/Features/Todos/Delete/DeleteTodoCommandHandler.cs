@@ -5,9 +5,8 @@ using TechSpherex.CleanArchitecture.Domain.Common;
 namespace TechSpherex.CleanArchitecture.Application.Features.Todos.Delete;
 
 /// <summary>
-/// Xử lý lệnh xóa một Todo khỏi cơ sở dữ liệu.
+/// Xử lý lệnh xóa một mục công việc khỏi cơ sở dữ liệu.
 /// </summary>
-/// <param name="dbContext">Context cơ sở dữ liệu.</param>
 public sealed class DeleteTodoCommandHandler(IAppDbContext dbContext) : ICommandHandler<DeleteTodoCommand>
 {
     /// <inheritdoc/>

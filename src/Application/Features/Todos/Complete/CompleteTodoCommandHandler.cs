@@ -5,9 +5,8 @@ using TechSpherex.CleanArchitecture.Domain.Common;
 namespace TechSpherex.CleanArchitecture.Application.Features.Todos.Complete;
 
 /// <summary>
-/// Xử lý lệnh đánh dấu một Todo là đã hoàn thành (gọi <see cref="TodoItem.MarkAsCompleted"/>).
+/// Xử lý lệnh đánh dấu một mục công việc là đã hoàn thành.
 /// </summary>
-/// <param name="dbContext">Context cơ sở dữ liệu.</param>
 public sealed class CompleteTodoCommandHandler(IAppDbContext dbContext) : ICommandHandler<CompleteTodoCommand>
 {
     /// <inheritdoc/>

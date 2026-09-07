@@ -1,27 +1,26 @@
 namespace TechSpherex.CleanArchitecture.Domain.Common.Rules;
 
 /// <summary>
-/// Validates the ISO 6346 / BIC check digit (Modulo 11) of a container number.
-///
+/// <para>Validates the ISO 6346 / BIC check digit (Modulo 11) of a container number.</para>
+/// <para>
 /// Algorithm (Phụ lục I):
-///   1. Take the first 10 characters (3 owner code + 1 type + 6 serial).
-///   2. Assign each character a numeric value:
-///        – Letters: A=10, B=12, C=13, …, Z=38 (skip multiples of 11).
-///        – Digits: 0..9.
-///   3. Multiply each value by 2^(position) where position = 0..9 (rightmost is 0).
-///   4. Sum all products.
-///   5. Modulo 11 of the sum gives the expected check digit.
-///   6. If modulo result is 10, the number is invalid (per ISO 6346).
-///   7. The last character of the 11-char input must equal the modulo result.
+/// <list type="number">
+/// <item><description>Take the first 10 characters (3 owner code + 1 type + 6 serial).</description></item>
+/// <item><description>Assign each character a numeric value:
+/// <para>– Letters: A=10, B=12, C=13, …, Z=38 (skip multiples of 11).</para>
+/// <para>– Digits: 0..9.</para>
+/// </description></item>
+/// <item><description>Multiply each value by 2^(position) where position = 0..9 (rightmost is 0).</description></item>
+/// <item><description>Sum all products.</description></item>
+/// <item><description>Modulo 11 of the sum gives the expected check digit.</description></item>
+/// <item><description>If modulo result is 10, the number is invalid (per ISO 6346).</description></item>
+/// <item><description>The last character of the 11-char input must equal the modulo result.</description></item>
+/// </list>
+/// </para>
 /// </summary>
-public sealed class ContainerNumberCheckDigitRule : IBusinessRule
+public sealed class ContainerNumberCheckDigitRule(string candidate) : IBusinessRule
 {
-    private readonly string _candidate;
-
-    public ContainerNumberCheckDigitRule(string candidate)
-    {
-        _candidate = (candidate ?? string.Empty).Trim().ToUpperInvariant();
-    }
+    private readonly string _candidate = (candidate ?? string.Empty).Trim().ToUpperInvariant();
 
     public string RuleCode => "Container.NumberCheckDigit";
     public string Message => "Container number failed ISO 6346 Modulo-11 check digit validation.";

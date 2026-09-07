@@ -23,10 +23,7 @@ public partial class InitialCreate : Migration
                 NormalizedName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                 ConcurrencyStamp = table.Column<string>(type: "text", nullable: true)
             },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_AspNetRoles", x => x.Id);
-            });
+            constraints: table => table.PrimaryKey("PK_AspNetRoles", x => x.Id));
 
         migrationBuilder.CreateTable(
             name: "AspNetUsers",
@@ -52,10 +49,7 @@ public partial class InitialCreate : Migration
                 LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
                 AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
             },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-            });
+            constraints: table => table.PrimaryKey("PK_AspNetUsers", x => x.Id));
 
         migrationBuilder.CreateTable(
             name: "Todos",
@@ -71,10 +65,7 @@ public partial class InitialCreate : Migration
                 LastModifiedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                 LastModifiedBy = table.Column<string>(type: "text", nullable: true)
             },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_Todos", x => x.Id);
-            });
+            constraints: table => table.PrimaryKey("PK_Todos", x => x.Id));
 
         migrationBuilder.CreateTable(
             name: "AspNetRoleClaims",
