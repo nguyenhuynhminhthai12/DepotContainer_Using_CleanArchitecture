@@ -117,7 +117,6 @@ public static class DependencyInjection
             };
         });
 
-        // Đăng ký lớp cache abstraction sạch được hỗ trợ bởi HybridCache
         services.AddSingleton<ICacheService, HybridCacheService>();
     }
 
