@@ -6,7 +6,6 @@ namespace TechSpherex.CleanArchitecture.Api.Extensions;
 /// Nếu validation thất bại, trả về phản hồi 400 Validation Problem ngay lập tức.
 /// </summary>
 /// <typeparam name="T">Kiểu dữ liệu cần xác thực.</typeparam>
-/// <param name="validator">Validator FluentValidation tương ứng.</param>
 public sealed class ValidationFilter<T>(IValidator<T> validator) : IEndpointFilter where T : class
 {
     /// <summary>

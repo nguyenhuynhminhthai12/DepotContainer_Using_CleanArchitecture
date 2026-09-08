@@ -1,3 +1,4 @@
+#pragma warning disable S1135 // 'Todo' ở đây là tên thực thể nghiệp vụ mẫu, không phải ghi chú TODO comment
 using TechSpherex.CleanArchitecture.Api.Extensions;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Messaging;
 using TechSpherex.CleanArchitecture.Application.Features.Todos.Complete;
@@ -124,3 +125,4 @@ public static class TodoEndpoints
 /// <param name="Title">Tiêu đề mới.</param>
 /// <param name="Description">Mô tả mới (tùy chọn).</param>
 public sealed record UpdateTodoRequest(string Title, string? Description);
+#pragma warning restore S1135
