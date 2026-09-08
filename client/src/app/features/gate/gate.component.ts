@@ -818,12 +818,37 @@ export class GateComponent implements OnInit {
     if (!target.closest('.gate-dropdown-out')) this.showDropdownOut = false;
   }
 
+  private targetBlockId: string | null = null;
+
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
       if (params['cntr']) {
         this.inForm.containerNumber = params['cntr'];
         this.moveForm.containerNumber = params['cntr'];
         this.outForm.containerNumber = params['cntr'];
+      }
+      if (params['blockId']) {
+        this.targetBlockId = params['blockId'];
+        this.inForm.blockId = params['blockId'];
+        this.moveForm.newBlockId = params['blockId'];
+      }
+      if (params['bay']) {
+        this.inForm.bay = Number(params['bay']);
+        this.moveForm.newBay = Number(params['bay']);
+      }
+      if (params['row']) {
+        this.inForm.row = Number(params['row']);
+        this.moveForm.newRow = Number(params['row']);
+      }
+      if (params['tier']) {
+        this.inForm.tier = Number(params['tier']);
+        this.moveForm.newTier = Number(params['tier']);
+      }
+      if (params['mode']) {
+        const m = params['mode'] as 'in' | 'move' | 'out';
+        if (['in', 'move', 'out'].includes(m)) {
+          this.activeTab = m;
+        }
       }
     });
 
@@ -854,9 +879,16 @@ export class GateComponent implements OnInit {
             next: (map) => {
               this.blocks.set(map.blocks);
               if (map.blocks.length > 0) {
-                const physBlock = map.blocks.find(b => !b.isVirtual) ?? map.blocks[0];
-                this.inForm.blockId = physBlock.id;
-                this.moveForm.newBlockId = physBlock.id;
+                // If a target block was selected from Yard Map, keep it; otherwise default to first physical block
+                const selectedExists = this.targetBlockId && map.blocks.some(b => b.id === this.targetBlockId);
+                if (selectedExists) {
+                  this.inForm.blockId = this.targetBlockId!;
+                  this.moveForm.newBlockId = this.targetBlockId!;
+                } else if (!this.inForm.blockId) {
+                  const physBlock = map.blocks.find(b => !b.isVirtual) ?? map.blocks[0];
+                  this.inForm.blockId = physBlock.id;
+                  this.moveForm.newBlockId = physBlock.id;
+                }
               }
             }
           });

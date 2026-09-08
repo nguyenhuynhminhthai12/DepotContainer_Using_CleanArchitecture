@@ -39,9 +39,16 @@ public static class DependencyInjection
         services.AddCorsPolicy(configuration);
         services.AddMultiTenancy();
         services.AddRuleEngineServices();
+        services.AddAIServices();
 
         return services;
     }
+
+    /// <summary>
+    /// Đăng ký dịch vụ Gemini AI Service và HttpClient.
+    /// </summary>
+    private static void AddAIServices(this IServiceCollection services) =>
+        services.AddHttpClient<TechSpherex.CleanArchitecture.Application.Abstractions.Agents.IAIService, TechSpherex.CleanArchitecture.Infrastructure.Agents.GeminiAIService>();
 
     /// <summary>
     /// Đăng ký <see cref="IAppDbContext"/> với triển khai <see cref="AppDbContext"/>.

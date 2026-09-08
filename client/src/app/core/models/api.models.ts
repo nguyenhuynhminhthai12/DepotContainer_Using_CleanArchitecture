@@ -195,3 +195,30 @@ export interface DailyThroughputReport {
 /** Auth. */
 export interface LoginRequest { email: string; password: string; }
 export interface AuthResponse { accessToken: string; refreshToken: string; expiresIn: number; }
+
+/** AI Agent. */
+export interface AgentMessageDto {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp?: string | Date;
+}
+
+export interface AgentExecuteRequest {
+  prompt: string;
+  parameters?: Record<string, unknown>;
+  history?: AgentMessageDto[];
+}
+
+export interface AgentExecuteResponse {
+  status: string;
+  message: string;
+  data?: unknown;
+  metadata?: Record<string, unknown>;
+}
+
+export interface SkillInfo {
+  skillId: string;
+  name: string;
+  description: string;
+  examplePrompts: string[];
+}

@@ -9,11 +9,12 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthStore } from './core/services/auth.store';
 import { AuthService } from './core/services/auth.service';
+import { AiAssistantWidgetComponent } from './shared/components/ai-assistant-widget/ai-assistant-widget.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, AiAssistantWidgetComponent],
   template: `
     <header class="topbar">
       <div class="brand-wrap">
@@ -60,6 +61,9 @@ import { AuthService } from './core/services/auth.service';
     <main class="content">
       <router-outlet />
     </main>
+
+    <!-- Global AI Assistant Copilot Widget -->
+    <app-ai-assistant-widget />
   `,
   styles: [`
     .topbar {

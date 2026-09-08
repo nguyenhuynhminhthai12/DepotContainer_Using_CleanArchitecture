@@ -1,3 +1,5 @@
+using Aspire.Hosting;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 /// <summary>
@@ -21,13 +23,22 @@ var redis = builder.AddRedis("TechSpherex-cache")
 /// Thêm API project với tham chiếu đến database và redis,
 /// cấu hình HTTP/HTTPS endpoints.
 /// </summary>
-builder.AddProject<Projects.TechSpherex_CleanArchitecture_Api>("api")
+var api = builder.AddProject<Projects.TechSpherex_CleanArchitecture_Api>("api")
     .WithReference(database)
     .WaitFor(database)
     .WithReference(redis)
     .WaitFor(redis)
     .WithHttpEndpoint(port: 5200, name: "http")
     .WithHttpsEndpoint(port: 7200, name: "https")
+    .WithExternalHttpEndpoints();
+
+/// <summary>
+/// Thêm Angular Frontend Client, liên kết với API và lắng nghe cổng 4200.
+/// </summary>
+builder.AddNpmApp("client", "../../client", "start")
+    .WithReference(api)
+    .WaitFor(api)
+    .WithHttpEndpoint(port: 4200, isProxied: false)
     .WithExternalHttpEndpoints();
 
 var app = builder.Build();

@@ -532,7 +532,21 @@ export class YardMapComponent implements OnInit {
   }
 
   goToGate(): void {
-    this.router.navigate(['/gate']);
+    if (this.selectedSlot && this.selectedBlock) {
+      const qParams: Record<string, string | number> = {
+        blockId: this.selectedBlock.id,
+        bay: this.selectedSlot.bay,
+        row: this.selectedSlot.row,
+        tier: this.selectedSlot.tier,
+        mode: this.selectedSlot.isOccupied ? 'move' : 'in'
+      };
+      if (this.selectedSlot.currentContainerId) {
+        qParams['cntr'] = this.selectedSlot.currentContainerId;
+      }
+      this.router.navigate(['/gate'], { queryParams: qParams });
+    } else {
+      this.router.navigate(['/gate']);
+    }
   }
 
   createBlock(): void {
