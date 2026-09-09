@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// Middleware that validates and sets the tenant context for each request.
-/// Must be registered before authentication middleware so tenant context is available early.
+/// Middleware xác thực và đặt ngữ cảnh tenant cho mỗi yêu cầu.
+/// phải được đăng ký trước middleware xác thực để ngữ cảnh tenant có sẵn sớm.
 /// </summary>
 namespace TechSpherex.CleanArchitecture.Infrastructure.Tenancy;
 public sealed class TenantMiddleware(RequestDelegate next, ILogger<TenantMiddleware> logger)
@@ -32,7 +32,7 @@ public sealed class TenantMiddleware(RequestDelegate next, ILogger<TenantMiddlew
             return;
         }
 
-        // Enrich Serilog log context with tenant info
+        // Phù ngữ cảnh log Serilog bằng thông tin tenant
         using (Serilog.Context.LogContext.PushProperty("TenantId", tenantId))
         {
             if (_logger.IsEnabled(LogLevel.Debug))
