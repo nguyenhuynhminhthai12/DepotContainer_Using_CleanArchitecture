@@ -4,10 +4,6 @@ namespace TechSpherex.CleanArchitecture.Domain.Common;
 /// Kết quả phân trang chứa danh sách phần tử và thông tin phân trang.
 /// </summary>
 /// <typeparam name="T">Kiểu dữ liệu của từng phần tử trong trang.</typeparam>
-/// <param name="items">Danh sách phần tử trong trang hiện tại.</param>
-/// <param name="totalCount">Tổng số phần tử của toàn bộ tập dữ liệu.</param>
-/// <param name="page">Số trang hiện tại (bắt đầu từ 1).</param>
-/// <param name="pageSize">Số phần tử tối đa trên mỗi trang.</param>
 public sealed class PagedResult<T>(List<T> items, int totalCount, int page, int pageSize)
 {
     /// <summary>Danh sách phần tử trong trang hiện tại.</summary>

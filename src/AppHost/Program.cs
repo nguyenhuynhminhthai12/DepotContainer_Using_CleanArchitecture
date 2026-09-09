@@ -20,6 +20,18 @@ var redis = builder.AddRedis("TechSpherex-cache")
     .WithDataVolume("techspherex-redis-data");
 
 /// <summary>
+/// Thêm SonarQube Community Container phục vụ phân tích chất lượng mã nguồn (Static Code Analysis),
+/// lắng nghe tại cổng http://localhost:9000 (truy cập /projects).
+/// </summary>
+builder.AddContainer("sonarqube", "sonarqube", "community")
+    .WithHttpEndpoint(port: 9000, targetPort: 9000, name: "http")
+    .WithLifetime(ContainerLifetime.Persistent)
+    .WithVolume("techspherex-sonarqube-data", "/opt/sonarqube/data")
+    .WithVolume("techspherex-sonarqube-extensions", "/opt/sonarqube/extensions")
+    .WithVolume("techspherex-sonarqube-logs", "/opt/sonarqube/logs");
+
+
+/// <summary>
 /// Thêm API project với tham chiếu đến database và redis,
 /// cấu hình HTTP/HTTPS endpoints.
 /// </summary>

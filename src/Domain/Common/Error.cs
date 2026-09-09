@@ -39,7 +39,7 @@ public enum ErrorType
     /// <summary>Lỗi không tìm thấy tài nguyên.</summary>
     NotFound,
 
-    ///summary>Lỗi xung đột dữ liệu (trùng lặp, trạng thái mâu thun).</summary>
+    /// <summary>Lỗi xung đột dữ liệu (trùng lặp, trạng thái mâu thun).</summary>
     Conflict,
 
     /// <summary>Lỗi không được phép truy cập (chưa xác thực / thiếu quyền).</summary>
