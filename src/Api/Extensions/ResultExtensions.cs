@@ -28,9 +28,9 @@ public static class ResultExtensions
         };
 
         return Results.Problem(
+            detail: result.Error.Message,
             statusCode: statusCode,
             title: title,
-            detail: result.Error.Message,
             extensions: new Dictionary<string, object?>
             {
                 ["errorCode"] = result.Error.Code
@@ -59,9 +59,9 @@ public static class ResultExtensions
         };
 
         return Results.Problem(
+            detail: result.Error.Message,
             statusCode: statusCode,
             title: title,
-            detail: result.Error.Message,
             extensions: new Dictionary<string, object?>
             {
                 ["errorCode"] = result.Error.Code

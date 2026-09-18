@@ -2,7 +2,7 @@ namespace TechSpherex.CleanArchitecture.Application.Abstractions.Agents;
 
 /// <summary>
 /// Đại diện cho một kỹ năng (skill) mà một AI agent có thể thực thi.
-/// Mỗi skill tương ứng với một khả năng miền (domain capability) cụ thể (ví dụ: quản lý todo, tạo báo cáo).
+/// Mỗi skill tương ứng với một khả năng miền (domain capability) cụ thể (ví dụ: quản lý công việc, tạo báo cáo).
 /// </summary>
 public interface ISkillAgent
 {
