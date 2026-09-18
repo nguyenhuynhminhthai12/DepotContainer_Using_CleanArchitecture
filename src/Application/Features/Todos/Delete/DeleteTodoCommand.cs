@@ -4,7 +4,7 @@ using TechSpherex.CleanArchitecture.Domain.Common;
 namespace TechSpherex.CleanArchitecture.Application.Features.Todos.Delete;
 
 /// <summary>
-/// Lệnh xóa một Todo theo ID.
+/// Lệnh xóa một công việc theo ID.
 /// </summary>
-/// <param name="Id">Mã định danh Todo cần xóa.</param>
+/// <param name="Id">Mã định danh công việc cần xóa.</param>
 public sealed record DeleteTodoCommand(Guid Id) : ICommand;

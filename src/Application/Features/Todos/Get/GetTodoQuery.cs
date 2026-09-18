@@ -4,13 +4,13 @@ using TechSpherex.CleanArchitecture.Domain.Common;
 namespace TechSpherex.CleanArchitecture.Application.Features.Todos.Get;
 
 /// <summary>
-/// Truy vấn lấy thông tin chi tiết một Todo theo ID.
+/// Truy vấn lấy thông tin chi tiết một công việc theo ID.
 /// </summary>
-/// <param name="Id">Mã định danh Todo cần truy vấn.</param>
+/// <param name="Id">Mã định danh công việc cần truy vấn.</param>
 public sealed record GetTodoQuery(Guid Id) : IQuery<Result<TodoDetailResponse>>;
 
 /// <summary>
-/// DTO trả về thông tin chi tiết Todo.
+/// DTO trả về thông tin chi tiết công việc.
 /// </summary>
 /// <param name="Id">Mã định danh.</param>
 /// <param name="Title">Tiêu đề.</param>

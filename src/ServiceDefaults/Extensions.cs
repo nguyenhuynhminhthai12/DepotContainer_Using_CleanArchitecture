@@ -71,8 +71,7 @@ public static class Extensions
     /// Thêm exporter OpenTelemetry (OTLP) nếu biến môi trường OTEL_EXPORTER_OTLP_ENDPOINT được đặt.
     /// </summary>
     /// <param name="builder">Host application builder.</param>
-    /// <returns>Builder sau khi đã đăng ký.</returns>
-    private static IHostApplicationBuilder AddOpenTelemetryExporters(this IHostApplicationBuilder builder)
+    private static void AddOpenTelemetryExporters(this IHostApplicationBuilder builder)
     {
         var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
 
@@ -80,8 +79,6 @@ public static class Extensions
         {
             builder.Services.AddOpenTelemetry().UseOtlpExporter();
         }
-
-        return builder;
     }
 
     /// <summary>
