@@ -81,31 +81,119 @@
 
 ---
 
-## 🏛️ Architecture
+## 🏛️ Architecture & System Diagrams
 
-```
-┌───────────────────────────────────────────────────────────┐
-│                        Api Layer                          │
-│  REST Endpoints · gRPC Services · Middleware · Scalar     │
-└──────────────────────┬────────────────────────────────────┘
-                       │ depends on
-┌──────────────────────▼────────────────────────────────────┐
-│                  Infrastructure Layer                     │
-│  EF Core · Identity · JWT · Cache · CORS · Rule Engine   │
-└──────────────────────┬────────────────────────────────────┘
-                       │ depends on
-┌──────────────────────▼────────────────────────────────────┐
-│                  Application Layer                        │
-│  CQRS Handlers · Validators · Cache/Rule Abstractions    │
-└──────────────────────┬────────────────────────────────────┘
-                       │ depends on
-┌──────────────────────▼────────────────────────────────────┐
-│                    Domain Layer                           │
-│  Entities · Value Objects · Result · Business Rules       │
-└───────────────────────────────────────────────────────────┘
+### 🏗️ Clean Architecture Overview
+
+```mermaid
+graph TD
+    subgraph Api_Layer ["Api Layer (Presentation)"]
+        API[Minimal APIs · gRPC Services · Scalar OpenAPI · Middlewares]
+    end
+
+    subgraph Infrastructure_Layer ["Infrastructure Layer"]
+        INFRA[EF Core 10 · PostgreSQL · Identity JWT · HybridCache · Rule Engine]
+    end
+
+    subgraph Application_Layer ["Application Layer"]
+        APP[CQRS Handlers · FluentValidators · Skill Agents · Business Rules]
+    end
+
+    subgraph Domain_Layer ["Domain Layer"]
+        DOMAIN[Entities · Value Objects · Result Pattern · Domain Events]
+    end
+
+    API --> INFRA
+    API --> APP
+    INFRA --> APP
+    APP --> DOMAIN
+    INFRA --> DOMAIN
+
+    classDef api fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px;
+    classDef infra fill:#ffe6cc,stroke:#d79b00,stroke-width:2px;
+    classDef app fill:#d5e8d4,stroke:#82b366,stroke-width:2px;
+    classDef domain fill:#f8cecc,stroke:#b85450,stroke-width:2px;
+
+    class API api;
+    class INFRA infra;
+    class APP app;
+    class DOMAIN domain;
 ```
 
 > **Dependency rule:** Each layer only depends on the layer below it. Domain has **zero** external dependencies. Architecture tests enforce this at build time (9 tests).
+
+---
+
+### 📊 Entity-Relationship Diagram (ERD)
+
+```mermaid
+erDiagram
+    DEPOT ||--o{ BLOCK : "contains"
+    DEPOT ||--o{ CONTAINER_MOVEMENT : "executes_at"
+    BLOCK ||--o{ YARD_SLOT : "divided_into"
+    CONTAINER_TYPE ||--o{ CONTAINER : "classifies"
+    CONTAINER_TYPE ||--o{ DELIVERY_ORDER_LINE : "requested_as"
+    LINE_OPERATOR ||--o{ CONTAINER_MOVEMENT : "owns_operations"
+    LINE_OPERATOR ||--o{ DELIVERY_ORDER : "issues_order"
+    CUSTOMER ||--o{ DELIVERY_ORDER : "places_order"
+    DELIVERY_ORDER ||--|{ DELIVERY_ORDER_LINE : "includes"
+    CONTAINER ||--o{ CONTAINER_MOVEMENT : "tracks_history"
+    YARD_SLOT |o--o| CONTAINER_MOVEMENT : "assigned_to"
+    DELIVERY_ORDER |o--o{ CONTAINER_MOVEMENT : "fulfills_by"
+
+    DEPOT { uuid Id PK, string Code, string Name, string TimeZone, boolean IsActive }
+    BLOCK { uuid Id PK, uuid DepotId FK, string Code, string Name, boolean IsVirtual, int MaxBay, int MaxRow, int MaxTier }
+    YARD_SLOT { uuid Id PK, uuid BlockId FK, int Bay, int Row, int Tier, boolean IsOccupied, uuid CurrentContainerId FK }
+    CONTAINER { uuid Id PK, string ContainerNumber "ISO 6346", uuid ContainerTypeId FK, int SizeFeet, decimal MaxWeightKg }
+    CONTAINER_MOVEMENT { uuid Id PK, uuid ContainerId FK, uuid LineOperatorId FK, uuid YardSlotId FK, string Status, datetime GateInAt, datetime GateOutAt }
+    LINE_OPERATOR { uuid Id PK, string Code, string Name, string Country }
+    CUSTOMER { uuid Id PK, string TaxCode, string Name }
+    DELIVERY_ORDER { uuid Id PK, string OrderNumber, uuid CustomerId FK, uuid LineOperatorId FK, datetime ExpiryDate }
+    DELIVERY_ORDER_LINE { uuid Id PK, uuid DeliveryOrderId FK, uuid ContainerTypeId FK, int RequestedQty, int DeliveredQty }
+    CONTAINER_TYPE { uuid Id PK, string Code, string Name, string Family }
+```
+
+---
+
+### 🎯 UML Use Case Diagram
+
+```mermaid
+flowchart LR
+    subgraph Actors
+        GO((Gate Operator))
+        YP((Yard Planner))
+        DM((Depot Manager))
+        AI((AI Skill Agent))
+    end
+
+    subgraph "Depot Management System"
+        UC1([Gate-In Container / ISO 6346])
+        UC2([Gate-Out Container / Verify DO])
+        UC3([Print EIR Receipt])
+        UC4([Live 3D/2D Yard Map])
+        UC5([Create & Resize Block Grid])
+        UC6([Create Delivery Order])
+        UC7([Yard Aging Report 0-10d / >10d])
+        UC8([Daily Throughput Report])
+        UC9([AI Natural Language Query Assistant])
+    end
+
+    GO --> UC1
+    GO --> UC2
+    GO --> UC3
+    YP --> UC4
+    YP --> UC5
+    DM --> UC6
+    DM --> UC7
+    DM --> UC8
+    AI --> UC9
+    UC2 -.->|includes| UC6
+```
+
+> 📁 **Diagram Downloads & Visual Tools**:
+> - 🎨 **Draw.io / Visio XML**: [`docs/diagrams/depot-full-architecture.drawio`](docs/diagrams/depot-full-architecture.drawio)
+> - 📄 **Structured JSON**: [`docs/diagrams/diagrams.json`](docs/diagrams/diagrams.json)
+> - 📖 **Full Architecture & Class Diagrams Guide**: [`docs/architecture.md`](docs/architecture.md)
 
 ---
 

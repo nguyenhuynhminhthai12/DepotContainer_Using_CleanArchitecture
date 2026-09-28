@@ -22,7 +22,9 @@ Built on top of the **TechSpherex Clean Architecture Template** (.NET 10, Postgr
 
 ---
 
-## 📐 Domain Model (ERD)
+## 📐 Domain Model (ERD) & UML Diagrams
+
+### 1. Entity-Relationship Diagram (ERD)
 
 ```
 ┌────────────┐        ┌─────────────┐        ┌──────────────┐
@@ -80,6 +82,38 @@ Built on top of the **TechSpherex Clean Architecture Template** (.NET 10, Postgr
                                                  │  ContainerType    │
                                                  └───────────────────┘
 ```
+```mermaid
+erDiagram
+    DEPOT ||--o{ BLOCK : "contains"
+    DEPOT ||--o{ CONTAINER_MOVEMENT : "executes_at"
+    BLOCK ||--o{ YARD_SLOT : "divided_into"
+    CONTAINER_TYPE ||--o{ CONTAINER : "classifies"
+    CONTAINER_TYPE ||--o{ DELIVERY_ORDER_LINE : "requested_as"
+    LINE_OPERATOR ||--o{ CONTAINER_MOVEMENT : "owns_operations"
+    LINE_OPERATOR ||--o{ DELIVERY_ORDER : "issues_order"
+    CUSTOMER ||--o{ DELIVERY_ORDER : "places_order"
+    DELIVERY_ORDER ||--|{ DELIVERY_ORDER_LINE : "includes"
+    CONTAINER ||--o{ CONTAINER_MOVEMENT : "tracks_history"
+    YARD_SLOT |o--o| CONTAINER_MOVEMENT : "assigned_to"
+    DELIVERY_ORDER |o--o{ CONTAINER_MOVEMENT : "fulfills_by"
+
+    DEPOT { uuid Id PK, string Code, string Name, string TimeZone, boolean IsActive }
+    BLOCK { uuid Id PK, uuid DepotId FK, string Code, string Name, boolean IsVirtual, int MaxBay, int MaxRow, int MaxTier }
+    YARD_SLOT { uuid Id PK, uuid BlockId FK, int Bay, int Row, int Tier, boolean IsOccupied, uuid CurrentContainerId FK }
+    CONTAINER { uuid Id PK, string ContainerNumber "ISO 6346", uuid ContainerTypeId FK, int SizeFeet, decimal MaxWeightKg }
+    CONTAINER_MOVEMENT { uuid Id PK, uuid ContainerId FK, uuid LineOperatorId FK, uuid YardSlotId FK, string Status, datetime GateInAt, datetime GateOutAt }
+    LINE_OPERATOR { uuid Id PK, string Code, string Name, string Country }
+    CUSTOMER { uuid Id PK, string TaxCode, string Name }
+    DELIVERY_ORDER { uuid Id PK, string OrderNumber, uuid CustomerId FK, uuid LineOperatorId FK, datetime ExpiryDate }
+    DELIVERY_ORDER_LINE { uuid Id PK, uuid DeliveryOrderId FK, uuid ContainerTypeId FK, int RequestedQty, int DeliveredQty }
+    CONTAINER_TYPE { uuid Id PK, string Code, string Name, string Family }
+```
+
+### 2. UML Diagrams & Visual Assets
+- 🎯 **UML Use Case Diagram**: Xem chi tiết tại [`docs/architecture.md#2-uml-use-case-diagram`](docs/architecture.md#2-uml-use-case-diagram)
+- 🏛️ **UML Class Diagram**: Xem chi tiết tại [`docs/architecture.md#3-uml-class-diagram-domain--application-cqrs`](docs/architecture.md#3-uml-class-diagram-domain--application-cqrs)
+- 🎨 **Draw.io / Visio XML File**: [`docs/diagrams/depot-full-architecture.drawio`](docs/diagrams/depot-full-architecture.drawio)
+- 📄 **JSON Schema Metadata**: [`docs/diagrams/diagrams.json`](docs/diagrams/diagrams.json)
 
 ### Notes
 

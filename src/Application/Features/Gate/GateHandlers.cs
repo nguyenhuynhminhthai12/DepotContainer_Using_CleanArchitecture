@@ -9,6 +9,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TechSpherex.CleanArchitecture.Application.Features.Gate;
 
+/// <summary>
+/// Handler xử lý nghiệp vụ Nhập Cổng (Gate-In) cho container vào bãi Depot.
+/// Thực hiện các bước:
+/// 1. Kiểm tra tồn tại và trạng thái container (tránh nhập 2 lần khi đang ở trong bãi).
+/// 2. Xác thực Block và Slot hạ bãi (kiểm tra Slot trống, tính chẵn lẻ của Bay tương ứng với kích thước 20ft/40ft).
+/// 3. Đánh giá bộ quy tắc Rule Engine cấu hình động.
+/// 4. Tạo bản ghi luân chuyển ContainerMovement (EIR) và cập nhật trạng thái ô YardSlot thành chiếm dụng.
+/// 5. Xóa cache sơ đồ bãi (yard-map).
+/// </summary>
 public sealed class GateInContainerCommandHandler(
     IAppDbContext dbContext,
     IRuleEngine ruleEngine,
@@ -16,10 +25,18 @@ public sealed class GateInContainerCommandHandler(
     ICommandHandler<GateInContainerCommand, Result<ContainerMovementResponse>>
 {
 #pragma warning disable S3776 // Cognitive Complexity: handler methods contain necessary validation logic
+    /// <summary>
+    /// Thực thi lệnh Gate-In container.
+    /// </summary>
+    /// <param name="command">Dữ liệu lệnh Gate-In chứa số container, mã Block, tọa độ ô Slot, thông tin xe và tài xế.</param>
+    /// <param name="cancellationToken">Token hủy tác vụ bất đồng bộ.</param>
+    /// <returns>Đối tượng Result chứa DTO ContainerMovementResponse nếu thành công, hoặc Error nếu vi phạm nghiệp vụ.</returns>
     public async Task<Result<ContainerMovementResponse>> HandleAsync(GateInContainerCommand command, CancellationToken cancellationToken = default)
     {
+        // 1. Chuẩn hóa số hiệu container
         var normalizedNumber = command.ContainerNumber.Trim().ToUpperInvariant();
 
+        // 2. Tìm container trong cơ sở dữ liệu
         var container = await dbContext.Containers
             .FirstOrDefaultAsync(c => c.ContainerNumberRaw == normalizedNumber, cancellationToken);
         if (container is null)
@@ -28,7 +45,7 @@ public sealed class GateInContainerCommandHandler(
                 $"Container '{normalizedNumber}' was not found."));
         }
 
-        // Reject if already in-yard (the latest movement is still open).
+        // 3. Từ chối nếu container đang ở trong bãi (lượt di chuyển trước đó vẫn đang mở)
         var alreadyInYard = await dbContext.ContainerMovements
             .AnyAsync(m => m.ContainerId == container.Id && m.Status == MovementStatus.InYard, cancellationToken);
         if (alreadyInYard)
@@ -37,6 +54,7 @@ public sealed class GateInContainerCommandHandler(
                 $"Container '{normalizedNumber}' is already in the yard. Move it before a new Gate-In."));
         }
 
+        // 4. Kiểm tra Block chỉ định
         var block = await dbContext.Blocks.FirstOrDefaultAsync(b => b.Id == command.BlockId, cancellationToken);
         if (block is null)
         {
@@ -46,6 +64,7 @@ public sealed class GateInContainerCommandHandler(
 
         YardSlot? slot = null;
 
+        // 5. Nếu là Block vật lý (không phải Block ảo), kiểm tra tọa độ Bay/Row/Tier và quy tắc xếp bãi
         if (!block.IsVirtual)
         {
             if (!command.Bay.HasValue || !command.Row.HasValue || !command.Tier.HasValue)
@@ -64,17 +83,17 @@ public sealed class GateInContainerCommandHandler(
                     "Yard slot not found for the given Block/Bay/Row/Tier."));
             }
 
-            // Rule: Bay parity matches container size.
+            // Quy tắc Domain: Bay chẵn/lẻ phải khớp với kích thước container (20ft vào Bay lẻ, 40ft vào Bay chẵn)
             var bayRule = new BayParityMatchesContainerSizeRule(slot.Bay, container.SizeFeet);
             if (bayRule.IsBroken())
                 return Result.Failure<ContainerMovementResponse>(Error.Validation(bayRule.RuleCode, bayRule.Message));
 
-            // Rule: Slot not occupied.
+            // Quy tắc Domain: Ô bãi phải đang trống
             var slotRule = new YardSlotNotOccupiedRule(slot.IsOccupied);
             if (slotRule.IsBroken())
                 return Result.Failure<ContainerMovementResponse>(Error.Validation(slotRule.RuleCode, slotRule.Message));
 
-            // Config-driven Rule Engine (GateInValidation rule set)
+            // Đánh giá Rule Engine cấu hình động (GateInValidation)
             var ruleContext = new Dictionary<string, object?>
             {
                 ["BlockId"] = block.Id,
@@ -89,12 +108,14 @@ public sealed class GateInContainerCommandHandler(
                 return Result.Failure<ContainerMovementResponse>(Error.Validation(ruleResult.Violations[0].RuleCode, ruleResult.Violations[0].Message));
         }
 
+        // 6. Kiểm tra tính hợp lệ của tình trạng ngoại quan lúc vào cổng
         if (!Enum.TryParse<ContainerCondition>(command.ConditionAtGateIn, true, out var conditionAtGateIn))
         {
             return Result.Failure<ContainerMovementResponse>(Error.Validation("Gate.InvalidCondition",
                 "Invalid ConditionAtGateIn value."));
         }
 
+        // 7. Tạo bản ghi lượt di chuyển ContainerMovement mới
         var movement = new ContainerMovement
         {
             ContainerId = container.Id,
@@ -109,6 +130,7 @@ public sealed class GateInContainerCommandHandler(
             Status = MovementStatus.InYard
         };
 
+        // 8. Đánh dấu ô Slot đã bị chiếm dụng
         if (slot is not null)
         {
             slot.IsOccupied = true;
@@ -118,12 +140,16 @@ public sealed class GateInContainerCommandHandler(
         dbContext.ContainerMovements.Add(movement);
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        // 9. Xóa cache sơ đồ bãi để cập nhật giao diện thời gian thực
         await cache.InvalidateByTagAsync("yard-map", cancellationToken);
 
         return Result.Success(Map(movement));
 #pragma warning restore S3776 // Cognitive Complexity: handler methods contain necessary validation logic
     }
 
+    /// <summary>
+    /// Chuyển đổi từ Entity ContainerMovement sang DTO ContainerMovementResponse.
+    /// </summary>
     internal static ContainerMovementResponse Map(ContainerMovement m) => new(
         m.Id, m.ContainerId, m.LineOperatorId, m.YardSlotId, m.BlockId,
         m.Classification,
@@ -134,12 +160,28 @@ public sealed class GateInContainerCommandHandler(
         m.Status.ToString(), m.DeliveryOrderId);
 }
 
+/// <summary>
+/// Handler xử lý nghiệp vụ Xuất Cổng (Gate-Out) cho container ra khỏi bãi Depot.
+/// Thực hiện các bước:
+/// 1. Kiểm tra container có đang ở trong bãi (InYard) hay không.
+/// 2. Kiểm tra tính hợp lệ của Đơn giao hàng (Delivery Order): khớp hãng tàu, chưa bị đóng, chưa hết hạn, chưa giao đủ số lượng.
+/// 3. Đánh giá bộ quy tắc Rule Engine cấu hình động (GateOutValidation).
+/// 4. Khấu trừ số lượng vào DeliveryOrderLine.
+/// 5. Đóng lượt di chuyển ContainerMovement (chuyển trạng thái thành GateOut, giải phóng YardSlot).
+/// 6. Xóa cache sơ đồ bãi.
+/// </summary>
 public sealed class GateOutContainerCommandHandler(
     IAppDbContext dbContext,
     IRuleEngine ruleEngine,
     ICacheService cache) :
     ICommandHandler<GateOutContainerCommand, Result<ContainerMovementResponse>>
 {
+    /// <summary>
+    /// Thực thi lệnh Gate-Out container.
+    /// </summary>
+    /// <param name="command">Dữ liệu lệnh Gate-Out chứa số container, mã đơn giao hàng D/O, thông tin xe nhận và tài xế.</param>
+    /// <param name="cancellationToken">Token hủy tác vụ bất đồng bộ.</param>
+    /// <returns>Đối tượng Result chứa DTO ContainerMovementResponse cập nhật nếu thành công.</returns>
     public async Task<Result<ContainerMovementResponse>> HandleAsync(GateOutContainerCommand command, CancellationToken cancellationToken = default)
     {
         var normalizedNumber = command.ContainerNumber.Trim().ToUpperInvariant();
@@ -178,53 +220,65 @@ public sealed class GateOutContainerCommandHandler(
         if (deliveryOrder.IsClosed)
         {
             return Result.Failure<ContainerMovementResponse>(Error.Conflict("DeliveryOrder.Closed",
-                "Delivery order has been closed."));
+                $"Delivery order '{deliveryOrder.OrderNumber}' is already closed."));
         }
 
+        // Kiểm tra hạn sử dụng của Đơn giao hàng
         var expiryRule = new DeliveryOrderNotExpiredRule(deliveryOrder.ExpiryDate, DateTimeOffset.UtcNow);
         if (expiryRule.IsBroken())
+        {
             return Result.Failure<ContainerMovementResponse>(Error.Validation(expiryRule.RuleCode, expiryRule.Message));
+        }
+
+        // Đánh giá Rule Engine cấu hình động cho Gate-Out
+        var ruleContext = new Dictionary<string, object?>
+        {
+            ["ContainerNumber"] = container.ContainerNumberRaw,
+            ["DeliveryOrderId"] = deliveryOrder.Id,
+            ["LineOperatorId"] = deliveryOrder.LineOperatorId,
+            ["IsExpired"] = deliveryOrder.ExpiryDate < DateTimeOffset.UtcNow
+        };
+        var ruleResult = ruleEngine.Evaluate("GateOutValidation", ruleContext);
+        if (!ruleResult.IsValid)
+        {
+            return Result.Failure<ContainerMovementResponse>(Error.Validation(ruleResult.Violations[0].RuleCode, ruleResult.Violations[0].Message));
+        }
 
         var line = deliveryOrder.Lines.FirstOrDefault(l => l.ContainerTypeId == container.ContainerTypeId);
         if (line is null)
         {
-            return Result.Failure<ContainerMovementResponse>(Error.Validation("DeliveryOrder.NoLineForType",
-                $"Delivery order has no line for container type '{container.ContainerTypeId}'."));
+            return Result.Failure<ContainerMovementResponse>(Error.Conflict("DeliveryOrder.TypeMismatch",
+                "Delivery order does not have an open line for this container type."));
         }
 
-        var qtyRule = new DeliveryOrderQuantityAvailableRule(line.RequestedQuantity, line.DeliveredQuantity);
-        if (qtyRule.IsBroken())
-            return Result.Failure<ContainerMovementResponse>(Error.Validation(qtyRule.RuleCode, qtyRule.Message));
-
-        // Config-driven Rule Engine (GateOutValidation rule set).
-        var ruleContext = new Dictionary<string, object?>
+        if (line.DeliveredQuantity >= line.RequestedQuantity)
         {
-            ["OrderNumber"] = deliveryOrder.OrderNumber,
-            ["CustomerId"] = deliveryOrder.CustomerId,
-            ["LineOperatorId"] = deliveryOrder.LineOperatorId,
-            ["ExpiryDate"] = deliveryOrder.ExpiryDate,
-            ["IsClosed"] = deliveryOrder.IsClosed,
-            ["ContainerTypeId"] = line.ContainerTypeId,
-            ["RequestedQuantity"] = line.RequestedQuantity,
-            ["DeliveredQuantity"] = line.DeliveredQuantity
-        };
-        var ruleResult = ruleEngine.Evaluate("GateOutValidation", ruleContext);
-        if (!ruleResult.IsValid)
-            return Result.Failure<ContainerMovementResponse>(Error.Validation(ruleResult.Violations[0].RuleCode, ruleResult.Violations[0].Message));
+            return Result.Failure<ContainerMovementResponse>(Error.Conflict("DeliveryOrder.FullyDelivered",
+                "Requested quantity for this container type has already been fulfilled."));
+        }
 
-        if (!Enum.TryParse<ContainerCondition>(command.ConditionAtGateOut, true, out var conditionOut))
+        if (!Enum.TryParse<ContainerCondition>(command.ConditionAtGateOut, true, out var conditionAtGateOut))
         {
             return Result.Failure<ContainerMovementResponse>(Error.Validation("Gate.InvalidCondition",
                 "Invalid ConditionAtGateOut value."));
         }
 
+        // Tăng số lượng đã giao
+        line.DeliveredQuantity++;
+        if (deliveryOrder.Lines.All(l => l.DeliveredQuantity >= l.RequestedQuantity))
+        {
+            deliveryOrder.IsClosed = true;
+        }
+
+        // Cập nhật lượt di chuyển thành GateOut
         openMovement.Status = MovementStatus.GateOut;
-        openMovement.GateOutAt = DateTimeOffset.UtcNow;
+        openMovement.ConditionAtGateOut = conditionAtGateOut;
         openMovement.VehicleOutNumber = command.VehicleOutNumber;
         openMovement.DriverOutName = command.DriverOutName;
-        openMovement.ConditionAtGateOut = conditionOut;
+        openMovement.GateOutAt = DateTimeOffset.UtcNow;
         openMovement.DeliveryOrderId = deliveryOrder.Id;
 
+        // Giải phóng ô YardSlot
         if (openMovement.YardSlotId is not null)
         {
             var slot = await dbContext.YardSlots
@@ -236,24 +290,32 @@ public sealed class GateOutContainerCommandHandler(
             }
         }
 
-        line.DeliveredQuantity++;
-
         await dbContext.SaveChangesAsync(cancellationToken);
-
         await cache.InvalidateByTagAsync("yard-map", cancellationToken);
 
         return Result.Success(GateInContainerCommandHandler.Map(openMovement));
     }
 }
 
+/// <summary>
+/// Handler xử lý nghiệp vụ Di chuyển Container trong nội bộ bãi (Move Container).
+/// Cập nhật vị trí từ ô Slot cũ sang ô Slot mới và giải phóng ô cũ.
+/// </summary>
 public sealed class MoveContainerInYardCommandHandler(
     IAppDbContext dbContext,
     ICacheService cache) :
     ICommandHandler<MoveContainerInYardCommand, Result>
 {
+    /// <summary>
+    /// Thực thi lệnh di chuyển container trong bãi.
+    /// </summary>
+    /// <param name="command">Thông tin container và tọa độ ô Slot đích mới.</param>
+    /// <param name="cancellationToken">Token hủy tác vụ bất đồng bộ.</param>
+    /// <returns>Result thành công nếu di chuyển hoàn tất.</returns>
     public async Task<Result> HandleAsync(MoveContainerInYardCommand command, CancellationToken cancellationToken = default)
     {
         var normalizedNumber = command.ContainerNumber.Trim().ToUpperInvariant();
+
         var container = await dbContext.Containers
             .FirstOrDefaultAsync(c => c.ContainerNumberRaw == normalizedNumber, cancellationToken);
         if (container is null)
@@ -267,7 +329,7 @@ public sealed class MoveContainerInYardCommandHandler(
         if (openMovement is null)
         {
             return Result.Failure(Error.Conflict("Gate.NotInYard",
-                "Container is not currently in the yard."));
+                $"Container '{normalizedNumber}' is not currently in the yard."));
         }
 
         var block = await dbContext.Blocks.FirstOrDefaultAsync(b => b.Id == command.NewBlockId, cancellationToken);
@@ -276,33 +338,36 @@ public sealed class MoveContainerInYardCommandHandler(
             return Result.Failure(Error.NotFound("Block.NotFound",
                 $"Block '{command.NewBlockId}' was not found."));
         }
+
         if (block.IsVirtual)
         {
             return Result.Failure(Error.Validation("Block.Virtual",
-                "Cannot move a container into a virtual block using Bay/Row/Tier."));
+                "Cannot move container to a virtual block."));
         }
 
         var targetSlot = await dbContext.YardSlots
-            .FirstOrDefaultAsync(s => s.BlockId == command.NewBlockId && s.Bay == command.NewBay
-                && s.Row == command.NewRow && s.Tier == command.NewTier, cancellationToken);
+            .FirstOrDefaultAsync(s => s.BlockId == block.Id
+                && s.Bay == command.NewBay
+                && s.Row == command.NewRow
+                && s.Tier == command.NewTier, cancellationToken);
         if (targetSlot is null)
         {
             return Result.Failure(Error.NotFound("YardSlot.NotFound",
-                "Yard slot not found for the given Block/Bay/Row/Tier."));
+                "Target yard slot was not found."));
         }
 
+        // Quy tắc Domain: Bay chẵn/lẻ phải khớp với kích thước container
         var bayRule = new BayParityMatchesContainerSizeRule(targetSlot.Bay, container.SizeFeet);
         if (bayRule.IsBroken())
             return Result.Failure(Error.Validation(bayRule.RuleCode, bayRule.Message));
 
-        var occupyingContainerId = targetSlot.CurrentContainerId;
-        if (targetSlot.IsOccupied && occupyingContainerId != container.Id)
+        if (targetSlot.IsOccupied && targetSlot.CurrentContainerId != container.Id)
         {
             return Result.Failure(Error.Conflict("Yard.SlotOccupied",
                 "Yard slot is occupied by another container."));
         }
 
-        // Release old slot
+        // Giải phóng ô Slot cũ
         if (openMovement.YardSlotId is not null)
         {
             var oldSlot = await dbContext.YardSlots
@@ -314,6 +379,7 @@ public sealed class MoveContainerInYardCommandHandler(
             }
         }
 
+        // Gán ô Slot mới
         targetSlot.IsOccupied = true;
         targetSlot.CurrentContainerId = container.Id;
 
@@ -327,9 +393,18 @@ public sealed class MoveContainerInYardCommandHandler(
     }
 }
 
+/// <summary>
+/// Query Handler tra cứu toàn bộ lịch sử các lượt di chuyển (EIR) của một Container.
+/// </summary>
 public sealed class GetContainerMovementHistoryQueryHandler(IAppDbContext dbContext) :
     IQueryHandler<GetContainerMovementHistoryQuery, Result<IReadOnlyList<ContainerMovementResponse>>>
 {
+    /// <summary>
+    /// Thực thi truy vấn lấy lịch sử di chuyển container.
+    /// </summary>
+    /// <param name="query">Đối tượng query chứa số hiệu container.</param>
+    /// <param name="cancellationToken">Token hủy tác vụ bất đồng bộ.</param>
+    /// <returns>Result chứa danh sách các lượt di chuyển xếp theo thời gian mới nhất.</returns>
     public async Task<Result<IReadOnlyList<ContainerMovementResponse>>> HandleAsync(GetContainerMovementHistoryQuery query, CancellationToken cancellationToken = default)
     {
         var normalizedNumber = query.ContainerNumber.Trim().ToUpperInvariant();

@@ -4,8 +4,13 @@ using TechSpherex.CleanArchitecture.Domain.Entities;
 
 namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Cấu hình ánh xạ Entity Framework Core cho thực thể Phân khu bãi <see cref="Block"/> trong Depot.
+/// Thiết lập ràng buộc duy nhất theo mã Block trong từng Depot và quan hệ với Depot cha.
+/// </summary>
 public sealed class BlockConfiguration : IEntityTypeConfiguration<Block>
 {
+    /// <inheritdoc/>
 #pragma warning disable CA1822, S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<Block> builder)
     {

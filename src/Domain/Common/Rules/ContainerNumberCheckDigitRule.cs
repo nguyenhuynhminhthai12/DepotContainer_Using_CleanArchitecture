@@ -27,6 +27,7 @@ public sealed class ContainerNumberCheckDigitRule(string candidate) : IBusinessR
     public int Priority => 1;
 
     public bool IsBroken()
+
     {
         if (_candidate.Length != 11) return true;
 

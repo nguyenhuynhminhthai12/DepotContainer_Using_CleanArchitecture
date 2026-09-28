@@ -5,7 +5,7 @@ using TechSpherex.CleanArchitecture.Domain.Common.Rules;
 namespace TechSpherex.CleanArchitecture.Api.Extensions;
 
 /// <summary>
-/// Global exception handler — bắt mọi ngoại lệ không được xử lý và trả về phản hồi Problem Details nhất quán.
+/// Bộ xử lý ngoại lệ toàn cục (Global exception handler) — bắt mọi ngoại lệ không được xử lý và trả về phản hồi Problem Details nhất quán.
 /// </summary>
 public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {

@@ -6,9 +6,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TechSpherex.CleanArchitecture.Application.Features.DeliveryOrders;
 
+/// <summary>
+/// Xử lý lệnh tạo mới Lệnh giao nhận / Đơn giao hàng (Delivery Order - D/O).
+/// Kiểm tra sự tồn tại của Khách hàng, Hãng tàu, tính duy nhất của số đơn và thêm các dòng chi tiết loại container.
+/// </summary>
 public sealed class CreateDeliveryOrderCommandHandler(IAppDbContext dbContext) :
     ICommandHandler<CreateDeliveryOrderCommand, Result<DeliveryOrderResponse>>
 {
+    /// <inheritdoc/>
     public async Task<Result<DeliveryOrderResponse>> HandleAsync(CreateDeliveryOrderCommand command, CancellationToken cancellationToken = default)
     {
         if (!await dbContext.Customers.AnyAsync(c => c.Id == command.CustomerId, cancellationToken))
@@ -60,6 +65,7 @@ public sealed class CreateDeliveryOrderCommandHandler(IAppDbContext dbContext) :
         return Result.Success(Map(order, customer.Name, lineOp.Name));
     }
 
+    /// <summary>Ánh xạ đối tượng thực thể DeliveryOrder sang response DTO.</summary>
     internal static DeliveryOrderResponse Map(DeliveryOrder order, string customerName, string lineOperatorName) => new(
         order.Id, order.OrderNumber, order.CustomerId, customerName,
         order.LineOperatorId, lineOperatorName,
@@ -67,9 +73,13 @@ public sealed class CreateDeliveryOrderCommandHandler(IAppDbContext dbContext) :
         [.. order.Lines.Select(l => new DeliveryOrderLineDto(l.ContainerTypeId, l.RequestedQuantity, l.DeliveredQuantity))]);
 }
 
+/// <summary>
+/// Xử lý truy vấn lấy chi tiết một Đơn giao hàng (Delivery Order) theo mã định danh (Id).
+/// </summary>
 public sealed class GetDeliveryOrderByIdQueryHandler(IAppDbContext dbContext) :
     IQueryHandler<GetDeliveryOrderByIdQuery, Result<DeliveryOrderResponse>>
 {
+    /// <inheritdoc/>
     public async Task<Result<DeliveryOrderResponse>> HandleAsync(GetDeliveryOrderByIdQuery query, CancellationToken cancellationToken = default)
     {
         var order = await dbContext.DeliveryOrders
@@ -94,9 +104,13 @@ public sealed class GetDeliveryOrderByIdQueryHandler(IAppDbContext dbContext) :
     }
 }
 
+/// <summary>
+/// Xử lý truy vấn lấy danh sách các Đơn giao hàng (Delivery Order) còn hiệu lực và chưa đóng.
+/// </summary>
 public sealed class GetActiveDeliveryOrdersQueryHandler(IAppDbContext dbContext) :
     IQueryHandler<GetActiveDeliveryOrdersQuery, Result<IReadOnlyList<DeliveryOrderResponse>>>
 {
+    /// <inheritdoc/>
     public async Task<Result<IReadOnlyList<DeliveryOrderResponse>>> HandleAsync(GetActiveDeliveryOrdersQuery query, CancellationToken cancellationToken = default)
     {
         var orders = await dbContext.DeliveryOrders
@@ -118,9 +132,13 @@ public sealed class GetActiveDeliveryOrdersQueryHandler(IAppDbContext dbContext)
     }
 }
 
+/// <summary>
+/// Xử lý lệnh đóng Đơn giao hàng (Delivery Order), không cho phép giao nhận thêm.
+/// </summary>
 public sealed class CloseDeliveryOrderCommandHandler(IAppDbContext dbContext) :
     ICommandHandler<CloseDeliveryOrderCommand, Result>
 {
+    /// <inheritdoc/>
     public async Task<Result> HandleAsync(CloseDeliveryOrderCommand command, CancellationToken cancellationToken = default)
     {
         var order = await dbContext.DeliveryOrders
@@ -138,9 +156,13 @@ public sealed class CloseDeliveryOrderCommandHandler(IAppDbContext dbContext) :
     }
 }
 
+/// <summary>
+/// Xử lý lệnh cập nhật thông tin Đơn giao hàng (ngày hết hạn, chuyến tàu, ghi chú, số lượng yêu cầu).
+/// </summary>
 public sealed class UpdateDeliveryOrderCommandHandler(IAppDbContext dbContext) :
     ICommandHandler<UpdateDeliveryOrderCommand, Result<DeliveryOrderResponse>>
 {
+    /// <inheritdoc/>
     public async Task<Result<DeliveryOrderResponse>> HandleAsync(UpdateDeliveryOrderCommand command, CancellationToken cancellationToken = default)
     {
         var order = await dbContext.DeliveryOrders
@@ -187,9 +209,14 @@ public sealed class UpdateDeliveryOrderCommandHandler(IAppDbContext dbContext) :
     }
 }
 
+/// <summary>
+/// Xử lý lệnh xóa Đơn giao hàng (Delivery Order).
+/// Chỉ cho phép xóa khi chưa có container nào được xuất theo đơn này.
+/// </summary>
 public sealed class DeleteDeliveryOrderCommandHandler(IAppDbContext dbContext) :
     ICommandHandler<DeleteDeliveryOrderCommand, Result>
 {
+    /// <inheritdoc/>
     public async Task<Result> HandleAsync(DeleteDeliveryOrderCommand command, CancellationToken cancellationToken = default)
     {
         var order = await dbContext.DeliveryOrders

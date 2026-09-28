@@ -4,8 +4,12 @@ using TechSpherex.CleanArchitecture.Domain.Entities;
 
 namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Cấu hình ánh xạ Entity Framework Core cho thực thể Khách hàng / Chủ hàng <see cref="Customer"/>.
+/// </summary>
 public sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 {
+    /// <inheritdoc/>
 #pragma warning disable CA1822, S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<Customer> builder)
     {

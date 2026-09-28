@@ -4,9 +4,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Configurations;
 
-// Copyright (c) 2026 TechSpherex
+/// <summary>
+/// Cấu hình ánh xạ Entity Framework Core cho thực thể Công việc mẫu <see cref="TodoItem"/>.
+/// </summary>
 public sealed class TodoItemConfiguration : IEntityTypeConfiguration<TodoItem>
 {
+    /// <inheritdoc/>
 #pragma warning disable CA1822, S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<TodoItem> builder)
     {

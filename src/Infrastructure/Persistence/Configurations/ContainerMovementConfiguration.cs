@@ -4,8 +4,12 @@ using TechSpherex.CleanArchitecture.Domain.Entities;
 
 namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Cấu hình ánh xạ Entity Framework Core cho thực thể Nhật ký di chuyển container <see cref="ContainerMovement"/> (EIR / Gate In / Gate Out / Dời bãi).
+/// </summary>
 public sealed class ContainerMovementConfiguration : IEntityTypeConfiguration<ContainerMovement>
 {
+    /// <inheritdoc/>
 #pragma warning disable CA1822, S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<ContainerMovement> builder)
     {

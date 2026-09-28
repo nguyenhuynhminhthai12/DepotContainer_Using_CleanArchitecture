@@ -4,8 +4,12 @@ using TechSpherex.CleanArchitecture.Domain.Entities;
 
 namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Cấu hình ánh xạ Entity Framework Core cho thực thể Bãi Depot <see cref="Depot"/>.
+/// </summary>
 public sealed class DepotConfiguration : IEntityTypeConfiguration<Depot>
 {
+    /// <inheritdoc/>
 #pragma warning disable CA1822, S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<Depot> builder)
     {

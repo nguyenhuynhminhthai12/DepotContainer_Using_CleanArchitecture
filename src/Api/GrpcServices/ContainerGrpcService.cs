@@ -9,9 +9,9 @@ using AppMovementResponse = TechSpherex.CleanArchitecture.Application.Features.G
 namespace TechSpherex.CleanArchitecture.Api.GrpcServices;
 
 /// <summary>
-/// gRPC implementation of ContainerService.
-/// Delegates to the same Application-layer CQRS handlers used by the REST endpoints,
-/// ensuring consistent business logic across transport protocols.
+/// Triển khai gRPC cho dịch vụ ContainerService.
+/// Ủy quyền thực thi đến các CQRS handler tầng Application tương tự REST endpoint,
+/// đảm bảo tính nhất quán của logic nghiệp vụ giữa các giao thức truyền tải.
 /// </summary>
 public sealed class ContainerGrpcService(
     IQueryHandler<GetContainerByNumberQuery, Result<AppContainerResponse>> getHandler,

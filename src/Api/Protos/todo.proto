@@ -4,8 +4,8 @@ option csharp_namespace = "TechSpherex.CleanArchitecture.Api.GrpcServices";
 
 package todo;
 
-// gRPC service for Todo operations – high-performance binary protocol
-// for service-to-service communication.
+// Dịch vụ gRPC cho các thao tác Todo — giao thức nhị phân hiệu năng cao
+// phục vụ giao tiếp giữa các dịch vụ (service-to-service).
 service TodoService {
   rpc GetTodo (GetTodoRequest) returns (TodoResponse);
   rpc GetAllTodos (GetAllTodosRequest) returns (TodoListResponse);

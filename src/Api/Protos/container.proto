@@ -4,8 +4,8 @@ option csharp_namespace = "TechSpherex.CleanArchitecture.Api.GrpcServices";
 
 package container;
 
-// gRPC service for Container depot operations — high-performance binary protocol
-// for service-to-service communication (e.g. port Eport/TOPX integration).
+// Dịch vụ gRPC cho các nghiệp vụ bãi container depot — giao thức nhị phân hiệu năng cao
+// phục vụ giao tiếp giữa các dịch vụ (ví dụ: tích hợp cảng điện tử Eport/TOPX).
 service ContainerService {
   rpc GetContainer (GetContainerRequest) returns (ContainerResponse);
   rpc GateIn (GateInRequest) returns (MovementResponse);

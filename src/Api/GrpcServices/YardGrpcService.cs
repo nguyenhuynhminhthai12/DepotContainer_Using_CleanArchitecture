@@ -6,7 +6,7 @@ using TechSpherex.CleanArchitecture.Domain.Common;
 namespace TechSpherex.CleanArchitecture.Api.GrpcServices;
 
 /// <summary>
-/// gRPC implementation of YardService. Reuses the same CQRS handler as the REST endpoint.
+/// Triển khai gRPC cho dịch vụ YardService. Tái sử dụng cùng CQRS handler như REST endpoint.
 /// </summary>
 public sealed class YardGrpcService(
     IQueryHandler<GetYardMapQuery, Result<YardMapDto>> yardMapHandler)

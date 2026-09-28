@@ -1,13 +1,12 @@
-
 using TechSpherex.CleanArchitecture.Application.Abstractions.Identity;
 using TechSpherex.CleanArchitecture.Application.Abstractions.Messaging;
 using TechSpherex.CleanArchitecture.Domain.Common;
+
 namespace TechSpherex.CleanArchitecture.Application.Features.Identity.RefreshToken;
 
 /// <summary>
 /// Xử lý lệnh làm mới token JWT bằng cách gọi <see cref="ITokenService"/>.
 /// </summary>
-/// <param name="tokenService">Dịch vụ token.</param>
 public sealed class RefreshTokenCommandHandler(ITokenService tokenService) : ICommandHandler<RefreshTokenCommand, Result<TokenResponse>>
 {
     /// <inheritdoc/>

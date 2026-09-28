@@ -9,7 +9,7 @@ namespace TechSpherex.CleanArchitecture.Application.Abstractions.Data;
 /// </summary>
 public interface IAppDbContext
 {
-    /// <summary>Tập hợp các công việc Todo.</summary>
+    /// <summary>Tập hợp các mục công việc (<see cref="TodoItem"/>).</summary>
     DbSet<TodoItem> Todos { get; }
 
     // Depot domain

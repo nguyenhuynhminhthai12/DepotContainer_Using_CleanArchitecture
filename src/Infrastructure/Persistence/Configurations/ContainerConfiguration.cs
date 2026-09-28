@@ -4,8 +4,13 @@ using TechSpherex.CleanArchitecture.Domain.Entities;
 
 namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Cấu hình ánh xạ Entity Framework Core cho thực thể Thùng hàng <see cref="Container"/>.
+/// Thiết lập index số container duy nhất theo Tenant, ràng buộc quan hệ loại container và enum tình trạng.
+/// </summary>
 public sealed class ContainerConfiguration : IEntityTypeConfiguration<Container>
 {
+    /// <inheritdoc/>
 #pragma warning disable S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<Container> builder)
     {

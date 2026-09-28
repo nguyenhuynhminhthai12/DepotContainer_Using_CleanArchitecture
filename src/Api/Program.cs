@@ -1,3 +1,7 @@
+/// <summary>
+/// Điểm khởi chạy chính (Entry Point) của Web API Quản lý Bãi Container Depot (TechSpherex Clean Architecture).
+/// Cấu hình Aspire Service Defaults, Serilog, PostgreSQL, Redis HybridCache, gRPC, Scalar OpenAPI và Multi-tenancy.
+/// </summary>
 using Scalar.AspNetCore;
 using Serilog;
 using TechSpherex.CleanArchitecture.Api.Endpoints;
@@ -16,21 +20,21 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-#pragma warning disable S1075 // OpenAPI contact URL
+#pragma warning disable S1075 // URL liên hệ OpenAPI
     const string techSpherexContactUrl = "https://TechSpherex.com";
-#pragma warning restore S1075 // OpenAPI contact URL
+#pragma warning restore S1075 // URL liên hệ OpenAPI
     var builder = WebApplication.CreateBuilder(args);
 
-    // Aspire service defaults (OpenTelemetry, health checks, service discovery)
+    // Các thiết lập mặc định của Aspire service (OpenTelemetry, health check, service discovery)
     builder.AddServiceDefaults();
 
-    // Serilog
+    // Cấu hình ghi log Serilog
     builder.Host.UseSerilog((context, loggerConfiguration) =>
         loggerConfiguration.ReadFrom.Configuration(context.Configuration));
 
-    // Local dev fallback: read connection strings from appsettings.Development.json when
-    // the Aspire service-discovery sidecars are not available. This lets us run API +
-    // dockerised Postgres + dockerised Redis directly (for Postman / curl smoke tests).
+    // Cơ chế dự phòng khi chạy local dev: đọc chuỗi kết nối từ appsettings.Development.json khi
+    // các sidecar khám phá dịch vụ của Aspire không có sẵn. Điều này cho phép chạy trực tiếp API +
+    // Postgres docker + Redis docker (phục vụ smoke test qua Postman / curl).
     var dbConn = builder.Configuration.GetConnectionString("TechSpherex-db");
     var cacheConn = builder.Configuration.GetConnectionString("TechSpherex-cache");
     if (!string.IsNullOrWhiteSpace(dbConn) && !string.IsNullOrWhiteSpace(cacheConn))
@@ -40,24 +44,24 @@ try
     }
     else
     {
-        // Aspire-managed PostgreSQL
+        // PostgreSQL được quản lý bởi Aspire
         builder.AddNpgsqlDbContext<AppDbContext>("TechSpherex-db");
 
-        // Aspire-managed Redis (for HybridCache L2)
+        // Redis được quản lý bởi Aspire (cho bộ nhớ đệm HybridCache L2)
         builder.AddRedisDistributedCache("TechSpherex-cache");
     }
 
-    // Application & Infrastructure (includes HybridCache, CORS, RuleEngine)
+    // Đăng ký các dịch vụ Application & Infrastructure (bao gồm HybridCache, CORS, RuleEngine)
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
 
-    // gRPC services
+    // Đăng ký các dịch vụ gRPC
     builder.Services.AddGrpc();
 
-    // Global exception handling
+    // Xử lý ngoại lệ toàn cục (Global exception handling)
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
-    // OpenAPI with JWT Bearer security scheme
+    // Cấu hình OpenAPI kèm cơ chế xác thực JWT Bearer
     builder.Services.AddOpenApi(options =>
     {
         options.AddDocumentTransformer((document, _, _) =>
@@ -68,9 +72,9 @@ try
             info.Contact = new Microsoft.OpenApi.OpenApiContact
             {
                 Name = "TechSpherex",
-#pragma warning disable S1075 // OpenAPI contact URL
+#pragma warning disable S1075 // URL liên hệ OpenAPI
                 Url = new Uri(techSpherexContactUrl)
-#pragma warning restore S1075 // OpenAPI contact URL
+#pragma warning restore S1075 // URL liên hệ OpenAPI
             };
             document.Info = info;
 
@@ -98,12 +102,12 @@ try
         });
     });
 
-    // ProblemDetails
+    // Đăng ký ProblemDetails
     builder.Services.AddProblemDetails();
 
     var app = builder.Build();
 
-    // Global exception handler
+    // Middleware xử lý ngoại lệ toàn cục
     app.UseExceptionHandler();
     app.UseStatusCodePages();
     app.UseHttpsRedirection();
@@ -119,10 +123,10 @@ try
         });
     }
 
-    // Multi-tenant middleware (before auth so tenant context is available)
+    // Middleware Multi-tenant (đặt trước xác thực để ngữ cảnh tenant khả dụng)
     app.UseMiddleware<TenantMiddleware>();
 
-    // CORS (before auth)
+    // Cấu hình CORS (trước khi xác thực)
     app.UseCors();
 
     app.UseAuthentication();
@@ -130,7 +134,7 @@ try
 
     app.UseSerilogRequestLogging();
 
-    // Map REST endpoints
+    // Ánh xạ các REST endpoint
     // Copyright (c) 2026 TechSpherex
     app.MapIdentityEndpoints();
     app.MapTodoEndpoints();
@@ -143,15 +147,15 @@ try
     app.MapReportEndpoints();
     app.MapLookupEndpoints();
 
-    // Map gRPC services
+    // Ánh xạ các dịch vụ gRPC
     app.MapGrpcService<TodoGrpcService>();
     app.MapGrpcService<ContainerGrpcService>();
     app.MapGrpcService<YardGrpcService>();
 
-    // Aspire default endpoints (health, alive)
+    // Các endpoint mặc định của Aspire (health, alive)
     app.MapDefaultEndpoints();
 
-    // Seed database in development
+    // Khởi tạo dữ liệu mẫu (seed database) trong môi trường Development
     if (app.Environment.IsDevelopment())
     {
         await AppDbSeeder.SeedAsync(app.Services);

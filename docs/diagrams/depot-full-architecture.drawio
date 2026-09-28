@@ -1,0 +1,266 @@
+<mxfile host="app.diagrams.net" modified="2026-09-21T03:10:00.000Z" agent="Antigravity AI" version="24.0.0" type="device">
+  <!-- TAB 1: ERD -->
+  <diagram id="tab-erd" name="1. Entity-Relationship Diagram (ERD)">
+    <mxGraphModel dx="1422" dy="850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title Header -->
+        <mxCell id="erd_title" value="&lt;b style=&quot;font-size: 20px;&quot;&gt;TechSpherex Container Depot - Entity Relationship Diagram (ERD)&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;color: #666666;&quot;&gt;PostgreSQL Schema · Multi-Tenancy · ISO 6346 Modulo-11 · EIR Lifecycles&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="400" y="30" width="800" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- 1. DEPOT -->
+        <mxCell id="e_depot" value="&lt;div style=&quot;text-align: center; font-size: 14px; font-weight: bold; background-color: #2b579a; color: #ffffff; padding: 6px; margin: -10px -10px 8px -10px; border-radius: 4px 4px 0 0;&quot;&gt;DEPOT&lt;/div&gt;&lt;b&gt;🔑 Id&lt;/b&gt; : uuid [PK]&lt;br/&gt;&lt;b&gt;• Code&lt;/b&gt; : varchar(50)&lt;br/&gt;&lt;b&gt;• Name&lt;/b&gt; : varchar(200)&lt;br/&gt;&lt;b&gt;• Address&lt;/b&gt; : varchar(500)&lt;br/&gt;&lt;b&gt;• TimeZone&lt;/b&gt; : varchar(50)&lt;br/&gt;&lt;b&gt;• IsActive&lt;/b&gt; : boolean&lt;br/&gt;&lt;b&gt;• TenantId&lt;/b&gt; : varchar(64)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2b579a;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="120" width="220" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- 2. BLOCK -->
+        <mxCell id="e_block" value="&lt;div style=&quot;text-align: center; font-size: 14px; font-weight: bold; background-color: #2b579a; color: #ffffff; padding: 6px; margin: -10px -10px 8px -10px; border-radius: 4px 4px 0 0;&quot;&gt;BLOCK&lt;/div&gt;&lt;b&gt;🔑 Id&lt;/b&gt; : uuid [PK]&lt;br/&gt;&lt;b&gt;🔗 DepotId&lt;/b&gt; : uuid [FK]&lt;br/&gt;&lt;b&gt;• Code&lt;/b&gt; : varchar(20)&lt;br/&gt;&lt;b&gt;• Name&lt;/b&gt; : varchar(100)&lt;br/&gt;&lt;b&gt;• IsVirtual&lt;/b&gt; : boolean&lt;br/&gt;&lt;b&gt;• MaxBay&lt;/b&gt; : int&lt;br/&gt;&lt;b&gt;• MaxRow&lt;/b&gt; : int&lt;br/&gt;&lt;b&gt;• MaxTier&lt;/b&gt; : int&lt;br/&gt;&lt;b&gt;• DisplayOrder&lt;/b&gt; : int" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2b579a;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="120" width="220" height="210" as="geometry" />
+        </mxCell>
+
+        <!-- 3. YARD_SLOT -->
+        <mxCell id="e_slot" value="&lt;div style=&quot;text-align: center; font-size: 14px; font-weight: bold; background-color: #2b579a; color: #ffffff; padding: 6px; margin: -10px -10px 8px -10px; border-radius: 4px 4px 0 0;&quot;&gt;YARD_SLOT&lt;/div&gt;&lt;b&gt;🔑 Id&lt;/b&gt; : uuid [PK]&lt;br/&gt;&lt;b&gt;🔗 BlockId&lt;/b&gt; : uuid [FK]&lt;br/&gt;&lt;b&gt;• Bay&lt;/b&gt; : int&lt;br/&gt;&lt;b&gt;• Row&lt;/b&gt; : int&lt;br/&gt;&lt;b&gt;• Tier&lt;/b&gt; : int&lt;br/&gt;&lt;b&gt;• IsOccupied&lt;/b&gt; : boolean&lt;br/&gt;&lt;b&gt;🔗 CurrentCntrId&lt;/b&gt; : uuid [FK]&lt;br/&gt;&lt;hr style=&quot;margin: 4px 0;&quot;/&gt;&lt;span style=&quot;font-size: 10px; color: #666;&quot;&gt;Unique: BlockId+Bay+Row+Tier&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2b579a;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="700" y="120" width="230" height="200" as="geometry" />
+        </mxCell>
+
+        <!-- 4. CONTAINER_TYPE -->
+        <mxCell id="e_type" value="&lt;div style=&quot;text-align: center; font-size: 14px; font-weight: bold; background-color: #27ae60; color: #ffffff; padding: 6px; margin: -10px -10px 8px -10px; border-radius: 4px 4px 0 0;&quot;&gt;CONTAINER_TYPE&lt;/div&gt;&lt;b&gt;🔑 Id&lt;/b&gt; : uuid [PK]&lt;br/&gt;&lt;b&gt;• Code&lt;/b&gt; : varchar(20) &lt;i&gt;[20GP,40HC]&lt;/i&gt;&lt;br/&gt;&lt;b&gt;• Name&lt;/b&gt; : varchar(100)&lt;br/&gt;&lt;b&gt;• Family&lt;/b&gt; : varchar(50)&lt;br/&gt;&lt;b&gt;• Description&lt;/b&gt; : text" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#27ae60;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="740" width="240" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- 5. CONTAINER -->
+        <mxCell id="e_container" value="&lt;div style=&quot;text-align: center; font-size: 14px; font-weight: bold; background-color: #27ae60; color: #ffffff; padding: 6px; margin: -10px -10px 8px -10px; border-radius: 4px 4px 0 0;&quot;&gt;CONTAINER&lt;/div&gt;&lt;b&gt;🔑 Id&lt;/b&gt; : uuid [PK]&lt;br/&gt;&lt;b&gt;• ContainerNumber&lt;/b&gt; : varchar(11)&lt;br/&gt;&amp;nbsp;&amp;nbsp;&lt;span style=&quot;font-size:10px; color:#27ae60;&quot;&gt;[ISO 6346 Modulo-11 VO]&lt;/span&gt;&lt;br/&gt;&lt;b&gt;🔗 ContainerTypeId&lt;/b&gt; : uuid [FK]&lt;br/&gt;&lt;b&gt;• IsoCode&lt;/b&gt; : varchar(10)&lt;br/&gt;&lt;b&gt;• SizeFeet&lt;/b&gt; : int &lt;i&gt;[20 / 40 ft]&lt;/i&gt;&lt;br/&gt;&lt;b&gt;• MaxWeightKg&lt;/b&gt; : decimal&lt;br/&gt;&lt;b&gt;• TareWeightKg&lt;/b&gt; : decimal&lt;br/&gt;&lt;b&gt;• Owner&lt;/b&gt; : varchar(100)&lt;br/&gt;&lt;b&gt;• Condition&lt;/b&gt; : varchar(50)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#27ae60;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="420" width="240" height="230" as="geometry" />
+        </mxCell>
+
+        <!-- 6. CONTAINER_MOVEMENT (EIR) -->
+        <mxCell id="e_movement" value="&lt;div style=&quot;text-align: center; font-size: 14px; font-weight: bold; background-color: #d35400; color: #ffffff; padding: 6px; margin: -10px -10px 8px -10px; border-radius: 4px 4px 0 0;&quot;&gt;CONTAINER_MOVEMENT (EIR)&lt;/div&gt;&lt;b&gt;🔑 Id&lt;/b&gt; : uuid [PK]&lt;br/&gt;&lt;b&gt;🔗 ContainerId&lt;/b&gt; : uuid [FK]&lt;br/&gt;&lt;b&gt;🔗 LineOperatorId&lt;/b&gt; : uuid [FK]&lt;br/&gt;&lt;b&gt;🔗 YardSlotId&lt;/b&gt; : uuid [FK null]&lt;br/&gt;&lt;b&gt;🔗 DeliveryOrderId&lt;/b&gt; : uuid [FK null]&lt;br/&gt;&lt;b&gt;• Classification&lt;/b&gt; : varchar(50)&lt;br/&gt;&lt;b&gt;• Status&lt;/b&gt; : varchar(30) &lt;i&gt;[InYard/GateOut]&lt;/i&gt;&lt;br/&gt;&lt;b&gt;• GateInAt&lt;/b&gt; : timestamptz&lt;br/&gt;&lt;b&gt;• GateOutAt&lt;/b&gt; : timestamptz nullable&lt;br/&gt;&lt;b&gt;• VehicleIn / DriverIn&lt;/b&gt; : varchar&lt;br/&gt;&lt;b&gt;• VehicleOut / DriverOut&lt;/b&gt; : varchar" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d35400;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="420" width="280" height="250" as="geometry" />
+        </mxCell>
+
+        <!-- 7. LINE_OPERATOR -->
+        <mxCell id="e_lineop" value="&lt;div style=&quot;text-align: center; font-size: 14px; font-weight: bold; background-color: #8e44ad; color: #ffffff; padding: 6px; margin: -10px -10px 8px -10px; border-radius: 4px 4px 0 0;&quot;&gt;LINE_OPERATOR&lt;/div&gt;&lt;b&gt;🔑 Id&lt;/b&gt; : uuid [PK]&lt;br/&gt;&lt;b&gt;• Code&lt;/b&gt; : varchar(20) &lt;i&gt;[MSK, CMA, ...]&lt;/i&gt;&lt;br/&gt;&lt;b&gt;• Name&lt;/b&gt; : varchar(200)&lt;br/&gt;&lt;b&gt;• Country&lt;/b&gt; : varchar(100)&lt;br/&gt;&lt;b&gt;• IsActive&lt;/b&gt; : boolean" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8e44ad;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="840" y="420" width="230" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- 8. CUSTOMER -->
+        <mxCell id="e_cust" value="&lt;div style=&quot;text-align: center; font-size: 14px; font-weight: bold; background-color: #c0392b; color: #ffffff; padding: 6px; margin: -10px -10px 8px -10px; border-radius: 4px 4px 0 0;&quot;&gt;CUSTOMER&lt;/div&gt;&lt;b&gt;🔑 Id&lt;/b&gt; : uuid [PK]&lt;br/&gt;&lt;b&gt;• TaxCode&lt;/b&gt; : varchar(50)&lt;br/&gt;&lt;b&gt;• Name&lt;/b&gt; : varchar(200)&lt;br/&gt;&lt;b&gt;• Email&lt;/b&gt; : varchar(100)&lt;br/&gt;&lt;b&gt;• Phone&lt;/b&gt; : varchar(50)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c0392b;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="420" width="220" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- 9. DELIVERY_ORDER -->
+        <mxCell id="e_do" value="&lt;div style=&quot;text-align: center; font-size: 14px; font-weight: bold; background-color: #c0392b; color: #ffffff; padding: 6px; margin: -10px -10px 8px -10px; border-radius: 4px 4px 0 0;&quot;&gt;DELIVERY_ORDER&lt;/div&gt;&lt;b&gt;🔑 Id&lt;/b&gt; : uuid [PK]&lt;br/&gt;&lt;b&gt;• OrderNumber&lt;/b&gt; : varchar(50)&lt;br/&gt;&lt;b&gt;🔗 CustomerId&lt;/b&gt; : uuid [FK]&lt;br/&gt;&lt;b&gt;🔗 LineOperatorId&lt;/b&gt; : uuid [FK]&lt;br/&gt;&lt;b&gt;• ExpiryDate&lt;/b&gt; : timestamptz&lt;br/&gt;&lt;b&gt;• VesselVoyage&lt;/b&gt; : varchar(100)&lt;br/&gt;&lt;b&gt;• IsClosed&lt;/b&gt; : boolean" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c0392b;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="960" y="680" width="250" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- 10. DELIVERY_ORDER_LINE -->
+        <mxCell id="e_doline" value="&lt;div style=&quot;text-align: center; font-size: 14px; font-weight: bold; background-color: #c0392b; color: #ffffff; padding: 6px; margin: -10px -10px 8px -10px; border-radius: 4px 4px 0 0;&quot;&gt;DELIVERY_ORDER_LINE&lt;/div&gt;&lt;b&gt;🔑 Id&lt;/b&gt; : uuid [PK]&lt;br/&gt;&lt;b&gt;🔗 DeliveryOrderId&lt;/b&gt; : uuid [FK]&lt;br/&gt;&lt;b&gt;🔗 ContainerTypeId&lt;/b&gt; : uuid [FK]&lt;br/&gt;&lt;b&gt;• RequestedQty&lt;/b&gt; : int&lt;br/&gt;&lt;b&gt;• DeliveredQty&lt;/b&gt; : int" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c0392b;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="540" y="740" width="250" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- RELATIONSHIPS -->
+        <mxCell id="rel_1" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2b579a;fontStyle=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="e_depot" target="e_block">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_2" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2b579a;fontStyle=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="e_block" target="e_slot">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_3" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#27ae60;fontStyle=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="e_type" target="e_container">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_4" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#27ae60;fontStyle=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="e_container" target="e_movement">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_5" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#8e44ad;fontStyle=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="e_lineop" target="e_movement">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_6" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#c0392b;fontStyle=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="e_cust" target="e_do">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_7" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#c0392b;fontStyle=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="e_do" target="e_doline">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_8" value="0..1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#d35400;fontStyle=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="e_do" target="e_movement">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_9" value="0..1 : 1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2b579a;dashed=1;fontStyle=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="e_slot" target="e_movement">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="815" y="380" />
+              <mxPoint x="560" y="380" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- TAB 2: USE CASE -->
+  <diagram id="tab-usecase" name="2. UML Use Case Diagram">
+    <mxGraphModel dx="1422" dy="850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="uc_title" value="&lt;b style=&quot;font-size: 20px;&quot;&gt;UML Use Case Diagram - Container Depot System&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;color: #666;&quot;&gt;Roles: Gate Operator · Yard Planner · Depot Manager · AI Skill Agent&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="800" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- System Boundary -->
+        <mxCell id="sys_box" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;TechSpherex Depot Management System&lt;/b&gt;" style="swimlane;whiteSpace=wrap;html=1;startSize=36;fillColor=#f8f9fa;fontColor=#2c3e50;strokeColor=#bdc3c7;strokeWidth=2;rounded=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="90" width="920" height="740" as="geometry" />
+        </mxCell>
+
+        <!-- Actors -->
+        <mxCell id="act_gate" value="&lt;b&gt;Gate Operator&lt;/b&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="100" y="180" width="60" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="act_yard" value="&lt;b&gt;Yard Planner&lt;/b&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="100" y="420" width="60" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="act_mgr" value="&lt;b&gt;Depot Manager&lt;/b&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="100" y="640" width="60" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="act_ai" value="&lt;b&gt;AI Skill Agent&lt;br/&gt;(Assistant)&lt;/b&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1360" y="400" width="60" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Group 1: Gate -->
+        <mxCell id="uc1" value="Gate-In Container&lt;br/&gt;&lt;i style=&quot;font-size:11px; color:#27ae60;&quot;&gt;(Validate ISO 6346 Modulo-11)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2980b9;strokeWidth=2;shadow=1;" vertex="1" parent="sys_box">
+          <mxGeometry x="60" y="60" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc2" value="Gate-Out Container&lt;br/&gt;&lt;i style=&quot;font-size:11px; color:#c0392b;&quot;&gt;(Verify Delivery Order)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2980b9;strokeWidth=2;shadow=1;" vertex="1" parent="sys_box">
+          <mxGeometry x="60" y="160" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc3" value="Generate EIR Interchange Receipt" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2980b9;strokeWidth=2;shadow=1;" vertex="1" parent="sys_box">
+          <mxGeometry x="400" y="110" width="230" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Group 2: Yard -->
+        <mxCell id="uc4" value="View Live Yard Map&lt;br/&gt;&lt;i style=&quot;font-size:11px; color:#7f8c8d;&quot;&gt;(Bay x Row x Tier Occupancy)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#27ae60;strokeWidth=2;shadow=1;" vertex="1" parent="sys_box">
+          <mxGeometry x="60" y="280" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc5" value="Create / Resize Block Grid" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#27ae60;strokeWidth=2;shadow=1;" vertex="1" parent="sys_box">
+          <mxGeometry x="60" y="380" width="220" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc6" value="Assign &amp; Re-allocate Slot" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#27ae60;strokeWidth=2;shadow=1;" vertex="1" parent="sys_box">
+          <mxGeometry x="400" y="330" width="230" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Group 3: Manager & Orders -->
+        <mxCell id="uc7" value="Register Delivery Order (DO)&lt;br/&gt;&lt;i style=&quot;font-size:11px; color:#8e44ad;&quot;&gt;(Expiry &amp; Quantity Check)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d35400;strokeWidth=2;shadow=1;" vertex="1" parent="sys_box">
+          <mxGeometry x="60" y="490" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc8" value="Yard Aging Report&lt;br/&gt;&lt;i style=&quot;font-size:11px; color:#8e44ad;&quot;&gt;(0-10d vs &gt;=10d by Carrier)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d35400;strokeWidth=2;shadow=1;" vertex="1" parent="sys_box">
+          <mxGeometry x="60" y="590" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc9" value="Daily Gate In/Out Throughput" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d35400;strokeWidth=2;shadow=1;" vertex="1" parent="sys_box">
+          <mxGeometry x="380" y="590" width="230" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- AI UC -->
+        <mxCell id="uc10" value="&lt;b&gt;Natural Language Query&lt;/b&gt;&lt;br/&gt;&lt;i style=&quot;font-size:11px; color:#8e44ad;&quot;&gt;(&quot;Show MSC containers &gt;10 days&quot;)&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#8e44ad;strokeWidth=2;shadow=1;" vertex="1" parent="sys_box">
+          <mxGeometry x="660" y="320" width="230" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Connectors -->
+        <mxCell id="c1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;" edge="1" parent="1" source="act_gate" target="uc1" />
+        <mxCell id="c2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;" edge="1" parent="1" source="act_gate" target="uc2" />
+        <mxCell id="c3" value="&amp;laquo;include&amp;raquo;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;html=1;strokeWidth=1.5;" edge="1" parent="1" source="uc1" target="uc3" />
+        <mxCell id="c4" value="&amp;laquo;include&amp;raquo;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;html=1;strokeWidth=1.5;" edge="1" parent="1" source="uc2" target="uc3" />
+        
+        <mxCell id="c5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;" edge="1" parent="1" source="act_yard" target="uc4" />
+        <mxCell id="c6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;" edge="1" parent="1" source="act_yard" target="uc5" />
+        <mxCell id="c7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;" edge="1" parent="1" source="act_yard" target="uc6" />
+
+        <mxCell id="c8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;" edge="1" parent="1" source="act_mgr" target="uc7" />
+        <mxCell id="c9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;" edge="1" parent="1" source="act_mgr" target="uc8" />
+        <mxCell id="c10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.5;" edge="1" parent="1" source="act_mgr" target="uc9" />
+
+        <mxCell id="c11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#8e44ad;" edge="1" parent="1" source="act_ai" target="uc10" />
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- TAB 3: CLASS DIAGRAM -->
+  <diagram id="tab-class" name="3. UML Class Diagram">
+    <mxGraphModel dx="1422" dy="850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="cls_title" value="&lt;b style=&quot;font-size: 20px;&quot;&gt;UML Class Diagram - Clean Architecture &amp; Domain Model&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;color: #666;&quot;&gt;Domain Entities · Value Objects · CQRS Command Handlers · Business Rule Engine&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="800" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- BaseEntity -->
+        <mxCell id="c_base" value="&lt;div style=&quot;text-align: center; font-size: 13px; font-weight: bold; background-color: #34495e; color: #ffffff; padding: 5px; margin: -10px -10px 6px -10px;&quot;&gt;&amp;laquo;abstract&amp;raquo;&lt;br/&gt;BaseEntity&amp;lt;TId&amp;gt;&lt;/div&gt;+ Id : TId&lt;br/&gt;+ CreatedAt : DateTime&lt;br/&gt;+ LastModifiedAt : DateTime?&lt;hr/&gt;+ DomainEvents : IReadOnlyList&amp;lt;IDomainEvent&amp;gt;&lt;br/&gt;+ AddDomainEvent(IDomainEvent)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#34495e;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="100" width="260" height="140" as="geometry" />
+        </mxCell>
+
+        <!-- ITenantEntity -->
+        <mxCell id="c_tenant" value="&lt;div style=&quot;text-align: center; font-size: 13px; font-weight: bold; background-color: #8e44ad; color: #ffffff; padding: 5px; margin: -10px -10px 6px -10px;&quot;&gt;&amp;laquo;interface&amp;raquo;&lt;br/&gt;ITenantEntity&lt;/div&gt;+ TenantId : string { get; set; }" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8e44ad;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="100" width="220" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- IBusinessRule -->
+        <mxCell id="c_rule" value="&lt;div style=&quot;text-align: center; font-size: 13px; font-weight: bold; background-color: #d35400; color: #ffffff; padding: 5px; margin: -10px -10px 6px -10px;&quot;&gt;&amp;laquo;interface&amp;raquo;&lt;br/&gt;IBusinessRule&lt;/div&gt;+ Message : string { get; }&lt;br/&gt;+ Code : string { get; }&lt;hr/&gt;+ IsBroken() : bool" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d35400;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="100" width="240" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Container Class -->
+        <mxCell id="c_cntr" value="&lt;div style=&quot;text-align: center; font-size: 13px; font-weight: bold; background-color: #27ae60; color: #ffffff; padding: 5px; margin: -10px -10px 6px -10px;&quot;&gt;Container&lt;/div&gt;+ Number : ContainerNumber&lt;br/&gt;+ ContainerTypeId : Guid&lt;br/&gt;+ SizeFeet : int&lt;br/&gt;+ MaxWeightKg : decimal&lt;br/&gt;+ Condition : string&lt;hr/&gt;+ Create(...) : Result&amp;lt;Container&amp;gt;&lt;br/&gt;+ UpdateCondition(string condition)&lt;br/&gt;+ ChangeSize(int sizeFeet)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#27ae60;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="320" width="260" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- ContainerNumber Value Object -->
+        <mxCell id="c_vo" value="&lt;div style=&quot;text-align: center; font-size: 13px; font-weight: bold; background-color: #f39c12; color: #ffffff; padding: 5px; margin: -10px -10px 6px -10px;&quot;&gt;&amp;laquo;ValueObject&amp;raquo;&lt;br/&gt;ContainerNumber&lt;/div&gt;+ Value : string&lt;br/&gt;+ OwnerCode : string &lt;i&gt;(3 chars)&lt;/i&gt;&lt;br/&gt;+ CategoryIdentifier : char &lt;i&gt;('U','J','Z')&lt;/i&gt;&lt;br/&gt;+ SerialNumber : string &lt;i&gt;(6 digits)&lt;/i&gt;&lt;br/&gt;+ CheckDigit : int &lt;i&gt;(1 digit)&lt;/i&gt;&lt;hr/&gt;+ Create(string) : Result&amp;lt;ContainerNumber&amp;gt;&lt;br/&gt;+ ValidateModulo11(string) : bool" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#f39c12;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="320" width="280" height="190" as="geometry" />
+        </mxCell>
+
+        <!-- ContainerMovement Class -->
+        <mxCell id="c_mvmt" value="&lt;div style=&quot;text-align: center; font-size: 13px; font-weight: bold; background-color: #2980b9; color: #ffffff; padding: 5px; margin: -10px -10px 6px -10px;&quot;&gt;ContainerMovement (EIR)&lt;/div&gt;+ ContainerId : Guid&lt;br/&gt;+ LineOperatorId : Guid&lt;br/&gt;+ YardSlotId : Guid?&lt;br/&gt;+ Status : MovementStatus&lt;br/&gt;+ GateInAt : DateTime&lt;br/&gt;+ GateOutAt : DateTime?&lt;hr/&gt;+ GateIn(...) : ContainerMovement&lt;br/&gt;+ AssignSlot(Guid slotId)&lt;br/&gt;+ GateOut(Guid doId, string driver)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2980b9;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="320" width="280" height="190" as="geometry" />
+        </mxCell>
+
+        <!-- CQRS Handler Interface -->
+        <mxCell id="c_cmd" value="&lt;div style=&quot;text-align: center; font-size: 13px; font-weight: bold; background-color: #c0392b; color: #ffffff; padding: 5px; margin: -10px -10px 6px -10px;&quot;&gt;&amp;laquo;interface&amp;raquo;&lt;br/&gt;ICommandHandler&amp;lt;TCommand, TResult&amp;gt;&lt;/div&gt;+ Handle(TCommand command, CancellationToken ct) : Task&amp;lt;Result&amp;lt;TResult&amp;gt;&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c0392b;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="580" width="480" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- GateInCommandHandler -->
+        <mxCell id="c_handler" value="&lt;div style=&quot;text-align: center; font-size: 13px; font-weight: bold; background-color: #c0392b; color: #ffffff; padding: 5px; margin: -10px -10px 6px -10px;&quot;&gt;GateInContainerCommandHandler&lt;/div&gt;- _db : IAppDbContext&lt;br/&gt;- _ruleEngine : IRuleEngine&lt;br/&gt;- _cache : ICacheService&lt;hr/&gt;+ Handle(GateInContainerCommand command, CancellationToken ct)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c0392b;strokeWidth=2;align=left;verticalAlign=top;spacing=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="720" width="360" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Links -->
+        <mxCell id="l_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;" edge="1" parent="1" source="c_cntr" target="c_base">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;html=1;strokeWidth=2;strokeColor=#8e44ad;" edge="1" parent="1" source="c_cntr" target="c_tenant">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_3" value="composed of" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#f39c12;" edge="1" parent="1" source="c_cntr" target="c_vo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l_4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;html=1;strokeWidth=2;" edge="1" parent="1" source="c_handler" target="c_cmd">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

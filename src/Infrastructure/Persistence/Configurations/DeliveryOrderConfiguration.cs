@@ -4,8 +4,12 @@ using TechSpherex.CleanArchitecture.Domain.Entities;
 
 namespace TechSpherex.CleanArchitecture.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Cấu hình ánh xạ Entity Framework Core cho thực thể Lệnh giao nhận / Đơn giao hàng <see cref="DeliveryOrder"/>.
+/// </summary>
 public sealed class DeliveryOrderConfiguration : IEntityTypeConfiguration<DeliveryOrder>
 {
+    /// <inheritdoc/>
 #pragma warning disable S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<DeliveryOrder> builder)
     {
@@ -37,8 +41,12 @@ public sealed class DeliveryOrderConfiguration : IEntityTypeConfiguration<Delive
     }
 }
 
+/// <summary>
+/// Cấu hình ánh xạ Entity Framework Core cho thực thể Dòng chi tiết loại container trong Đơn giao hàng <see cref="DeliveryOrderLine"/>.
+/// </summary>
 public sealed class DeliveryOrderLineConfiguration : IEntityTypeConfiguration<DeliveryOrderLine>
 {
+    /// <inheritdoc/>
 #pragma warning disable S2325 // Configure must implement IEntityTypeConfiguration interface method
     public void Configure(EntityTypeBuilder<DeliveryOrderLine> builder)
     {

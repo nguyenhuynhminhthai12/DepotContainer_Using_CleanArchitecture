@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "projectName": "TechSpherex Container Depot Management System",
+  "version": "2.0.0",
+  "generatedAt": "2026-09-21T03:00:00.000Z",
+  "architecturePattern": "Clean Architecture (.NET 10 + PostgreSQL + CQRS + Multi-Tenancy)",
+  "diagrams": {
+    "erd": {
+      "title": "Depot Management Entity-Relationship Diagram (ERD)",
+      "description": "Database models and foreign key relationships for container yard operations",
+      "entities": [
+        {
+          "name": "Depot",
+          "tableName": "depots",
+          "isTenantEntity": true,
+          "attributes": [
+            { "name": "Id", "type": "uuid", "isPrimaryKey": true },
+            { "name": "Code", "type": "varchar(50)", "isNullable": false },
+            { "name": "Name", "type": "varchar(200)", "isNullable": false },
+            { "name": "Address", "type": "varchar(500)", "isNullable": true },
+            { "name": "TimeZone", "type": "varchar(50)", "isNullable": false },
+            { "name": "IsActive", "type": "boolean", "default": true },
+            { "name": "TenantId", "type": "varchar(64)", "isNullable": false }
+          ]
+        },
+        {
+          "name": "Block",
+          "tableName": "blocks",
+          "isTenantEntity": true,
+          "attributes": [
+            { "name": "Id", "type": "uuid", "isPrimaryKey": true },
+            { "name": "DepotId", "type": "uuid", "isForeignKey": true, "references": "Depot.Id" },
+            { "name": "Code", "type": "varchar(20)", "isNullable": false },
+            { "name": "Name", "type": "varchar(100)", "isNullable": false },
+            { "name": "IsVirtual", "type": "boolean", "default": false },
+            { "name": "MaxBay", "type": "int", "isNullable": true },
+            { "name": "MaxRow", "type": "int", "isNullable": true },
+            { "name": "MaxTier", "type": "int", "isNullable": true },
+            { "name": "DisplayOrder", "type": "int", "default": 0 }
+          ]
+        },
+        {
+          "name": "YardSlot",
+          "tableName": "yard_slots",
+          "isTenantEntity": true,
+          "attributes": [
+            { "name": "Id", "type": "uuid", "isPrimaryKey": true },
+            { "name": "BlockId", "type": "uuid", "isForeignKey": true, "references": "Block.Id" },
+            { "name": "Bay", "type": "int", "isNullable": false },
+            { "name": "Row", "type": "int", "isNullable": false },
+            { "name": "Tier", "type": "int", "isNullable": false },
+            { "name": "IsOccupied", "type": "boolean", "default": false },
+            { "name": "CurrentContainerId", "type": "uuid", "isForeignKey": true, "references": "Container.Id", "isNullable": true }
+          ],
+          "indexes": [
+            { "name": "IX_yard_slots_block_bay_row_tier", "unique": true, "columns": ["BlockId", "Bay", "Row", "Tier"] }
+          ]
+        },
+        {
+          "name": "Container",
+          "tableName": "containers",
+          "isTenantEntity": true,
+          "attributes": [
+            { "name": "Id", "type": "uuid", "isPrimaryKey": true },
+            { "name": "ContainerNumber", "type": "varchar(11)", "isNullable": false, "validation": "ISO 6346 Modulo-11" },
+            { "name": "ContainerTypeId", "type": "uuid", "isForeignKey": true, "references": "ContainerType.Id" },
+            { "name": "IsoCode", "type": "varchar(10)", "isNullable": true },
+            { "name": "SizeFeet", "type": "int", "allowedValues": [20, 40, 45] },
+            { "name": "MaxWeightKg", "type": "decimal(18,2)", "isNullable": false },
+            { "name": "TareWeightKg", "type": "decimal(18,2)", "isNullable": false },
+            { "name": "Owner", "type": "varchar(100)", "isNullable": true },
+            { "name": "Condition", "type": "varchar(50)", "isNullable": false }
+          ]
+        },
+        {
+          "name": "ContainerMovement",
+          "tableName": "container_movements",
+          "isTenantEntity": true,
+          "description": "Equipment Interchange Receipt (EIR) tracking",
+          "attributes": [
+            { "name": "Id", "type": "uuid", "isPrimaryKey": true },
+            { "name": "DepotId", "type": "uuid", "isForeignKey": true, "references": "Depot.Id" },
+            { "name": "ContainerId", "type": "uuid", "isForeignKey": true, "references": "Container.Id" },
+            { "name": "LineOperatorId", "type": "uuid", "isForeignKey": true, "references": "LineOperator.Id" },
+            { "name": "YardSlotId", "type": "uuid", "isForeignKey": true, "references": "YardSlot.Id", "isNullable": true },
+            { "name": "DeliveryOrderId", "type": "uuid", "isForeignKey": true, "references": "DeliveryOrder.Id", "isNullable": true },
+            { "name": "Status", "type": "varchar(30)", "allowedValues": ["InYard", "GateOut"] },
+            { "name": "Classification", "type": "varchar(50)", "isNullable": false },
+            { "name": "GateInAt", "type": "timestamptz", "isNullable": false },
+            { "name": "GateOutAt", "type": "timestamptz", "isNullable": true },
+            { "name": "VehicleIn", "type": "varchar(50)", "isNullable": true },
+            { "name": "DriverIn", "type": "varchar(100)", "isNullable": true },
+            { "name": "VehicleOut", "type": "varchar(50)", "isNullable": true },
+            { "name": "DriverOut", "type": "varchar(100)", "isNullable": true }
+          ]
+        },
+        {
+          "name": "LineOperator",
+          "tableName": "line_operators",
+          "isTenantEntity": true,
+          "attributes": [
+            { "name": "Id", "type": "uuid", "isPrimaryKey": true },
+            { "name": "Code", "type": "varchar(20)", "isNullable": false },
+            { "name": "Name", "type": "varchar(200)", "isNullable": false },
+            { "name": "Country", "type": "varchar(100)", "isNullable": true },
+            { "name": "IsActive", "type": "boolean", "default": true }
+          ]
+        },
+        {
+          "name": "Customer",
+          "tableName": "customers",
+          "isTenantEntity": true,
+          "attributes": [
+            { "name": "Id", "type": "uuid", "isPrimaryKey": true },
+            { "name": "TaxCode", "type": "varchar(50)", "isNullable": false },
+            { "name": "Name", "type": "varchar(200)", "isNullable": false },
+            { "name": "Email", "type": "varchar(100)", "isNullable": true },
+            { "name": "Phone", "type": "varchar(50)", "isNullable": true }
+          ]
+        },
+        {
+          "name": "DeliveryOrder",
+          "tableName": "delivery_orders",
+          "isTenantEntity": true,
+          "attributes": [
+            { "name": "Id", "type": "uuid", "isPrimaryKey": true },
+            { "name": "OrderNumber", "type": "varchar(50)", "isNullable": false },
+            { "name": "CustomerId", "type": "uuid", "isForeignKey": true, "references": "Customer.Id" },
+            { "name": "LineOperatorId", "type": "uuid", "isForeignKey": true, "references": "LineOperator.Id" },
+            { "name": "ExpiryDate", "type": "timestamptz", "isNullable": false },
+            { "name": "VesselVoyage", "type": "varchar(100)", "isNullable": true },
+            { "name": "IsClosed", "type": "boolean", "default": false }
+          ]
+        },
+        {
+          "name": "DeliveryOrderLine",
+          "tableName": "delivery_order_lines",
+          "isTenantEntity": true,
+          "attributes": [
+            { "name": "Id", "type": "uuid", "isPrimaryKey": true },
+            { "name": "DeliveryOrderId", "type": "uuid", "isForeignKey": true, "references": "DeliveryOrder.Id" },
+            { "name": "ContainerTypeId", "type": "uuid", "isForeignKey": true, "references": "ContainerType.Id" },
+            { "name": "RequestedQty", "type": "int", "isNullable": false },
+            { "name": "DeliveredQty", "type": "int", "default": 0 }
+          ]
+        },
+        {
+          "name": "ContainerType",
+          "tableName": "container_types",
+          "isTenantEntity": false,
+          "attributes": [
+            { "name": "Id", "type": "uuid", "isPrimaryKey": true },
+            { "name": "Code", "type": "varchar(20)", "isNullable": false },
+            { "name": "Name", "type": "varchar(100)", "isNullable": false },
+            { "name": "Family", "type": "varchar(50)", "isNullable": true }
+          ]
+        }
+      ]
+    },
+    "useCases": {
+      "actors": [
+        { "name": "Gate Operator", "role": "Gate check-in/out, EIR creation, equipment inspection" },
+        { "name": "Yard Planner", "role": "Yard space layout, container slot assignment, block resize" },
+        { "name": "Depot Manager", "role": "Commercial contracts, DO approval, aging & throughput analytics" },
+        { "name": "AI Skill Agent", "role": "Natural language analytics assistant for depot queries" }
+      ],
+      "groups": [
+        {
+          "groupName": "Gate Operations",
+          "cases": [
+            { "id": "UC01", "name": "Gate-In Container with ISO 6346 Modulo-11 Validation" },
+            { "id": "UC02", "name": "Gate-Out Container with Delivery Order Verification" },
+            { "id": "UC03", "name": "Print & Issue Equipment Interchange Receipt (EIR)" }
+          ]
+        },
+        {
+          "groupName": "Yard & Space Management",
+          "cases": [
+            { "id": "UC04", "name": "View Live 2D/3D Yard Grid Map (Bay x Row x Tier)" },
+            { "id": "UC05", "name": "Create & Resize Depot Blocks" },
+            { "id": "UC06", "name": "Shift & Re-allocate Yard Container Slots" }
+          ]
+        },
+        {
+          "groupName": "Delivery Order & Commercial",
+          "cases": [
+            { "id": "UC07", "name": "Register Delivery Order (DO) with line items" },
+            { "id": "UC08", "name": "Validate Expiry Date & Remaining Quota Rule" }
+          ]
+        },
+        {
+          "groupName": "Reporting & AI Intelligence",
+          "cases": [
+            { "id": "UC09", "name": "Generate Yard Aging Report (0-10d vs >=10d by Carrier)" },
+            { "id": "UC10", "name": "Daily Gate-In / Gate-Out Throughput Summary" },
+            { "id": "UC11", "name": "Natural Language Query Depot Assistant (Skill Agents)" }
+          ]
+        }
+      ]
+    }
+  }
+}
